@@ -37,6 +37,7 @@ $ zabbix-autodiscovery apply -i inventory.csv --dry-run
 - **Review before change.** `scan` writes a CSV you can edit in Excel. `apply --dry-run` shows exactly what would be created. `check` validates everything without touching Zabbix.
 - **Safe on an existing Zabbix.** Hosts already monitored (same IP or DNS) are skipped. Existing macros, groups, users and dashboards are never modified. Everything zabbix-autodiscovery creates is prefixed `AutoDiscovery -` or tagged `origin=autodiscovery`.
 - **Servers without a Zabbix agent** get a template that raises a *"Zabbix agent missing"* problem. `agent-sync` switches them to agent templates once the agent is installed.
+- **SSL certificates and domain expiration** (RDAP), with alerts and a dashboard sorted by days left. The scan also identifies web servers (IIS, nginx, Apache…) and their certificates.
 - **Multiple sites**, each with a name (becomes a `site` tag and a `Sites/<name>` group) and an optional Zabbix proxy.
 - **Dashboards per device type**: native Zabbix dashboards (no Grafana needed) and/or Grafana dashboards. Both are built from your own host group names.
 - Zabbix **6.0 → 8.0**. Runs on Linux, macOS and Windows (Python 3.10+).
@@ -76,6 +77,7 @@ Without installing anything on Windows: `.\zabbix-autodiscovery.ps1 init` (needs
 | `zabbix-autodiscovery apply -i FILE [--dry-run]` | yes | Creates rows with `action=add`. Skips anything already monitored |
 | `zabbix-autodiscovery setup [--native-discovery] [--no-dashboards]` | yes | Host groups, `{$SNMP_COMMUNITY}` (only if missing), agent-missing template, Zabbix dashboards, optional Grafana read-only user, optional continuous discovery |
 | `zabbix-autodiscovery agent-sync [--dry-run]` | yes | Moves `agent=missing` hosts to agent templates when their agent answers |
+| `zabbix-autodiscovery web [--dry-run] [-i FILE]` | yes | SSL certificate and domain expiration monitoring |
 | `zabbix-autodiscovery grafana-dashboards -o DIR` | no | Writes Grafana dashboard JSON files from your config |
 
 ## The inventory CSV
@@ -141,6 +143,31 @@ Every host gets the tag `site=<name>` and also joins `Sites/<name>`, so you can 
 
 Servers detected without an agent are created with the tag `agent=missing` and the template **AutoDiscovery - Zabbix agent missing**. The Zabbix server checks port 10050 every 5 minutes. The trigger *"Zabbix agent missing on {HOST.NAME}"* fires only while the host answers ping, so a host that is down does not also raise this alert. Once the agent is installed the problem resolves by itself. Then run `zabbix-autodiscovery agent-sync` to link the agent templates. To get notified, create a trigger action with the condition *tag agent = missing*.
 
+## SSL certificates and domain expiration
+
+`zabbix-autodiscovery web` monitors the sites and domains listed in the `web` section of the config:
+
+```yaml
+web:
+  certificates:
+    group: Web/Certificates
+    agent2_host: Zabbix server       # existing host whose Zabbix agent 2 reads the certificates
+    warn_days: 30
+    high_days: 7
+    sites: [https://www.example.com/, mail.example.com:443]
+  domains:
+    group: Web/Domains
+    warn_days: 30
+    high_days: 7
+    list: [example.com, example.com.br]
+```
+
+- **Certificates:** one host per site, with the template *AutoDiscovery - SSL certificate*. It tracks the days until expiration, the validation result (invalid, expired, wrong name), the issuer and the SANs. The check runs on a **Zabbix agent 2** (WebCertificate plugin): the classic agent answers "Unsupported item key". Point `agent2_host` at a host with agent 2, for example the Zabbix server itself.
+- **Domains:** one host per domain, with the template *AutoDiscovery - Domain expiration*. The Zabbix server queries **RDAP**, the official successor of WHOIS, every 12 hours, directly at each TLD's registry (registro.br, Verisign…), found through IANA's bootstrap list. No scripts are needed, only internet access from the Zabbix server or proxy.
+- **Alerts:** warning below `warn_days`, high below `high_days`, plus a problem when a check keeps failing.
+- **Dashboard:** *AutoDiscovery - Certificates and domains* lists everything sorted by days left.
+- **Discovered certificates:** `scan` also records each HTTP(S) port's server (IIS, nginx, Apache…) and certificate (`web_servers`, `cert_*` columns). `web -i inventory.csv` adds the publicly trusted ones; self-signed certificates (printers, iDRAC…) are skipped.
+
 ## Dashboards
 
 `setup` creates one **native Zabbix dashboard** per device type found in your rules: overview, switches, routers, firewalls, access points, printers, servers, UPS, storage and server hardware. They contain problems filtered by the type's host groups, a honeycomb of ICMP availability and metrics (Zabbix 7.0+), and the hosts with the highest ICMP latency. No Grafana is required.
@@ -164,7 +191,7 @@ Grafana panels select items by regex, because every vendor template names items 
 | Situation | Behavior |
 |---|---|
 | Host already monitored (same IP or DNS) | skipped, never changed |
-| Technical name already used by another host | created as `name-IP` with a warning |
+| Name already used by another host (same device on another IP?) | skipped as a possible duplicate (`--allow-duplicate-names` creates it as `name-IP`) |
 | Global `{$SNMP_COMMUNITY}` already exists | kept; the community goes to the new host as a host macro |
 | Groups with the same names | reused |
 | Template, dashboard, role, user with zabbix-autodiscovery's names | created only if missing |

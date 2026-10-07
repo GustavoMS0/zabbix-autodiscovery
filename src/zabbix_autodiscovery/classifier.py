@@ -21,7 +21,7 @@ VENDORS = {
     "30065": "Arista", "41112": "Ubiquiti", "47196": "Aruba",
 }
 
-CONDITIONS = {"sysobjectid_prefix", "sysdescr_regex", "agent_uname_regex",
+CONDITIONS = {"sysobjectid_prefix", "sysdescr_regex", "agent_uname_regex", "web_server_regex",
               "ports_any", "ports_all", "ports_none", "snmp", "agent", "alive"}
 
 # Factory-default sysName values that do not identify the device
@@ -59,6 +59,8 @@ def _condition_matches(cond, dev):
     if "sysdescr_regex" in cond and not re.search(cond["sysdescr_regex"], dev.sysdescr, re.I):
         return False
     if "agent_uname_regex" in cond and not re.search(cond["agent_uname_regex"], dev.agent_uname, re.I):
+        return False
+    if "web_server_regex" in cond and not re.search(cond["web_server_regex"], web_servers(dev), re.I):
         return False
     if "ports_any" in cond and not ports & set(as_list(cond["ports_any"])):
         return False
@@ -137,6 +139,22 @@ def host_name(dev, category):
     return fallback, (f"{clean_name(hint)} ({dev.ip})" if hint else ""), "ip"
 
 
+def web_servers(dev):
+    """'443=nginx/1.24; 80=Microsoft-IIS/10.0' (ports without a Server header show as '?')."""
+    return "; ".join(f"{w['port']}={w['server'] or '?'}" for w in dev.web)
+
+
+def certificate_columns(dev):
+    """Inventory columns for the certificate that expires first among the device's TLS ports."""
+    certs = sorted((w for w in dev.web if w.get("cert")), key=lambda w: w["cert"]["not_after"])
+    if not certs:
+        return {"cert_names": "", "cert_expires": "", "cert_issuer": "", "cert_self_signed": ""}
+    cert = certs[0]["cert"]
+    names = cert["names"] or ([cert["cn"]] if cert["cn"] else [])
+    return {"cert_names": ",".join(names[:5]), "cert_expires": cert["not_after"],
+            "cert_issuer": cert["issuer"], "cert_self_signed": "yes" if cert["self_signed"] else "no"}
+
+
 def format_tags(tags):
     return ",".join(f"{k}={v}" for k, v in (tags or {}).items())
 
@@ -159,6 +177,8 @@ def classify(dev, cfg):
         "system_hostname": dev.system_hostname,
         "agent_uname": dev.agent_uname[:200],
         "netbios": dev.netbios,
+        "web_servers": web_servers(dev),
+        **certificate_columns(dev),
     }
     rule = next((r for r in cfg.get("rules", []) if rule_matches(r, dev)), None)
     if rule is None:

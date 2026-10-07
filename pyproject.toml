@@ -25,6 +25,7 @@ dependencies = [
   "pysnmp>=7.1,<8",
   "PyYAML>=6.0",
   "requests>=2.31",
+  "cryptography>=42",
 ]
 
 [project.optional-dependencies]

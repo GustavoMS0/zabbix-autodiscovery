@@ -63,12 +63,32 @@ native_discovery:
   name: AutoDiscovery - Continuous discovery
   delay: 1h
 
+# SSL certificate and domain expiration monitoring ("zabbix-autodiscovery web").
+web:
+  certificates:
+    group: Web/Certificates
+    agent2_host: Zabbix server        # existing host whose Zabbix AGENT 2 reads the certificates
+    name_format: "SSL certificate: {host}"
+    warn_days: 30                     # warning below this many days
+    high_days: 7                      # high severity below this many days
+    sites:
+      - https://www.example.com/
+      - mail.example.com:443
+  domains:
+    group: Web/Domains
+    name_format: "Domain: {domain}"
+    warn_days: 30
+    high_days: 7
+    list:
+      - example.com
+      - example.com.br
+
 # ---------------------------------------------------------------------------
 # Classification rules: evaluated in order, the first match wins.
 # No rule uses host names: classification depends only on what the device answers
 # (SNMP, Zabbix agent and open ports), so it works with any naming convention.
 #   match:     a mapping (all conditions must match) or a list of mappings (any of them)
-#   conditions: sysobjectid_prefix, sysdescr_regex, agent_uname_regex,
+#   conditions: sysobjectid_prefix, sysdescr_regex, agent_uname_regex, web_server_regex,
 #               ports_any, ports_all, ports_none, snmp, agent, alive
 #   templates: list; each item may hold alternatives separated by "|" (first existing one is used)
 #   interface: snmp | agent | icmp
@@ -346,10 +366,12 @@ rules:
     interface: agent
     tags: {agent: missing}
     action: add
-  - name: windows-server-no-agent     # SMB + WinRM or SQL Server: typical server
+  - name: windows-server-no-agent     # SMB + WinRM, SQL Server or IIS: typical server
     category: server-windows
     group: Servers/Windows
-    match: {snmp: false, agent: false, ports_all: [445], ports_any: [5985, 1433]}
+    match:
+      - {snmp: false, agent: false, ports_all: [445], ports_any: [5985, 1433]}
+      - {snmp: false, agent: false, ports_all: [445], web_server_regex: 'Microsoft-IIS'}
     templates: ["ICMP Ping", "AutoDiscovery - Zabbix agent missing"]
     interface: agent
     tags: {agent: missing}

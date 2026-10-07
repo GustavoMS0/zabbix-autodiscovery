@@ -13,4 +13,7 @@ First public version.
 - `agent-sync`: moves servers to agent templates once the agent is installed.
 - Multiple sites with a `site` tag, a site host group and a per-network Zabbix proxy.
 - `grafana-dashboards` and an optional Docker deployment (Zabbix 8.0, PostgreSQL, Grafana 12).
+- `web`: SSL certificate monitoring (Zabbix agent 2) and domain expiration through RDAP at each TLD's registry, with alerts and a dashboard sorted by days left.
+- The scan identifies web servers (HTTP `Server` header) and TLS certificates; new `web_server_regex` rule condition (e.g. IIS → Windows server).
+- `apply` skips hosts whose name already exists with another IP (possible duplicate) unless `--allow-duplicate-names`.
 - Supports Zabbix 6.0 to 8.0.

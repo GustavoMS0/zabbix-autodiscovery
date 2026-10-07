@@ -9,6 +9,7 @@ Typical flow:
   zabbix-autodiscovery setup                               # groups, agent-missing template, dashboards
   zabbix-autodiscovery apply -i inventory.csv
   zabbix-autodiscovery agent-sync                          # switch servers that got an agent to agent templates
+  zabbix-autodiscovery web [--dry-run]                     # SSL certificate and domain expiration monitoring
   zabbix-autodiscovery grafana-dashboards -o ./dashboards  # optional: Grafana JSON per device type
 """
 import argparse
@@ -20,14 +21,15 @@ from collections import Counter
 from importlib import resources
 from pathlib import Path
 
-from . import __version__, classifier, dashboards, provision, scanner
+from . import __version__, classifier, dashboards, provision, scanner, web
 from .config import ConfigError, credentials_by_name, default_community, in_networks, load_config, site_for
 from .zabbix_api import ZabbixAPI, ZabbixError
 
 CSV_FIELDS = ["action", "site", "category", "hostname", "visible_name", "name_source", "ip", "group",
               "templates", "interface", "tags", "rule", "vendor", "sysname", "netbios", "dns",
               "dns_confirmed", "agent_hostname", "system_hostname", "sysobjectid", "sysdescr",
-              "snmp_cred", "ports", "ping", "agent_uname"]
+              "snmp_cred", "ports", "web_servers", "cert_names", "cert_expires", "cert_issuer",
+              "cert_self_signed", "ping", "agent_uname"]
 SNMP_AUTH = {"MD5": 0, "SHA": 1, "SHA256": 3, "SHA512": 5}
 SNMP_PRIV = {"DES": 0, "AES": 1, "AES256": 3}
 ENV_TEMPLATE = """# Local secrets for zabbix-autodiscovery (never commit this file)
@@ -194,7 +196,13 @@ def cmd_apply(cfg, args):
 
         name = row["hostname"].strip() or f"{row['category']}-{ip}"
         if name.lower() in existing_names or name.lower() in existing_visible:
-            print(f"  ! {label}name '{name}' already used; creating as '{name}-{ip}' (check for duplicates)")
+            # Same name, different IP: most likely the same device monitored through another address
+            if not args.allow_duplicate_names:
+                print(f"  ~ {label}'{name}' already exists in Zabbix with another IP: possible duplicate, "
+                      "skipped (use --allow-duplicate-names to create it as name-IP)")
+                stats["possible duplicate"] += 1
+                continue
+            print(f"  ! {label}name '{name}' already used; creating as '{name}-{ip}'")
             name = f"{name}-{ip}"
         visible = (row.get("visible_name") or "").strip()
         if visible and visible.lower() in existing_visible | existing_names:
@@ -384,6 +392,14 @@ def cmd_check(cfg, args):
     if overlapping:
         print(f"- existing discovery rules covering these networks: {', '.join(overlapping)} "
               "(avoid also enabling --native-discovery on the same ranges)")
+    webcfg = cfg.get("web") or {}
+    sites = (webcfg.get("certificates") or {}).get("sites") or []
+    domains = (webcfg.get("domains") or {}).get("list") or []
+    if sites or domains:
+        agent2 = (webcfg.get("certificates") or {}).get("agent2_host", "Zabbix server")
+        found = api.call("host.get", {"output": ["host"], "filter": {"host": agent2}}) if sites else True
+        print(f"- web: {len(sites)} certificate(s), {len(domains)} domain(s) configured"
+              + ("" if found else f"; ! agent2_host '{agent2}' not found"))
     names = {d["name"] for d in api.call("dashboard.get", {"output": ["name"]})}
     ours = [s for s in dashboards.SPECS if dashboards.groups_for(s, cfg)]
     exist = sum(1 for s in ours if f"{dashboards.PREFIX}{s['title']}" in names)
@@ -397,6 +413,16 @@ def cmd_setup(cfg, args):
     api = connect(cfg)
     provision.setup(api, cfg, native_discovery=args.native_discovery, force=args.force,
                     zabbix_dashboards=not args.no_dashboards)
+
+
+def cmd_web(cfg, args):
+    if not (cfg.get("web") or {}).get("certificates", {}).get("sites") and \
+            not (cfg.get("web") or {}).get("domains", {}).get("list") and not args.input:
+        raise SystemExit("Nothing to do: add web.certificates.sites and/or web.domains.list to the config")
+    extra = web.sites_from_inventory(read_inventory(args.input)) if args.input else []
+    api = connect(cfg)
+    stats = web.provision(api, cfg, extra_sites=extra, dry_run=args.dry_run)
+    print("\nSummary:", ", ".join(f"{k}={v}" for k, v in stats.items()))
 
 
 def cmd_grafana_dashboards(cfg, args):
@@ -431,6 +457,8 @@ def build_parser():
     p = sub.add_parser("apply", help="create the CSV rows with action=add in Zabbix")
     p.add_argument("-i", "--input", default="inventory.csv")
     p.add_argument("--dry-run", action="store_true", help="only show what would be done")
+    p.add_argument("--allow-duplicate-names", action="store_true",
+                   help="create hosts whose name already exists in Zabbix (as name-IP) instead of skipping them")
     p = sub.add_parser("setup", help="host groups, SNMP macro, agent-missing template, dashboards, Grafana user")
     p.add_argument("--native-discovery", action="store_true",
                    help="also create a Zabbix discovery rule + actions from rules with sysobjectid_prefix")
@@ -439,6 +467,9 @@ def build_parser():
     p.add_argument("--no-dashboards", action="store_true", help="do not create native Zabbix dashboards")
     p = sub.add_parser("agent-sync", help="link agent templates to servers that now have an agent")
     p.add_argument("--dry-run", action="store_true")
+    p = sub.add_parser("web", help="monitor SSL certificates and domain expiration (web section of the config)")
+    p.add_argument("--dry-run", action="store_true")
+    p.add_argument("-i", "--input", help="also add the publicly trusted certificates found in this inventory CSV")
     p = sub.add_parser("grafana-dashboards", help="write Grafana dashboard JSON files (one per device type)")
     p.add_argument("-o", "--output", default="grafana-dashboards")
     p.add_argument("--datasource-uid", default="zabbix",
@@ -455,7 +486,7 @@ def main(argv=None):
     except ConfigError as exc:
         raise SystemExit(f"Config error: {exc}")
     commands = {"check": cmd_check, "scan": cmd_scan, "apply": cmd_apply, "setup": cmd_setup,
-                "agent-sync": cmd_agent_sync, "grafana-dashboards": cmd_grafana_dashboards}
+                "agent-sync": cmd_agent_sync, "web": cmd_web, "grafana-dashboards": cmd_grafana_dashboards}
     try:
         commands[args.cmd](cfg, args)
     except ZabbixError as exc:

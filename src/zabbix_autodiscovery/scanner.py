@@ -1,8 +1,11 @@
-"""Network scanner: ping, TCP ports, SNMP, Zabbix agent, NetBIOS and forward-confirmed reverse DNS."""
+"""Network scanner: ping, TCP ports, SNMP, Zabbix agent, NetBIOS, forward-confirmed reverse DNS
+and web services (HTTP server header and TLS certificate)."""
 import asyncio
 import ipaddress
 import platform
+import re
 import socket
+import ssl
 import struct
 from dataclasses import dataclass, field
 
@@ -11,6 +14,8 @@ SYS_OBJECTID = "1.3.6.1.2.1.1.2.0"
 SYS_NAME = "1.3.6.1.2.1.1.5.0"
 AGENT_PORT = 10050
 WINDOWS = platform.system() == "Windows"
+# port -> uses TLS. Only ports that are also in scan.ports get probed.
+WEB_PORTS = {80: False, 443: True, 8080: False, 8443: True}
 
 
 @dataclass
@@ -28,6 +33,7 @@ class Device:
     system_hostname: str = ""
     netbios: str = ""
     dns_confirmed: bool = False
+    web: list = field(default_factory=list)       # [{port, tls, server, cert}]
 
     @property
     def snmp(self):
@@ -269,6 +275,71 @@ async def agent_get(ip, key, timeout):
     return "" if value.startswith("ZBX_NOTSUPPORTED") else value
 
 
+def parse_certificate(der):
+    """Subject CN, SANs, issuer, expiry and self-signed flag of a DER certificate."""
+    if not der:
+        return None
+    try:
+        from cryptography import x509
+        from cryptography.x509.oid import ExtensionOID, NameOID
+    except ImportError:
+        return None
+    try:
+        cert = x509.load_der_x509_certificate(der)
+    except ValueError:
+        return None
+
+    def first(name, oid):
+        attrs = name.get_attributes_for_oid(oid)
+        return str(attrs[0].value) if attrs else ""
+
+    try:
+        sans = cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME).value
+        names = sans.get_values_for_type(x509.DNSName)
+    except x509.ExtensionNotFound:
+        names = []
+    not_after = getattr(cert, "not_valid_after_utc", None) or cert.not_valid_after
+    return {
+        "cn": first(cert.subject, NameOID.COMMON_NAME),
+        "names": names,
+        "issuer": first(cert.issuer, NameOID.ORGANIZATION_NAME) or first(cert.issuer, NameOID.COMMON_NAME),
+        "not_after": not_after.strftime("%Y-%m-%d"),
+        "self_signed": cert.issuer == cert.subject,
+    }
+
+
+async def http_probe(ip, port, tls, timeout):
+    """HEAD / on a web port: returns {port, tls, server, cert} or None."""
+    ctx = None
+    if tls:
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE          # we inventory certificates, we do not trust them
+    try:
+        reader, writer = await asyncio.wait_for(asyncio.open_connection(ip, port, ssl=ctx), timeout)
+    except Exception:
+        return None
+    result = {"port": port, "tls": tls, "server": "", "cert": None}
+    try:
+        if tls:
+            ssl_obj = writer.get_extra_info("ssl_object")
+            result["cert"] = parse_certificate(ssl_obj.getpeercert(binary_form=True) if ssl_obj else None)
+        writer.write(f"HEAD / HTTP/1.1\r\nHost: {ip}\r\nUser-Agent: zabbix-autodiscovery\r\n"
+                     "Connection: close\r\n\r\n".encode())
+        await writer.drain()
+        head = (await asyncio.wait_for(reader.read(4096), timeout)).decode("latin-1", "replace")
+        match = re.search(r"(?im)^server:[ \t]*(.+?)\s*$", head)
+        if match:
+            result["server"] = match.group(1)[:80]
+        elif not head.startswith("HTTP/"):
+            return None if not result["cert"] else result      # not HTTP
+    except Exception:
+        pass
+    finally:
+        writer.close()
+    return result
+
+
 async def reverse_dns(ip):
     """Return (name, confirmed). Confirmed = the name resolves back to the same IP,
     which discards stale PTR records."""
@@ -331,6 +402,9 @@ async def scan_host(ip, ctx):
             dev.agent_hostname = await agent_get(ip, "agent.hostname", timeout)
             dev.agent_uname = await agent_get(ip, "system.uname", timeout)
             dev.system_hostname = await agent_get(ip, "system.hostname", timeout)
+        if ctx.get("web", True):
+            probes = [http_probe(ip, p, WEB_PORTS[p], timeout) for p in dev.ports if p in WEB_PORTS]
+            dev.web = [w for w in await asyncio.gather(*probes) if w]
         if dev.responded and not dev.agent and ctx.get("netbios", True):
             dev.netbios = await netbios_name(ip, timeout)
         if dev.responded and ctx["reverse_dns"]:
@@ -348,6 +422,7 @@ async def scan(scan_cfg, credentials, progress=None):
         "ports": ports,
         "ping": scan_cfg.get("ping", True),
         "reverse_dns": scan_cfg.get("reverse_dns", True),
+        "web": scan_cfg.get("web", True),
         "snmp": SnmpProber(credentials, float(scan_cfg.get("timeout", 1.5)),
                            int(scan_cfg.get("snmp_retries", 1))),
     }
@@ -387,3 +462,5 @@ def merge(dev, again):
         dev.agent_hostname, dev.agent_uname = again.agent_hostname, again.agent_uname
         dev.system_hostname = again.system_hostname
         dev.netbios = ""
+    known = {w["port"] for w in dev.web}
+    dev.web += [w for w in again.web if w["port"] not in known]

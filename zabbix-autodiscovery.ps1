@@ -15,10 +15,10 @@ if (-not $py) {
     uv python install 3.12
     $py = uv python find
 }
-if (-not (Test-Path (Join-Path $deps 'yaml'))) {
+if (-not (Test-Path (Join-Path $deps 'cryptography'))) {
     Write-Host 'Installing dependencies into .deps ...'
     $env:UV_LINK_MODE = 'copy'      # OneDrive/network folders do not support hard links
-    uv pip install --quiet --python $py --target $deps 'pysnmp>=7.1,<8' 'PyYAML>=6.0' 'requests>=2.31'
+    uv pip install --quiet --python $py --target $deps 'pysnmp>=7.1,<8' 'PyYAML>=6.0' 'requests>=2.31' 'cryptography>=42'
 }
 
 $env:PYTHONPATH = "$deps;$(Join-Path $here 'src')"
