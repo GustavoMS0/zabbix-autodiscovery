@@ -22,4 +22,5 @@ First public version.
 - `maps`: one Zabbix map per site with an icon per device type (built-in images or your own PNGs) and a dashboard with one page per site.
 - SNMP credentials are tried from the highest version down (v3 → v2c → v1).
 - `audit` and `organize`: report on and organize the hosts that already existed (type and site groups, tags), with the type inferred from their templates; `update-templates --all`.
+- `audit` also finds the same machine on several hosts (system.hostname), host IPs that disagree with DNS and agent `Hostname=` mismatches; `agent-sync` falls back to the data Zabbix collected when the agent only allows the Zabbix server.
 - Supports Zabbix 6.0 to 8.0.

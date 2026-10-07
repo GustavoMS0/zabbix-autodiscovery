@@ -66,3 +66,16 @@ def test_dry_run_changes_nothing(example_config):
     stats = organize.organize(api, example_config, dry_run=True, remove_groups=["Network"], log=lambda *_: None)
     assert stats["planned"] == 1
     assert {m for m, _ in api.calls} <= {"host.get"}
+
+
+def test_identity_issues_detect_wrong_ip_and_agent_hostname():
+    hosts = [_host("1", "SRV-APP", "10.0.0.31"), _host("2", "SRV-DB", "10.0.0.31"),
+             _host("3", "SRV-WEB", "10.0.0.7")]
+    values = {"1": {"system.hostname": "SRV-APP", "agent.hostname": "SRV-WEB"},
+              "2": {"system.hostname": "SRV-APP", "agent.hostname": "SRV-WEB"},
+              "3": {"system.hostname": "SRV-WEB", "agent.hostname": "SRV-WEB"}}
+    dns = {"SRV-APP": {"10.0.0.31"}, "SRV-DB": {"10.0.0.33"}, "SRV-WEB": {"10.0.0.7"}}
+    same, mismatched, dns_wrong = organize.identity_issues(hosts, values, lambda n: dns.get(n, set()))
+    assert [h["name"] for h in same["srv-app"]] == ["SRV-APP", "SRV-DB"]
+    assert [(h["name"], a) for h, a in mismatched] == [("SRV-APP", "SRV-WEB"), ("SRV-DB", "SRV-WEB")]
+    assert [(h["name"], ips, d) for h, ips, d in dns_wrong] == [("SRV-DB", ["10.0.0.31"], ["10.0.0.33"])]

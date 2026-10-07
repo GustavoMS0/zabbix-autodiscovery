@@ -291,9 +291,10 @@ def cmd_agent_sync(cfg, args):
     hosts = api.call("host.get", {
         "output": ["hostid", "host"],
         "tags": [{"tag": "agent", "value": "missing", "operator": 1}],
-        "selectInterfaces": ["interfaceid", "type", "ip", "main"],
+        "selectInterfaces": ["interfaceid", "type", "ip", "main", "available"],
         "selectParentTemplates": ["templateid", "host"],
         "selectTags": ["tag", "value"],
+        "selectItems": ["key_", "lastvalue"],
     })
     if not hosts:
         print("No hosts tagged agent=missing.")
@@ -306,11 +307,18 @@ def cmd_agent_sync(cfg, args):
         if not ip:
             continue
         uname = asyncio.run(scanner.agent_get(ip, "system.uname", timeout))
+        agent_hostname = asyncio.run(scanner.agent_get(ip, "agent.hostname", timeout)) if uname else ""
+        if not uname:
+            # the agent may only allow the Zabbix server (Server=): use what Zabbix already collected
+            zitems = {i["key_"]: i["lastvalue"] for i in h.get("items", [])}
+            agent_ok = any(i["type"] == "1" and i.get("available") == "1" for i in h["interfaces"])
+            uname = zitems.get("system.uname", "") if agent_ok else ""
+            agent_hostname = zitems.get("agent.hostname", "") if agent_ok else ""
         if not uname:
             pending.append(f"{h['host']} ({ip})")
             continue
         dev = scanner.Device(ip, alive=True, ports=[scanner.AGENT_PORT], agent_uname=uname,
-                             agent_hostname=asyncio.run(scanner.agent_get(ip, "agent.hostname", timeout)))
+                             agent_hostname=agent_hostname)
         row = classifier.classify(dev, cfg)
         if row["interface"] != "agent" or row["action"] == "ignore":
             print(f"  ? {h['host']} ({ip}): agent answers, but rule '{row['rule']}' is not a server rule")
@@ -336,11 +344,12 @@ def cmd_agent_sync(cfg, args):
                 update["host"] = dev.agent_hostname
                 update["name"] = h["host"]
         try:
-            api.call("host.update", {**update, "templates": [{"templateid": t} for t in current + new_ids]})
+            linked = dict.fromkeys(current + new_ids)          # keep order, no duplicates
+            api.call("host.update", {**update, "templates": [{"templateid": t} for t in linked]})
         except ZabbixError:
             # duplicate item key (e.g. ICMP already comes from an SNMP template): retry without it
             ids = [t for t in new_ids if t != tmpl_map.get("ICMP Ping")]
-            api.call("host.update", {**update, "templates": [{"templateid": t} for t in current + ids]})
+            api.call("host.update", {**update, "templates": [{"templateid": t} for t in dict.fromkeys(current + ids)]})
         print(f"  + {h['host']} ({ip}): agent detected, agent templates linked")
     if pending:
         print(f"\nStill without agent ({len(pending)}): " + ", ".join(pending))

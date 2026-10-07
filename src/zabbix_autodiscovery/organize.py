@@ -5,6 +5,8 @@
 - audit: read-only report of what organize would change plus common problems (duplicate IPs, agent
   templates without an agent, unsupported items, hosts outside the configured networks).
 """
+import re
+import socket
 from collections import Counter, defaultdict
 
 from .config import category_groups, site_for
@@ -66,10 +68,42 @@ def organize(api, cfg, dry_run=False, remove_groups=(), log=print):
     return stats
 
 
+def identity_issues(hosts, values, resolve=None):
+    """Same machine on several hosts, agent Hostname= mismatches and IPs that disagree with DNS.
+
+    values: {hostid: {item_key: lastvalue}} for system.hostname and agent.hostname.
+    resolve: callable(name) -> set of IPs (DNS A records); None skips the DNS check.
+    """
+    by_machine = defaultdict(list)
+    mismatched, dns_wrong = [], []
+    for h in hosts:
+        v = values.get(h["hostid"], {})
+        machine = (v.get("system.hostname") or "").strip().lower()
+        if machine:
+            by_machine[machine].append(h)
+        agent_name = (v.get("agent.hostname") or "").strip()
+        if agent_name and agent_name != h["host"]:
+            mismatched.append((h, agent_name))
+        ips = {i["ip"] for i in h["interfaces"] if i.get("ip") and i["ip"] != "127.0.0.1"}
+        if resolve and ips and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9-]{0,62}", h["host"]):
+            dns_ips = resolve(h["host"])
+            if dns_ips and not ips & dns_ips:
+                dns_wrong.append((h, sorted(ips), sorted(dns_ips)))
+    same = {m: hs for m, hs in by_machine.items() if len(hs) > 1}
+    return same, mismatched, dns_wrong
+
+
+def dns_lookup(name):
+    try:
+        return {info[4][0] for info in socket.getaddrinfo(name, None, socket.AF_INET)}
+    except OSError:
+        return set()
+
+
 def audit(api, cfg, log=print):
     networks = cfg["scan"]["networks"]
     hosts = api.call("host.get", {
-        "output": ["hostid", "name", "status"], "selectInterfaces": ["type", "ip", "available"],
+        "output": ["hostid", "host", "name", "status"], "selectInterfaces": ["type", "ip", "available"],
         "selectParentTemplates": ["name"], "selectHostGroups": ["name"], "selectTags": ["tag", "value"]})
     items = api.call("item.get", {"output": ["hostid", "state", "status"], "templated": False,
                                   "filter": {"state": 1, "status": 0}})
@@ -96,6 +130,32 @@ def audit(api, cfg, log=print):
     for ip, names in sorted(dups.items()):
         log(f"  {ip}: {', '.join(names)}")
     if not dups:
+        log("  none")
+
+    values = defaultdict(dict)
+    for i in api.call("item.get", {"output": ["hostid", "key_", "lastvalue"], "templated": False,
+                                   "filter": {"key_": ["system.hostname", "agent.hostname"]}}):
+        values[i["hostid"]][i["key_"]] = i["lastvalue"]
+    enabled = [h for h in hosts if h["status"] == "0"]
+    same, mismatched, dns_wrong = identity_issues(enabled, values, dns_lookup)
+
+    log("\n== Same machine monitored by more than one host (system.hostname) ==")
+    for machine, hs in sorted(same.items()):
+        log(f"  {machine}: " + ", ".join(f"{h['name']} ({next((i['ip'] for i in h['interfaces'] if i['ip']), '-')})"
+                                        for h in hs))
+    if not same:
+        log("  none")
+
+    log("\n== Host IP different from the DNS record of its name ==")
+    for h, ips, dns_ips in dns_wrong:
+        log(f"  {h['name']}: Zabbix uses {', '.join(ips)}, DNS says {', '.join(dns_ips)}")
+    if not dns_wrong:
+        log("  none (or names not resolvable)")
+
+    log("\n== Agent Hostname= different from the Zabbix host name (active checks go to the wrong host) ==")
+    for h, agent_name in mismatched:
+        log(f"  {h['name']}: agent reports Hostname={agent_name}")
+    if not mismatched:
         log("  none")
 
     log("\n== Agent templates on hosts whose agent is unavailable ==")
