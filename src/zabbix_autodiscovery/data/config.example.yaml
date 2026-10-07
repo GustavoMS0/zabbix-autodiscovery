@@ -28,7 +28,7 @@ scan:
     - 192.168.20.0/24
   exclude:                            # never scanned (e.g. the workstation DHCP pool)
     - 192.168.0.100-192.168.0.199
-  ports: [22, 23, 80, 88, 135, 139, 389, 443, 445, 515, 631, 902, 1433, 3306, 3389, 5432, 5985, 8080, 8291, 8443, 9100, 10050]
+  ports: [22, 23, 80, 88, 135, 139, 389, 443, 445, 515, 554, 631, 902, 1433, 3306, 3389, 5060, 5432, 5985, 8000, 8006, 8080, 8291, 8443, 9100, 10050, 37777]
   concurrency: 30
   timeout: 2.0                        # seconds per TCP/SNMP probe (the second pass uses twice this)
   snmp_retries: 1
@@ -182,7 +182,87 @@ rules:
     interface: icmp
     action: add
 
-  # --- UPS / storage / server hardware ---
+  # --- Security & CCTV ---
+  - name: cctv-hikvision
+    category: cctv
+    group: Security/CCTV
+    match:
+      - {sysobjectid_prefix: [1.3.6.1.4.1.39165]}
+      - {sysdescr_regex: 'hikvision|hikos'}
+      - {ports_all: [554], ports_any: [8000]}
+      - {web_server_regex: 'hikvision|app-webs'}
+    templates: ["Generic by SNMP|ICMP Ping"]
+    interface: snmp
+    action: add
+  - name: cctv-dahua-intelbras
+    category: cctv
+    group: Security/CCTV
+    match:
+      - {sysobjectid_prefix: [1.3.6.1.4.1.21280]}
+      - {sysdescr_regex: 'dahua|dh-ipc|dh-nvr|mhdx|nvd|intelbras.*(camer|nvr|dvr)'}
+      - {ports_all: [554], ports_any: [37777]}
+      - {web_server_regex: 'dahua|web server.*intelbras'}
+    templates: ["Generic by SNMP|ICMP Ping"]
+    interface: snmp
+    action: add
+  - name: cctv-axis
+    category: cctv
+    group: Security/CCTV
+    match:
+      - {sysobjectid_prefix: [1.3.6.1.4.1.368]}
+      - {sysdescr_regex: 'axis.*(camera|video|network camera)'}
+    templates: ["Generic by SNMP|ICMP Ping"]
+    interface: snmp
+    action: add
+  - name: cctv-generic
+    category: cctv
+    group: Security/CCTV
+    match:
+      - {ports_all: [554], ports_none: [135, 139, 445, 3389]}
+    templates: ["ICMP Ping"]
+    interface: icmp
+    action: review
+
+  # --- VoIP & Telephony ---
+  - name: voip-grandstream
+    category: voip
+    group: Telephony/VoIP
+    match:
+      - {sysobjectid_prefix: [1.3.6.1.4.1.20974]}
+      - {sysdescr_regex: 'grandstream'}
+      - {web_server_regex: 'grandstream'}
+    templates: ["Generic by SNMP|ICMP Ping"]
+    interface: snmp
+    action: add
+  - name: voip-yealink
+    category: voip
+    group: Telephony/VoIP
+    match:
+      - {sysobjectid_prefix: [1.3.6.1.4.1.35705]}
+      - {sysdescr_regex: 'yealink'}
+    templates: ["Generic by SNMP|ICMP Ping"]
+    interface: snmp
+    action: add
+  - name: voip-sip-generic
+    category: voip
+    group: Telephony/VoIP
+    match:
+      - {ports_all: [5060], ports_none: [135, 139, 445, 3389]}
+      - {web_server_regex: 'asterisk|freepbx|issabel'}
+    templates: ["ICMP Ping"]
+    interface: icmp
+    action: review
+
+  # --- PDU / UPS / storage / server hardware ---
+  - name: pdu-rack
+    category: pdu
+    group: Infrastructure/PDU
+    match:
+      - {sysobjectid_prefix: [1.3.6.1.4.1.318.1.1.12, 1.3.6.1.4.1.13742, 1.3.6.1.4.1.1718]} # APC Rack PDU, Raritan, Server Tech
+      - {sysdescr_regex: 'rack.*pdu|power distribution|raritan'}
+    templates: ["Generic by SNMP"]
+    interface: snmp
+    action: add
   - name: ups-apc
     category: ups
     group: Infrastructure/UPS
@@ -323,6 +403,16 @@ rules:
       - {sysobjectid_prefix: [1.3.6.1.4.1.6876]}
       - {sysdescr_regex: 'VMware ESXi'}
     templates: ["Generic by SNMP"]
+    interface: snmp
+    action: add
+  - name: proxmox
+    category: hypervisor
+    group: Servers/Hypervisors
+    match:
+      - {sysdescr_regex: '\bpve\b|proxmox'}
+      - {ports_all: [8006, 22]}
+      - {web_server_regex: 'pve-api-daemon'}
+    templates: ["Linux by SNMP|Linux by Zabbix agent", "ICMP Ping"]
     interface: snmp
     action: add
   # Windows with SNMP: Microsoft's sysObjectID tells the machine role

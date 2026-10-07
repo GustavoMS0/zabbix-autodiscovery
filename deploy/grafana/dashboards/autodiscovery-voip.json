@@ -1,6 +1,6 @@
 {
-  "uid": "autodiscovery-overview",
-  "title": "AutoDiscovery - Network overview",
+  "uid": "autodiscovery-voip",
+  "title": "AutoDiscovery - VoIP & Telephony",
   "tags": [
     "autodiscovery",
     "zabbix"
@@ -48,7 +48,7 @@
         },
         "query": {
           "queryType": "group",
-          "group": "/^(Infrastructure\\/PDU|Infrastructure\\/Server\\ Hardware|Infrastructure\\/Storage|Infrastructure\\/UPS|Network\\/Access\\ Points|Network\\/Firewalls|Network\\/Other|Network\\/Printers|Network\\/Routers|Network\\/Switches|Security\\/CCTV|Servers\\/Hypervisors|Servers\\/Linux|Servers\\/Windows|Telephony\\/VoIP)$/",
+          "group": "/^(Telephony\\/VoIP)$/",
           "host": "",
           "application": "",
           "itemTag": "",
@@ -56,7 +56,7 @@
         },
         "multi": true,
         "includeAll": true,
-        "allValue": "/^(Infrastructure\\/PDU|Infrastructure\\/Server\\ Hardware|Infrastructure\\/Storage|Infrastructure\\/UPS|Network\\/Access\\ Points|Network\\/Firewalls|Network\\/Other|Network\\/Printers|Network\\/Routers|Network\\/Switches|Security\\/CCTV|Servers\\/Hypervisors|Servers\\/Linux|Servers\\/Windows|Telephony\\/VoIP)$/",
+        "allValue": "/^(Telephony\\/VoIP)$/",
         "refresh": 1,
         "sort": 1,
         "current": {
@@ -95,7 +95,7 @@
   "panels": [
     {
       "type": "alexanderzobnin-zabbix-triggers-panel",
-      "title": "Problems - Network overview",
+      "title": "Problems - VoIP & Telephony",
       "datasource": {
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
@@ -128,7 +128,7 @@
           },
           "showProblems": "problems",
           "options": {
-            "minSeverity": 2,
+            "minSeverity": 1,
             "acknowledged": 2,
             "sortProblems": "priority",
             "hostsInMaintenance": false,
@@ -255,167 +255,6 @@
       }
     },
     {
-      "type": "alexanderzobnin-zabbix-triggers-panel",
-      "title": "Servers without Zabbix agent",
-      "datasource": {
-        "type": "alexanderzobnin-zabbix-datasource",
-        "uid": "${datasource}"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "queryType": "5",
-          "datasource": {
-            "type": "alexanderzobnin-zabbix-datasource",
-            "uid": "${datasource}"
-          },
-          "group": {
-            "filter": "$group"
-          },
-          "host": {
-            "filter": "$host"
-          },
-          "application": {
-            "filter": ""
-          },
-          "proxy": {
-            "filter": ""
-          },
-          "trigger": {
-            "filter": ""
-          },
-          "tags": {
-            "filter": "agent:missing"
-          },
-          "showProblems": "problems",
-          "options": {
-            "minSeverity": 1,
-            "acknowledged": 2,
-            "sortProblems": "priority",
-            "hostsInMaintenance": false,
-            "limit": 500
-          }
-        }
-      ],
-      "options": {
-        "hostField": true,
-        "hostGroups": true,
-        "severityField": true,
-        "ageField": true,
-        "showTags": true,
-        "pageSize": 10
-      },
-      "id": 3,
-      "gridPos": {
-        "x": 0,
-        "y": 14,
-        "w": 12,
-        "h": 7
-      }
-    },
-    {
-      "type": "stat",
-      "title": "Zabbix agent",
-      "datasource": {
-        "type": "alexanderzobnin-zabbix-datasource",
-        "uid": "${datasource}"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "queryType": "0",
-          "datasource": {
-            "type": "alexanderzobnin-zabbix-datasource",
-            "uid": "${datasource}"
-          },
-          "group": {
-            "filter": "$group"
-          },
-          "host": {
-            "filter": "$host"
-          },
-          "application": {
-            "filter": ""
-          },
-          "itemTag": {
-            "filter": ""
-          },
-          "item": {
-            "filter": "/Zabbix\\ agent:\\ port\\ 10050\\ reachable/"
-          },
-          "functions": [
-            {
-              "def": {
-                "name": "setAlias",
-                "category": "Alias"
-              },
-              "params": [
-                "$__zbx_host_name"
-              ]
-            }
-          ],
-          "options": {
-            "showDisabledItems": false,
-            "skipEmptyValues": true
-          }
-        }
-      ],
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "values": false,
-          "fields": ""
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "value_and_name",
-        "orientation": "auto",
-        "wideLayout": true
-      },
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [
-            {
-              "type": "value",
-              "options": {
-                "0": {
-                  "text": "NO AGENT",
-                  "color": "red"
-                },
-                "1": {
-                  "text": "OK",
-                  "color": "green"
-                }
-              }
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "id": 4,
-      "gridPos": {
-        "x": 12,
-        "y": 14,
-        "w": 12,
-        "h": 7
-      }
-    },
-    {
       "type": "timeseries",
       "title": "ICMP latency",
       "datasource": {
@@ -482,17 +321,17 @@
           "sort": "desc"
         }
       },
-      "id": 5,
+      "id": 3,
       "gridPos": {
         "x": 0,
-        "y": 21,
+        "y": 14,
         "w": 12,
         "h": 8
       }
     },
     {
       "type": "timeseries",
-      "title": "ICMP packet loss",
+      "title": "Network traffic (top 10)",
       "datasource": {
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
@@ -518,7 +357,92 @@
             "filter": ""
           },
           "item": {
-            "filter": "ICMP loss"
+            "filter": "/Bits received/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias"
+              },
+              "params": [
+                "$__zbx_host_name: $__zbx_item"
+              ]
+            },
+            {
+              "def": {
+                "name": "top",
+                "category": "Filter"
+              },
+              "params": [
+                "10",
+                "avg"
+              ]
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 4,
+      "gridPos": {
+        "x": 12,
+        "y": 14,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Uptime",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/uptime/i"
           },
           "functions": [
             {
@@ -537,32 +461,33 @@
           }
         }
       ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false,
+          "fields": ""
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "orientation": "auto",
+        "wideLayout": true
+      },
       "fieldConfig": {
         "defaults": {
-          "unit": "percent"
+          "mappings": [],
+          "unit": "s"
         },
         "overrides": []
       },
-      "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "right",
-          "calcs": [
-            "mean",
-            "max"
-          ]
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "id": 6,
+      "id": 5,
       "gridPos": {
-        "x": 12,
-        "y": 21,
-        "w": 12,
-        "h": 8
+        "x": 0,
+        "y": 22,
+        "w": 24,
+        "h": 5
       }
     }
   ]

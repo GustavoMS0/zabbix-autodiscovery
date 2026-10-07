@@ -78,3 +78,64 @@ def test_init_writes_config_and_env(tmp_path, monkeypatch):
     assert (tmp_path / "config.yaml").exists() and (tmp_path / ".env").exists()
     with pytest.raises(SystemExit):
         cmd_init(build_parser().parse_args(["init"]))
+
+
+def test_cmd_diff(tmp_path, capsys):
+    from zabbix_autodiscovery.cli import cmd_diff
+
+    old_csv = tmp_path / "old.csv"
+    new_csv = tmp_path / "new.csv"
+
+    old_csv.write_text("ip;category;hostname;vendor;ports;sysname;rule\n"
+                       "192.168.0.1;switch;SW01;Cisco;22,80;SW01;cisco\n"
+                       "192.168.0.2;printer;PRN01;HP;9100;PRN01;printer\n", encoding="utf-8")
+    new_csv.write_text("ip;category;hostname;vendor;ports;sysname;rule\n"
+                       "192.168.0.1;switch;SW01;Cisco;22,80,443;SW01;cisco\n"
+                       "192.168.0.3;firewall;FW01;Fortinet;443;FW01;fortigate\n", encoding="utf-8")
+
+    class Args:
+        old_file = str(old_csv)
+        new_file = str(new_csv)
+
+    cmd_diff(None, Args())
+    captured = capsys.readouterr().out
+    assert "New devices:          1" in captured
+    assert "Removed devices:      1" in captured
+    assert "Changed devices:      1" in captured
+    assert "192.168.0.3" in captured
+    assert "192.168.0.2" in captured
+    assert "ports: '22,80' -> '22,80,443'" in captured
+
+
+def test_zabbix_api_retry(monkeypatch):
+    import requests
+
+    from zabbix_autodiscovery.zabbix_api import ZabbixAPI
+
+    attempts = 0
+
+    class DummyResponse:
+        def __init__(self, status_code, body):
+            self.status_code = status_code
+            self._body = body
+
+        def json(self):
+            return self._body
+
+        def raise_for_status(self):
+            if self.status_code >= 400:
+                raise requests.HTTPError(f"{self.status_code}")
+
+    def fake_post(*args, **kwargs):
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            return DummyResponse(502, {})
+        return DummyResponse(200, {"result": "7.0.0"})
+
+    monkeypatch.setattr(requests.Session, "post", fake_post)
+    monkeypatch.setattr("time.sleep", lambda _: None)
+    api = ZabbixAPI("http://dummy", token="test")
+    assert api.version_str == "7.0.0"
+    assert attempts == 2
+

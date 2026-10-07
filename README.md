@@ -5,252 +5,269 @@
 
 🇧🇷 [Leia em português](README.pt-BR.md)
 
-**Scan your networks, find the infrastructure devices, and onboard them into Zabbix with the right template, host group, interface and tags.** Workstations and laptops are left out. Grafana dashboards are optional.
+**Scan your corporate networks, automatically identify infrastructure equipment, and onboard them into Zabbix with the right template, host group, interface, and tags.** Workstations and laptops are filtered out automatically. Native Zabbix dashboards are included (Grafana dashboards are optional).
 
 ```text
 $ zabbix-autodiscovery scan -o inventory.csv
-Scanning: 10.0.0.0/24, 10.10.0.0/24, 10.20.0.0/24
+Scanning: 192.168.0.0/24, 192.168.10.0/24, 192.168.20.0/24
   category            action    count
+  switch              add       12
+  firewall            add       2
   ap                  add       16
-  printer             add       17
-  server-hardware     add       6
-  switch              add       4
-  server-windows      add       3
-  workstation         ignore    53
-  unknown             ignore    124
-  Host name sources (add/review): snmp=40, netbios=4, dns=1, ip=9
+  printer             add       8
+  cctv                add       14
+  server-windows      add       6
+  server-hardware     add       4
+  workstation         ignore    73
+  unknown             ignore    110
+  Host name sources (add/review): snmp=48, agent=6, netbios=4, dns=2
 
 $ zabbix-autodiscovery apply -i inventory.csv --dry-run
-  + 10.20.0.52      printer           PRN-WAREHOUSE      [Network/Printers + Sites/Branch-01]  name via snmp
-      templates: Generic by SNMP
-  + 10.20.0.22      server-hardware   idrac-ABC1234      [Infrastructure/Server Hardware + Sites/Branch-01]  name via snmp
+  + 192.168.10.52   printer     PRN-FINANCE       [Network/Printers + Sites/Branch-01]  name via snmp
+      templates: AutoDiscovery - Printer by SNMP, Generic by SNMP
+  + 192.168.10.22   server-hw   idrac-SRV01       [Infrastructure/Server Hardware + Sites/Branch-01]  name via snmp
       templates: Dell iDRAC by SNMP
-  = 10.10.0.47      ap                IP already monitored, skipped
+  = 192.168.0.1     firewall    IP already monitored, skipped
 ```
 
-## Features
+---
 
-- **Discovery** via ping, TCP ports, SNMP v1/v2c/v3, Zabbix agent, NetBIOS and forward-confirmed reverse DNS. A second pass with longer timeouts avoids false negatives on busy or VPN links.
-- **Classification by what the device answers, never by its name.** Rules use the SNMP sysObjectID/sysDescr, the agent's `system.uname` and open ports, so they work with any naming convention. They ship with rules for Cisco, HPE/Aruba, H3C, Huawei, Juniper, TP-Link, D-Link, MikroTik, Dell, Fortinet, pfSense, Palo Alto, Sophos, Ubiquiti/UniFi, Ruckus, Meraki, the major printer brands, APC/Eaton/NHS UPS, Synology/QNAP, iDRAC/iLO, ESXi and Windows/Linux servers.
-- **Workstations are excluded.** Microsoft's SNMP sysObjectID separates workstations from servers and domain controllers. Windows 11 and Server 2025 share build 26100 and are still told apart. The agent's OS string and port fingerprints cover machines without SNMP.
-- **Real host names**, from the agent's `Hostname=`, then the SNMP sysName (factory defaults are discarded), then NetBIOS, then forward-confirmed DNS. The CSV shows where each name came from.
-- **Review before change.** `scan` writes a CSV you can edit in Excel. `apply --dry-run` shows exactly what would be created. `check` validates everything without touching Zabbix.
-- **Safe on an existing Zabbix.** Hosts already monitored (same IP or DNS) are skipped. Existing macros, groups, users and dashboards are never modified. Everything zabbix-autodiscovery creates is prefixed `AutoDiscovery -` or tagged `origin=autodiscovery`.
-- **Servers without a Zabbix agent** get a template that raises a *"Zabbix agent missing"* problem. `agent-sync` switches them to agent templates once the agent is installed.
-- **Printers** (page counter, toner/drum levels, status, serial), **switch port usage** and **site maps** with an icon per device type.
-- **SSL certificates and domain expiration** (RDAP), with alerts and a dashboard sorted by days left. The scan also identifies web servers (IIS, nginx, Apache…) and their certificates.
-- **Multiple sites**, each with a name (becomes a `site` tag and a `Sites/<name>` group) and an optional Zabbix proxy.
-- **Dashboards per device type**: native Zabbix dashboards (no Grafana needed) and/or Grafana dashboards. Both are built from your own host group names.
-- Zabbix **6.0 → 8.0**. Runs on Linux, macOS and Windows (Python 3.10+).
+## Key Features
 
-## Quick start
+- **Comprehensive Concurrent Discovery:** High-speed asynchronous scanning using ICMP Ping, TCP ports, SNMP v1/v2c/v3, Zabbix Agent (passive query), NetBIOS (UDP 137), HTTP/TLS banner probing, and forward-confirmed reverse DNS. A second pass with extended timeouts prevents false negatives on busy or VPN links.
+- **Name-Agnostic Classification:** Never guesses a device role based on its host name. Decides strictly by what the device answers technically (SNMP sysObjectID, sysDescr, open ports, server banner, and `system.uname`). Comes with rules for:
+  - **Network & Wi-Fi:** Cisco, HPE/Aruba, H3C, Huawei, Juniper, MikroTik, TP-Link, D-Link, Ubiquiti/UniFi, Ruckus, Meraki;
+  - **Firewalls & Security:** Fortinet/FortiGate, pfSense, OPNsense, Palo Alto, Sophos, SonicWall, Check Point;
+  - **CCTV & IP Cameras:** Hikvision, Dahua, Intelbras (MHDX/NVD/VIP), Axis (RTSP ports 554, 8000, 37777);
+  - **VoIP & IP Telephony:** Grandstream, Yealink, Asterisk, FreePBX, Issabel (SIP port 5060);
+  - **Servers & Hypervisors:** Windows Server, Linux (Debian, Ubuntu, RHEL), VMware ESXi, Hyper-V, Proxmox VE, iDRAC (Dell), iLO (HPE);
+  - **Power, Storage & Peripherals:** APC, Eaton, SMS, NHS UPS; managed rack PDUs; Synology, QNAP, TrueNAS storage; HP, Brother, Epson, Kyocera, Ricoh, Lexmark, Xerox, and Zebra printers.
+- **Strict Workstation Exclusion:** Microsoft's SNMP sysObjectID separates workstations from servers even on Windows 11 and Windows Server 2025 (which share build 26100). On machines without SNMP, port fingerprints and the Zabbix agent prevent adding laptops or desktop PCs.
+- **Detection of Servers without Agent:** Servers detected without port 10050 receive the `AutoDiscovery - Zabbix agent missing` template and tag `agent=missing`. An alert fires only while the server answers ping (preventing duplicate alerts with host down). Once the agent is installed, `agent-sync` promotes them to OS templates.
+- **Change Audit & Rogue Device Detection (`diff`):** Compare two inventory scans to instantly spot newly connected network equipment (*rogue devices*), decommissioned hosts, or changes in ports and hostnames.
+- **Bundled Add-on Templates:**
+  - **Printers (RFC 3805):** Lifetime page counter, consumables (toner/drum) discovered automatically with percentage calculations, status, and serial number;
+  - **Switches:** Percentage of physical ports in use calculated from an SNMP IF-MIB walk (Zabbix 7.0+).
+- **Optimized Native Zabbix Dashboards:** Pre-configured dashboards per device category with vector SVG graphs (network traffic, errors, temperature), Top Hosts latency/CPU/Memory rankings, and Honeycomb matrix views (7.0+) or complete `hostavail` tables (6.0 LTS). No Grafana required.
+- **SSL Certificate and Domain Expiration Monitoring:** Checks TLS certificates via Zabbix Agent 2 and domain expiration via RDAP (RFC 7480/9082) without external scripts.
+- **Site Topology Maps:** Automated Zabbix network maps per site with category rows and icon status indicators.
+- **Compatibility:** Zabbix **6.0 LTS to 8.0**. Runs on Linux, Windows, and macOS (Python 3.10+).
 
+---
+
+## Quick Start & Installation
+
+### Installation:
 ```bash
-pip install git+https://github.com/GustavoMS0/zabbix-autodiscovery   # or: pipx / uv tool install
-mkdir my-site && cd my-site
-zabbix-autodiscovery init            # writes config.yaml and .env
+# Via pip or uv (recommended)
+pip install git+https://github.com/GustavoMS0/zabbix-autodiscovery
 ```
 
-1. In Zabbix, create an API token (*Users → API tokens*) for a Super admin user. On Zabbix 8.0 the user's role must have **API access** enabled.
-2. Put the token and your SNMP community in `.env`. Set `zabbix.url` and `scan.networks` in `config.yaml`.
-3. Run:
+On Windows without global Python: run `./zabbix-autodiscovery.ps1 init` (uses [uv](https://docs.astral.sh/uv/) or system Python).  
+On Linux/macOS: run `./zabbix-autodiscovery.sh init`.
 
-```bash
-zabbix-autodiscovery check                              # read-only validation
-zabbix-autodiscovery scan  -o inventory.csv             # scan + classify; Zabbix is not touched
-#   review inventory.csv: set the "action" column to add | review | ignore
-zabbix-autodiscovery apply -i inventory.csv --dry-run   # show the plan
-zabbix-autodiscovery setup                              # groups, agent-missing template, dashboards
-zabbix-autodiscovery apply -i inventory.csv             # create the hosts
+---
+
+## Implementation Guide: Choose Your Scenario
+
+`zabbix-autodiscovery` is built to handle both brand-new Zabbix deployments and **long-standing production environments with zero risk of breaking existing configurations**.
+
+```
+                           ┌───────────────────────────────────────────────┐
+                           │          zabbix-autodiscovery init            │
+                           └──────────────────────┬────────────────────────┘
+                                                  ▼
+                                      What is your scenario?
+                                                  │
+                 ┌────────────────────────────────┴────────────────────────────────┐
+                 ▼                                                                 ▼
+      【 SCENARIO 1: NEW ZABBIX 】                                     【 SCENARIO 2: EXISTING ZABBIX 】
+      • zabbix-autodiscovery check                                     • zabbix-autodiscovery check
+      • zabbix-autodiscovery setup                                     • zabbix-autodiscovery audit  (health report)
+      • zabbix-autodiscovery scan -o inventory.csv                     • zabbix-autodiscovery scan -o inventory.csv
+      • zabbix-autodiscovery apply -i inventory.csv                    • zabbix-autodiscovery diff (compare scans)
+      • zabbix-autodiscovery maps                                      • zabbix-autodiscovery apply (new hosts only)
+      • zabbix-autodiscovery web                                       • zabbix-autodiscovery organize (organize old)
+                                                                       • zabbix-autodiscovery update-templates --all
 ```
 
-Without installing anything on Windows: `.\zabbix-autodiscovery.ps1 init` (needs [uv](https://docs.astral.sh/uv/)). On Linux/macOS: `./zabbix-autodiscovery.sh init`.
+---
 
-> Run the scan from a machine that can reach every network, preferably the Zabbix server or proxy itself. Zabbix agents only answer IPs listed in their `Server=`.
+### Scenario 1: New Zabbix Deployment (Greenfield / From Scratch)
 
-## Commands
+Ideal when setting up a fresh Zabbix installation and you want to onboard dozens or hundreds of devices in minutes with clean naming, groups, and templates.
 
-| Command | Changes Zabbix? | What it does |
+1. **Deploy Zabbix (if not already running):**
+   You can use the bundled Docker Compose stack in `deploy/`:
+   ```bash
+   cd deploy
+   cp .env.example .env     # Set secure passwords in .env
+   docker compose --profile zabbix --profile grafana up -d
+   ```
+2. **Generate an API Token:**
+   In Zabbix frontend, go to *Users → API tokens* and create a token for a user with **Super admin** role. (On Zabbix 8.0, ensure API access is enabled on the user's role).
+3. **Initialize Configuration:**
+   ```bash
+   mkdir my-monitoring && cd my-monitoring
+   zabbix-autodiscovery init
+   ```
+   This creates `config.yaml` and `.env`.
+4. **Configure Secrets and Networks:**
+   * In `.env`: set your `ZABBIX_TOKEN` and `SNMP_COMMUNITY`.
+   * In `config.yaml`: set your `zabbix.url` and network CIDRs under `scan.networks`.
+5. **Validate Prerequisites:**
+   ```bash
+   zabbix-autodiscovery check
+   ```
+   Validates API connectivity, token permissions, and template availability.
+6. **Provision Base Objects in Zabbix:**
+   ```bash
+   zabbix-autodiscovery setup
+   ```
+   Creates host groups, the global `{$SNMP_COMMUNITY}` macro (only if missing), agent missing template, and native dashboards.
+7. **Scan and Classify the Networks:**
+   ```bash
+   zabbix-autodiscovery scan -o inventory.csv
+   ```
+   Probes all responsive devices and outputs `inventory.csv`.
+8. **Review and Apply:**
+   Open `inventory.csv` in Excel or an editor. Only rows with `action = add` will be created in Zabbix. Rows marked `review` need your decision; the `note` column says why. When a device matched a rule that needs SNMP but did not answer SNMP (e.g. a camera found by its RTSP port), nothing is guessed: enable SNMP on the device and scan again, or set `interface`/`templates` yourself (e.g. `icmp` / `ICMP Ping`) and change `action` to `add`.
+   ```bash
+   zabbix-autodiscovery apply -i inventory.csv --dry-run   # Preview plan
+   zabbix-autodiscovery apply -i inventory.csv             # Create hosts in Zabbix
+   ```
+9. **Generate Site Topology Maps:**
+   ```bash
+   zabbix-autodiscovery maps
+   ```
+   Generates site maps with icons reflecting host problem states.
+
+---
+
+### Scenario 2: Existing Production Zabbix (Brownfield / Safe Onboarding)
+
+If you have an active Zabbix installation with hundreds of monitored hosts, **you can run `zabbix-autodiscovery` with complete confidence**:
+
+> [!IMPORTANT]
+> **Production Safety Guarantees:**
+> - **Existing hosts are never overwritten or deleted.** Any IP or DNS already present in Zabbix is automatically skipped during `apply`.
+> - **Existing global macros are preserved.** If `{$SNMP_COMMUNITY}` already exists with another value, it is not modified; new hosts receive a host-level macro instead.
+> - **All created objects are traceable.** Prefixed with `AutoDiscovery - ` and tagged with `origin=autodiscovery`.
+> - **Safe simulations everywhere.** Mutation commands support `--dry-run`.
+
+#### Recommended Safe Workflow for Existing Zabbix:
+
+1. **Audit Zabbix Health (Read-Only):**
+   ```bash
+   zabbix-autodiscovery audit
+   ```
+   Generates a non-intrusive diagnostic report:
+   - Identifies duplicate IPs (multiple hosts configured with the same IP);
+   - Detects cloned VMs sharing the same `system.hostname`;
+   - Flags agent `Hostname=` mismatches (a leading cause of active check failures);
+   - Lists hosts with agent templates where the agent is unreachable;
+   - Lists hosts with the highest count of unsupported items.
+
+2. **Scan the Networks for Unmonitored Devices:**
+   ```bash
+   zabbix-autodiscovery scan -o inventory.csv
+   ```
+   *Tip:* Target specific subnets or sites without editing `config.yaml`:
+   ```bash
+   zabbix-autodiscovery scan --network 10.0.0.0/24 -o branch-scan.csv
+   zabbix-autodiscovery scan --site Branch-01 -o site1.csv
+   ```
+
+3. **Check for Changes and Rogue Devices (`diff`):**
+   Compare previous scans with the latest scan:
+   ```bash
+   zabbix-autodiscovery diff -old inventory-previous.csv -new inventory.csv
+   ```
+
+4. **Onboard Only the Newly Discovered Devices:**
+   ```bash
+   zabbix-autodiscovery apply -i inventory.csv --dry-run
+   zabbix-autodiscovery apply -i inventory.csv
+   ```
+   Any device already in Zabbix outputs `IP already monitored, skipped` and remains untouched.
+
+5. **Bring Legacy Hosts into Standard Groups and Tags:**
+   If your pre-existing hosts lack consistent grouping, `organize` assigns them to their device type group (e.g. *Network/Switches*, *Network/Firewalls*) and site groups, adding standard `type` and `site` tags:
+   ```bash
+   zabbix-autodiscovery organize --dry-run
+   zabbix-autodiscovery organize
+   ```
+   *Note:* `organize` is purely additive. It never removes legacy groups unless explicitly requested via `--remove-groups LegacyGroup1,LegacyGroup2`.
+
+6. **Link Complementary Add-on Templates to Existing Hosts:**
+   To add port usage metrics or printer consumable discovery to legacy hosts without altering their vendor templates:
+   ```bash
+   zabbix-autodiscovery update-templates --all --dry-run
+   zabbix-autodiscovery update-templates --all
+   ```
+
+---
+
+## Command Reference
+
+| Command | Modifies Zabbix? | Description |
 |---|---|---|
-| `zabbix-autodiscovery init` | no | Writes a starter `config.yaml` and `.env` |
-| `zabbix-autodiscovery check` | no | Token, role, templates available per rule, macro, overlapping discovery rules, planned changes |
-| `zabbix-autodiscovery scan -o FILE` | no | Scans `scan.networks`, classifies every responsive IP, writes the CSV |
-| `zabbix-autodiscovery apply -i FILE [--dry-run]` | yes | Creates rows with `action=add`. Skips anything already monitored |
-| `zabbix-autodiscovery setup [--native-discovery] [--no-dashboards]` | yes | Host groups, `{$SNMP_COMMUNITY}` (only if missing), agent-missing template, Zabbix dashboards, optional Grafana read-only user, optional continuous discovery |
-| `zabbix-autodiscovery agent-sync [--dry-run]` | yes | Moves `agent=missing` hosts to agent templates when their agent answers |
-| `zabbix-autodiscovery update-templates [--dry-run]` | yes | Links the category add-on templates to existing hosts |
-| `zabbix-autodiscovery audit` | no | Organization, duplicate IPs, agent and item problems |
-| `zabbix-autodiscovery organize [--dry-run]` | yes | Puts pre-existing hosts in their type and site groups, with tags |
-| `zabbix-autodiscovery maps [--dry-run] [--rebuild]` | yes | One map per site with an icon per device type, plus a dashboard |
-| `zabbix-autodiscovery web [--dry-run] [-i FILE]` | yes | SSL certificate and domain expiration monitoring |
-| `zabbix-autodiscovery grafana-dashboards -o DIR` | no | Writes Grafana dashboard JSON files from your config |
+| `zabbix-autodiscovery init [--force]` | No | Creates starter `config.yaml` and `.env` files. |
+| `zabbix-autodiscovery check` | No | Validates API connectivity, token role, templates, and network overlap. |
+| `zabbix-autodiscovery audit` | No | Non-intrusive health audit: duplicate IPs, cloned machines, item errors, agent issues. |
+| `zabbix-autodiscovery scan [-o CSV] [--network CIDR] [--site NAME]` | No | Probes networks, classifies discovered devices, and writes inventory CSV. |
+| `zabbix-autodiscovery diff -old CSV1 -new CSV2` | No | Compares two scan inventories to detect new devices, removals, and changes. |
+| `zabbix-autodiscovery apply -i CSV [--dry-run]` | **Yes** | Onboards CSV rows with `action=add`. Skips already monitored IPs/names. |
+| `zabbix-autodiscovery setup [--no-dashboards] [--rebuild-dashboards]` | **Yes** | Provisions host groups, SNMP macro, agent missing template, and dashboards. |
+| `zabbix-autodiscovery agent-sync [--dry-run]` | **Yes** | Promotes `agent=missing` servers to OS agent templates once their agent answers. |
+| `zabbix-autodiscovery organize [--dry-run] [--remove-groups G1,G2]` | **Yes** | Assigns pre-existing hosts into standardized type/site groups with tags. |
+| `zabbix-autodiscovery update-templates [--all] [--dry-run]` | **Yes** | Links category add-on templates (switch ports, printer MIB) to existing hosts. |
+| `zabbix-autodiscovery maps [--dry-run] [--rebuild]` | **Yes** | Generates per-site topology maps with status icons and a map dashboard. |
+| `zabbix-autodiscovery web [-i CSV] [--dry-run]` | **Yes** | Sets up SSL certificate tracking (Zabbix Agent 2) and domain expiration (RDAP). |
+| `zabbix-autodiscovery grafana-dashboards -o DIR` | No | Exports Grafana dashboard JSON files matching your configured host groups. |
 
-## The inventory CSV
+---
 
-Each responsive IP becomes one row. The columns you normally edit:
+## Native Zabbix Dashboards
 
-| Column | Meaning |
-|---|---|
-| `action` | `add` (will be created), `review` (uncertain: decide), `ignore` |
-| `hostname` / `visible_name` | Zabbix technical and visible names. `name_source` tells where the name came from |
-| `group`, `templates`, `interface`, `site` | What `apply` will use. `A|B` in templates means the first one that exists |
+When running `zabbix-autodiscovery setup`, optimized native dashboards are built directly inside Zabbix matching your host group names. Zabbix graphs select hosts by name (not by group), so graphs list the hosts of each type's groups when the dashboard is built: after onboarding new hosts, run `zabbix-autodiscovery setup --rebuild-dashboards`.
 
-Everything else (`sysobjectid`, `sysdescr`, `ports`, `agent_uname`, `netbios`, `dns`...) is evidence to help you decide.
+1. **Category-Specific Dashboards:**
+   - Dedicated views for: *Switches*, *Routers*, *Firewalls*, *Access Points*, *Printers*, *Servers*, *UPS*, *Storage*, *CCTV*, *VoIP*, and *PDUs*.
+2. **SVG Vector Graphs (`svggraph`):**
+   - Inbound/outbound interface traffic (`*Bits received*` / `*Bits sent*`), discards, errors, and temperature graphs rendered natively without third-party plugins.
+3. **Performance Rankings (`tophosts`):**
+   - Top hosts ranked by ICMP response time and packet loss;
+   - Top servers ranked by CPU and Memory utilization (Zabbix 6.4+ / 7.0+).
+4. **Availability & Matrices:**
+   - **Zabbix 7.0 / 8.0:** Honeycomb matrix panels for ICMP availability and Zabbix agent reachability.
+   - **Zabbix 6.0 LTS:** Full Host Availability (`hostavail`) summary tables showing Up/Down/Unknown counts per group.
+5. **Servers Without Agent:**
+   - Dedicated dashboard widget tracking servers missing the Zabbix agent.
 
-## How devices are classified
+---
 
-Rules live in `config.yaml` and are evaluated in order. The first match wins:
+## Multi-Site & Proxy Architecture
 
-```yaml
-- name: intelbras-switch
-  category: switch
-  group: Network/Switches
-  match:                                   # a list means "any of"; a mapping means "all of"
-    - {sysobjectid_prefix: [1.3.6.1.4.1.26138]}
-    - {sysdescr_regex: 'intelbras'}
-  templates: ["Intelbras by SNMP|Network Generic Device by SNMP"]
-  interface: snmp                          # snmp | agent | icmp
-  tags: {}                                 # extra host tags
-  action: add                              # add | review | ignore
-```
-
-Available conditions: `sysobjectid_prefix`, `sysdescr_regex`, `agent_uname_regex`, `ports_any`, `ports_all`, `ports_none`, `snmp`, `agent`, `alive`.
-
-How workstations are told apart from servers, without names:
-
-| Evidence | Result |
-|---|---|
-| SNMP sysObjectID `…311.1.1.3.1.1` | workstation → ignore |
-| SNMP sysObjectID `…311.1.1.3.1.2` / `…3.1.3` | Windows server / domain controller |
-| Agent `system.uname` contains "Windows … Server" | Windows server → **add** |
-| Agent `system.uname` is Windows without "Server" (Windows 10/11 with an agent) | workstation → ignore |
-| No SNMP/agent, Kerberos + LDAP (88 + 389) | domain controller without agent |
-| No SNMP/agent, SMB + WinRM or SQL (445 + 5985/1433) | probable server → review |
-| No SNMP/agent, only Windows ports (135/139/445/3389) | workstation → ignore |
-| No SNMP/agent, SSH without Windows/printer ports | probable Linux → review |
-
-> Do not combine `ICMP Ping` with `… by SNMP` templates: SNMP templates already contain the ICMP items, and the duplicate keys make host creation fail.
-
-## Multiple sites and proxies
+Organize networks by physical location in `config.yaml`:
 
 ```yaml
-site_group: "Sites/{site}"                 # extra host group per site ("" disables it)
+site_group: "Sites/{site}"                 # Creates host groups like "Sites/HQ" and "Sites/Branch-01"
 scan:
   networks:
     - {network: 192.168.0.0/24, site: HQ}
-    - {network: 10.20.0.0/23,   site: Recife, proxy: proxy-recife}
-    - 172.16.5.0/24                        # no site
+    - {network: 10.20.0.0/23,   site: Branch-01, proxy: proxy-branch-01}
+    - 172.16.5.0/24                        # Network without explicit site
 ```
 
-Every host gets the tag `site=<name>` and also joins `Sites/<name>`, so you can filter by device type or by site, in Zabbix and in Grafana. If a site is not routable from where you run zabbix-autodiscovery, scan it from a machine on that site with a config listing only its networks. `apply` accepts any of the resulting CSVs.
+Each host automatically receives a `site=<name>` tag and joins its site host group, enabling seamless filtering in Zabbix and Grafana.
 
-## Servers without a Zabbix agent
-
-Servers detected without an agent are created with the tag `agent=missing` and the template **AutoDiscovery - Zabbix agent missing**. The Zabbix server checks port 10050 every 5 minutes. The trigger *"Zabbix agent missing on {HOST.NAME}"* fires only while the host answers ping, so a host that is down does not also raise this alert. Once the agent is installed the problem resolves by itself. Then run `zabbix-autodiscovery agent-sync` to link the agent templates. To get notified, create a trigger action with the condition *tag agent = missing*.
-
-## Printers, switch ports and maps
-
-**Category add-on templates** are linked to every SNMP host of a category, on top of the vendor template:
-
-```yaml
-category_templates:
-  printer: ["AutoDiscovery - Printer by SNMP"]
-  switch: ["AutoDiscovery - Switch port usage"]
-```
-
-- **AutoDiscovery - Printer by SNMP** reads the standard Printer-MIB (RFC 3805), which almost every network printer implements (HP, Brother, Epson, Samsung, Kyocera, Ricoh…). It collects the total page counter, every consumable (toner, ink, drum) discovered automatically with its level in %, device and printer status, the panel message, model and serial number. Alerts fire below 10% and 3% (`{$PRINTER.SUPPLY.WARN}` / `{$PRINTER.SUPPLY.HIGH}`) and when the printer reports a warning or is down. Zabbix ships no printer template, so without this one printers only get ping and uptime.
-- **AutoDiscovery - Switch port usage** computes physical ports in use, total ports, % used and enabled ports without link from one SNMP walk of the IF-MIB. It warns above 90% (`{$SWITCH.PORT.USAGE.WARN}`). Needs Zabbix 7.0+.
-- `apply` links them to new hosts. `update-templates [--dry-run]` links them to hosts created earlier.
-
-**Maps:** `maps [--dry-run] [--rebuild]` creates one Zabbix map per site, with every host in the site's networks (including hosts you already had). Hosts are grouped in rows by type, with an icon per type that changes color with problems. A dashboard *AutoDiscovery - Maps* shows one page per site. Icons default to the images bundled with Zabbix. Each category or vendor can use another built-in image or your own PNG, for example a photo of the model; product photos are not bundled with the project.
-
-```yaml
-maps:
-  name_format: "Site: {site}"
-  icons:
-    printer: Printer                       # built-in Zabbix image
-    vendor:HP: icons/hp-laserjet.png       # local PNG, uploaded once
-```
-
-**SNMP version:** credentials are tried from the highest version down (v3, then v2c, then v1), keeping the config order within the same version. The first that answers is used.
-
-## Organizing what already exists
-
-On a Zabbix that was already in use, the hosts you had before are not changed by `apply`. Three commands bring them into the same organization:
-
-- `audit` (read-only): what `organize` would change, the same IP on more than one host (possible duplicates), agent templates on hosts whose agent is unavailable, and the hosts with the most unsupported items.
-- `organize [--dry-run] [--remove-groups G1,G2]`: every host of the configured networks joins the group of its type and of its site and gets the `type` / `site` tags. For hosts not created by this tool, the type comes from the templates they use (FortiGate → firewall, Comware/Aruba → switch, Dell iDRAC → server hardware…), then from their group names. It only adds, unless you list legacy groups to remove.
-- `update-templates --all`: also links the category add-on templates (e.g. switch port usage) to those hosts.
-
-## SSL certificates and domain expiration
-
-`zabbix-autodiscovery web` monitors the sites and domains listed in the `web` section of the config:
-
-```yaml
-web:
-  certificates:
-    group: Web/Certificates
-    agent2_host: Zabbix server       # existing host whose Zabbix agent 2 reads the certificates
-    warn_days: 30
-    high_days: 7
-    sites: [https://www.example.com/, mail.example.com:443]
-  domains:
-    group: Web/Domains
-    warn_days: 30
-    high_days: 7
-    list: [example.com, example.com.br]
-```
-
-- **Certificates:** one host per site, with the template *AutoDiscovery - SSL certificate*. It tracks the days until expiration, the validation result (invalid, expired, wrong name), the issuer and the SANs. The check runs on a **Zabbix agent 2** (WebCertificate plugin): the classic agent answers "Unsupported item key". Point `agent2_host` at a host with agent 2, for example the Zabbix server itself.
-- **Domains:** one host per domain, with the template *AutoDiscovery - Domain expiration*. The Zabbix server queries **RDAP**, the official successor of WHOIS, every 12 hours, directly at each TLD's registry (registro.br, Verisign…), found through IANA's bootstrap list. No scripts are needed, only internet access from the Zabbix server or proxy.
-- **Alerts:** warning below `warn_days`, high below `high_days`, plus a problem when a check keeps failing.
-- **Dashboard:** *AutoDiscovery - Certificates and domains* lists everything sorted by days left.
-- **Discovered certificates:** `scan` also records each HTTP(S) port's server (IIS, nginx, Apache…) and certificate (`web_servers`, `cert_*` columns). `web -i inventory.csv` adds the publicly trusted ones; self-signed certificates (printers, iDRAC…) are skipped.
-
-## Dashboards
-
-`setup` creates one **native Zabbix dashboard** per device type found in your rules: overview, switches, routers, firewalls, access points, printers, servers, UPS, storage and server hardware. They contain problems filtered by the type's host groups, a honeycomb of ICMP availability and metrics (Zabbix 7.0+), and the hosts with the highest ICMP latency. No Grafana is required.
-
-**Grafana** is optional:
-
-- **New stack:** `deploy/docker-compose.yml` brings up Zabbix 8.0 + PostgreSQL and/or Grafana 12 with the Zabbix plugin, datasource and the bundled dashboards already provisioned:
-
-  ```bash
-  cd deploy && cp .env.example .env      # change every password
-  docker compose --profile zabbix --profile grafana up -d    # or only one of the profiles
-  ```
-
-  With only `--profile grafana`, set `ZABBIX_API_URL` in `.env` to point Grafana at an existing Zabbix. `zabbix-autodiscovery setup` creates the read-only user it needs (`grafana_user` in the config).
-- **Existing Grafana:** `zabbix-autodiscovery grafana-dashboards -o dashboards/`, then *Dashboards → New → Import*. Each dashboard has a datasource selector, so no UID editing is needed.
-
-Grafana panels select items by regex, because every vendor template names items differently. If a panel stays empty for some model, adjust `SPECS` in `src/zabbix_autodiscovery/dashboards.py`.
-
-## Using it on an existing Zabbix
-
-| Situation | Behavior |
-|---|---|
-| Host already monitored (same IP or DNS) | skipped, never changed |
-| Name already used by another host (same device on another IP?) | skipped as a possible duplicate (`--allow-duplicate-names` creates it as `name-IP`) |
-| Global `{$SNMP_COMMUNITY}` already exists | kept; the community goes to the new host as a host macro |
-| Groups with the same names | reused |
-| Template, dashboard, role, user with zabbix-autodiscovery's names | created only if missing |
-| `--native-discovery` while monitored hosts are inside the ranges | refused (the actions would also apply to them) unless `--force` |
-| Template names that differ in your version | alternatives per rule (`A|B`); `check` lists anything missing |
-
-Start with a small network, always run `apply --dry-run` first, and filter by `origin=autodiscovery` to review or roll back.
-
-**Fixing agent `Hostname=` mismatches** reported by `audit` (typical of cloned VMs): run `tools/fix-agent-hostname.ps1` as Administrator on the Windows server, or remotely with `toolsix-agent-hostname.ps1 -ComputerName SRV01,SRV02` (no WinRM needed: it uses the `C$` admin share and the service manager, TCP 445/135). It sets `Hostname=` to the computer name, keeps a backup and restarts the agent. Add `-WhatIf` to preview.
-
-## Requirements on the devices
-
-- **Network gear, printers, UPS:** SNMP enabled, with the ACL allowing the Zabbix server and the scanning machine.
-- **Servers:** Zabbix agent 2 with `Server=` / `ServerActive=` pointing to Zabbix. When the scanner's IP is not in `Server=`, the server is detected as *agent installed, scanner refused* (`review`).
-- **Firewalls between networks:** ICMP, UDP 161 and TCP 10050 from Zabbix and the scanner.
+---
 
 ## Contributing
 
-New vendor rules, dashboards and fixes are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md). When a device is misclassified, the [issue template](.github/ISSUE_TEMPLATE/device-rule.md) asks for the CSV columns needed to write a rule.
+Contributions including new vendor classification rules, dashboards, and enhancements are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
-[MIT](LICENSE)
+This project is licensed under the terms of the [MIT License](LICENSE).

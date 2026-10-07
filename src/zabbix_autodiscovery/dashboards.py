@@ -111,6 +111,27 @@ SPECS = [
          {"kind": "stat", "title": "Overall / power supply status", "per_item": True,
           "re": r"/(overall|global|system|power supply|psu).*status/i"},
      ]},
+    {"key": "cctv", "title": "CCTV & Cameras", "categories": ["cctv"], "panels": [
+        {"kind": "problems"},
+        {"kind": "availability"},
+        {"kind": "latency"},
+        {"kind": "series", "title": "Network traffic (top 10)", "unit": "bps", "top": 10, **TRAFFIC_IN},
+        {"kind": "stat", "title": "Uptime", "unit": "s", **UPTIME},
+    ]},
+    {"key": "voip", "title": "VoIP & Telephony", "categories": ["voip"], "panels": [
+        {"kind": "problems"},
+        {"kind": "availability"},
+        {"kind": "latency"},
+        {"kind": "series", "title": "Network traffic (top 10)", "unit": "bps", "top": 10, **TRAFFIC_IN},
+        {"kind": "stat", "title": "Uptime", "unit": "s", **UPTIME},
+    ]},
+    {"key": "pdu", "title": "PDU", "categories": ["pdu"], "panels": [
+        {"kind": "problems"},
+        {"kind": "availability"},
+        {"kind": "gauge", "title": "Output load", "zbx": "*load*", "re": r"/output.*load|load/i"},
+        {"kind": "series", "title": "Input voltage", "unit": "volt", "re": r"/input.*voltage|voltage/i"},
+        {"kind": "stat", "title": "Uptime", "unit": "s", **UPTIME},
+    ]},
 ]
 
 
@@ -282,7 +303,10 @@ def _group_fields(groupids):
     return [_f(2, f"groupids.{i}", gid) for i, gid in enumerate(groupids)]
 
 
-def zabbix_widgets(spec, groupids, version):
+MAX_GRAPH_HOSTS = 50     # svggraph host patterns per data set (keeps graphs readable and light)
+
+
+def zabbix_widgets(spec, groupids, version, hostnames=()):
     """Widgets for dashboard.create. Grid is 72 columns wide since Zabbix 7.0 (24 before)."""
     full = 72 if version >= (7, 0) else 24
     half = full // 2
@@ -291,6 +315,15 @@ def zabbix_widgets(spec, groupids, version):
 
     def add(wtype, name, width, height, fields):
         widgets.append({"type": wtype, "name": name, "width": width, "height": height, "fields": fields})
+
+    def svg(title, pattern, width):
+        """Time-series graph. svggraph selects hosts by name (it has no host group filter), so the
+        hosts of the type's groups are listed; without hosts yet, no graph is added."""
+        if not hostnames:
+            return
+        hosts = [_f(1, f"ds.0.hosts.{i}", h) for i, h in enumerate(sorted(hostnames)[:MAX_GRAPH_HOSTS])]
+        add("svggraph", title, width, 5, hosts + [_f(1, "ds.0.items.0", pattern), _f(1, "ds.0.color", "1A7C11"),
+                                                  _f(0, "ds.0.type", 0), _f(0, "ds.0.width", 1)])
 
     for p in spec["panels"]:
         kind = p["kind"]
@@ -304,23 +337,76 @@ def zabbix_widgets(spec, groupids, version):
             add("problems", "Servers without Zabbix agent", half, 5,
                 _group_fields(groupids) + [_f(1, "tags.0.tag", "agent"), _f(0, "tags.0.operator", 1),
                                            _f(1, "tags.0.value", "missing")])
-        elif kind == "availability" and honeycomb:
-            add("honeycomb", "Availability (ICMP)", full, 4,
-                _group_fields(groupids) + [_f(1, "items.0", "ICMP ping")])
-        elif kind == "agent_status" and honeycomb:
-            add("honeycomb", "Zabbix agent port", half, 5,
-                _group_fields(groupids) + [_f(1, "items.0", AGENT_PORT_ITEM)])
-        elif kind == "gauge" and honeycomb and p.get("zbx"):
-            add("honeycomb", p["title"], half if not p.get("w") == 24 else full, 4,
-                _group_fields(groupids) + [_f(1, "items.0", p["zbx"])])
+        elif kind == "availability":
+            if honeycomb:
+                add("honeycomb", "Availability (ICMP)", full, 4,
+                    _group_fields(groupids) + [_f(1, "items.0", "ICMP ping")])
+            else:
+                add("hostavail", "Availability", full, 4,
+                    _group_fields(groupids) + [_f(0, "layout", 0), _f(0, "maintenance", 1)])
+        elif kind == "agent_status":
+            if honeycomb:
+                add("honeycomb", "Zabbix agent port", half, 5,
+                    _group_fields(groupids) + [_f(1, "items.0", AGENT_PORT_ITEM)])
+        elif kind == "gauge" and p.get("zbx"):
+            w = half if not p.get("w") == 24 else full
+            if honeycomb:
+                add("honeycomb", p["title"], w, 4,
+                    _group_fields(groupids) + [_f(1, "items.0", p["zbx"])])
+            elif version >= (6, 4):
+                add("tophosts", p["title"], w, 5, _group_fields(groupids) + [
+                    _f(1, "columns.0.name", "Host"), _f(0, "columns.0.data", 2),
+                    _f(1, "columns.1.name", p["title"]), _f(0, "columns.1.data", 1),
+                    _f(1, "columns.1.item", p["zbx"].strip("*")),
+                    # Top N for usage (CPU, memory, load); Bottom N when low values are the problem
+                    _f(0, "column", 1), _f(0, "order", 3 if p.get("low_is_bad") else 2), _f(0, "count", 10)])
+            else:
+                svg(p["title"], p["zbx"], w)
         elif kind == "latency":
-            add("tophosts", "Slowest hosts (ICMP)", half, 5, _group_fields(groupids) + [
-                _f(1, "columns.0.name", "Host"), _f(0, "columns.0.data", 2),
-                _f(1, "columns.1.name", "Latency"), _f(0, "columns.1.data", 1),
-                _f(1, "columns.1.item", "ICMP response time"),
-                _f(1, "columns.2.name", "Loss %"), _f(0, "columns.2.data", 1),
-                _f(1, "columns.2.item", "ICMP loss"),
-                _f(0, "column", 1), _f(0, "count", 15)])
+            if version >= (6, 4):
+                add("tophosts", "Slowest hosts (ICMP)", half, 5, _group_fields(groupids) + [
+                    _f(1, "columns.0.name", "Host"), _f(0, "columns.0.data", 2),
+                    _f(1, "columns.1.name", "Latency"), _f(0, "columns.1.data", 1),
+                    _f(1, "columns.1.item", "ICMP response time"),
+                    _f(1, "columns.2.name", "Loss %"), _f(0, "columns.2.data", 1),
+                    _f(1, "columns.2.item", "ICMP loss"),
+                    _f(0, "column", 1), _f(0, "count", 15)])
+            else:
+                svg("ICMP response time", "ICMP response time", half)
+        elif kind == "series" and p.get("title"):
+            item_pat = p.get("zbx")
+            if not item_pat:
+                title_lower = p["title"].lower()
+                if "inbound" in title_lower:
+                    item_pat = "*Bits received*"
+                elif "outbound" in title_lower:
+                    item_pat = "*Bits sent*"
+                elif "traffic" in title_lower:
+                    item_pat = "*Bits*"
+                elif "error" in title_lower:
+                    item_pat = "*error*"
+                elif "discard" in title_lower:
+                    item_pat = "*discard*"
+                elif "temp" in title_lower:
+                    item_pat = "*emperature*"
+                elif "client" in title_lower or "station" in title_lower:
+                    item_pat = "*client*"
+                elif "page" in title_lower:
+                    item_pat = "*page*"
+                elif "runtime" in title_lower:
+                    item_pat = "*runtime*"
+                elif "voltage" in title_lower:
+                    item_pat = "*voltage*"
+                elif "fan" in title_lower:
+                    item_pat = "*fan*"
+                elif "session" in title_lower:
+                    item_pat = "*session*"
+                elif "vpn" in title_lower or "tunnel" in title_lower:
+                    item_pat = "*tunnel*"
+            if item_pat:
+                w = half if not p.get("w") == 24 else full
+                svg(p["title"], item_pat, w)
+
     # simple row-by-row layout
     x = y = row_h = 0
     for w in widgets:

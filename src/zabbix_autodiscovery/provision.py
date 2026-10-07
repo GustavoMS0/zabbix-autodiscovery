@@ -76,19 +76,32 @@ def ensure_groups(api, cfg):
     return groups
 
 
-def setup_zabbix_dashboards(api, cfg, log=print):
-    """One native dashboard per device type (only for types with a host group in the rules)."""
-    created = kept = 0
+def setup_zabbix_dashboards(api, cfg, rebuild=False, log=print):
+    """One native dashboard per device type (only for types with a host group in the rules).
+
+    rebuild=True refreshes existing AutoDiscovery dashboards, e.g. after new hosts were added
+    (graphs list the hosts of the type's groups)."""
+    created = kept = refreshed = 0
     for spec in dashboards.SPECS:
         groups = dashboards.groups_for(spec, cfg)
         if not groups:
             continue
         name = f"{PREFIX}{spec['title']}"
-        if api.call("dashboard.get", {"output": ["dashboardid"], "filter": {"name": name}}):
+        found = api.call("dashboard.get", {"output": ["dashboardid"], "filter": {"name": name}})
+        if found and not rebuild:
             kept += 1
             continue
         groupids = [api.ensure_hostgroup(g) for g in groups]
-        widgets = dashboards.zabbix_widgets(spec, groupids, api.version)
+        hostnames = [h["name"] for h in api.call("host.get", {"output": ["name"], "groupids": groupids,
+                                                              "filter": {"status": 0}})]
+        widgets = dashboards.zabbix_widgets(spec, groupids, api.version, hostnames)
+        if found:
+            try:
+                api.call("dashboard.update", {"dashboardid": found[0]["dashboardid"], "pages": [{"widgets": widgets}]})
+                refreshed += 1
+            except ZabbixError as exc:
+                log(f"  ! '{name}' not refreshed: {exc}")
+            continue
         params = {"name": name, "display_period": 30, "auto_start": 1, "pages": [{"widgets": widgets}]}
         try:
             api.call("dashboard.create", params)
@@ -102,7 +115,8 @@ def setup_zabbix_dashboards(api, cfg, log=print):
                 log(f"  ! '{name}' not created: {exc2}")
                 continue
         created += 1
-    log(f"- Zabbix dashboards: {created} created, {kept} already existed (kept as they are)")
+    log(f"- Zabbix dashboards: {created} created, {refreshed} refreshed, {kept} already existed (kept as they are"
+        + ("; use --rebuild-dashboards to refresh them)" if kept else ")"))
 
 
 def setup_grafana_user(api, cfg, log=print):
@@ -238,7 +252,8 @@ def setup_native_discovery(api, cfg, force=False, log=print):
     log(f"- {created} discovery actions created (prefix '{PREFIX}')")
 
 
-def setup(api, cfg, native_discovery=False, force=False, zabbix_dashboards=True, log=print):
+def setup(api, cfg, native_discovery=False, force=False, zabbix_dashboards=True, rebuild_dashboards=False,
+          log=print):
     groups = ensure_groups(api, cfg)
     log(f"- {len(groups)} host groups ensured (existing ones are not changed)")
 
@@ -253,7 +268,7 @@ def setup(api, cfg, native_discovery=False, force=False, zabbix_dashboards=True,
 
     ensure_agent_template(api, log)
     if zabbix_dashboards:
-        setup_zabbix_dashboards(api, cfg, log)
+        setup_zabbix_dashboards(api, cfg, rebuild=rebuild_dashboards, log=log)
     setup_grafana_user(api, cfg, log)
     if native_discovery:
         setup_native_discovery(api, cfg, force, log)

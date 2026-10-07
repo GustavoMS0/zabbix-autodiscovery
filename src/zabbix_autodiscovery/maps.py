@@ -16,10 +16,12 @@ DEFAULT_ICONS = {
     "firewall": "Firewall", "router": "Router", "switch": "Switch", "ap": "Satellite_antenna",
     "server-windows": "Server", "server-linux": "Server", "hypervisor": "Rackmountable_2U_server_2D",
     "server-hardware": "Rackmountable_2U_server_3D", "storage": "Disk_array_3D", "ups": "UPS",
-    "printer": "Printer", "network-generic": "Network", "other": "Network",
+    "pdu": "UPS", "printer": "Printer", "cctv": "Video_terminal", "voip": "Phone",
+    "network-generic": "Network", "other": "Network",
 }
 ROW_ORDER = ["firewall", "router", "switch", "ap", "server-windows", "server-linux", "hypervisor",
-             "server-hardware", "storage", "ups", "printer", "network-generic", "other"]
+             "server-hardware", "storage", "ups", "pdu", "printer", "cctv", "voip",
+             "network-generic", "other"]
 COLUMNS, CELL_W, CELL_H, MARGIN = 8, 150, 120, 40
 
 

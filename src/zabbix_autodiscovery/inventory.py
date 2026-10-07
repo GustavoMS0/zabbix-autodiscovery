@@ -9,7 +9,7 @@ import re
 from .config import in_networks
 
 KNOWN_CATEGORIES = {"firewall", "router", "switch", "ap", "server-windows", "server-linux", "hypervisor",
-                    "server-hardware", "storage", "ups", "printer", "network-generic"}
+                    "server-hardware", "storage", "ups", "pdu", "printer", "cctv", "voip", "network-generic"}
 TEMPLATE_HINTS = [
     ("fortigate|pfsense|firewall|palo alto|sophos|check point|adaptive security", "firewall"),
     (r"\bups\b|nobreak|\bapc\b|eaton", "ups"),
@@ -17,7 +17,10 @@ TEMPLATE_HINTS = [
     ("ubiquiti|airos|unifi|access point|wireless", "ap"),
     ("printer", "printer"),
     (r"synology|qnap|storage|\bnas\b", "storage"),
-    ("vmware|esxi|hyper-v", "hypervisor"),
+    (r"vmware|esxi|hyper-v|proxmox|\bpve\b|nutanix|xenserver", "hypervisor"),
+    (r"cctv|camera|câmera|hikvision|dahua|axis|nvr|dvr", "cctv"),
+    (r"voip|telephony|asterisk|freepbx|grandstream|yealink|\bsip\b", "voip"),
+    (r"\bpdu\b|power distribution", "pdu"),
     ("mikrotik c[rs]s|switch|comware|hh3c|procurve|aruba|cisco ios|catalyst|huawei vrp|juniper|tp-link|d-link|"
      "netgear|extreme|arista|dell force", "switch"),
     ("mikrotik|routeros|router", "router"),
@@ -26,7 +29,10 @@ TEMPLATE_HINTS = [
 ]
 GROUP_HINTS = [("firewall", "firewall"), ("router|roteador", "router"), ("switch", "switch"),
                (r"access point|wireless|wifi|\bap\b", "ap"), ("printer|impressora", "printer"),
-               ("ups|nobreak", "ups"), ("storage|nas", "storage"), ("idrac|ilo|hardware", "server-hardware"),
+               ("ups|nobreak", "ups"), (r"\bpdu\b", "pdu"), ("storage|nas", "storage"),
+               ("idrac|ilo|hardware", "server-hardware"),
+               (r"cctv|camera|câmera|cf-tv|nvr|dvr", "cctv"), (r"voip|telefonia|\bsip\b|\bpabx\b|\bpbx\b", "voip"),
+               (r"hypervisor|hipervisor|virtualiz|vmware|proxmox", "hypervisor"),
                ("linux", "server-linux"), ("server|servidor|windows", "server-windows")]
 HOST_FIELDS = {"output": ["hostid", "host", "name", "status"], "selectTags": ["tag", "value"],
                "selectHostGroups": ["groupid", "name"], "selectParentTemplates": ["templateid", "name"],

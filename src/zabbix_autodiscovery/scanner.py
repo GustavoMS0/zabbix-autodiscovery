@@ -199,9 +199,11 @@ class SnmpProber:
                 rsp, _ = self.decoder.decode(data, asn1Spec=pmod.Message())
                 rpdu = pmod.apiMessage.get_pdu(rsp)
             except Exception:
-                return None
-            if pmod.apiPDU.get_request_id(rpdu) != request_id or pmod.apiPDU.get_error_status(rpdu):
-                return None
+                continue
+            if pmod.apiPDU.get_request_id(rpdu) != request_id:
+                continue                          # late answer to an earlier attempt: wait for ours
+            if pmod.apiPDU.get_error_status(rpdu):
+                return None                       # the agent answered with an error: retrying will not help
             return [_snmp_str(value) for _, value in pmod.apiPDU.get_varbinds(rpdu)]
         return None
 

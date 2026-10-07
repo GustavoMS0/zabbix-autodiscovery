@@ -24,4 +24,9 @@ First public version.
 - `audit` and `organize`: report on and organize the hosts that already existed (type and site groups, tags), with the type inferred from their templates; `update-templates --all`.
 - `audit` also finds the same machine on several hosts (system.hostname), host IPs that disagree with DNS and agent `Hostname=` mismatches; `agent-sync` falls back to the data Zabbix collected when the agent only allows the Zabbix server.
 - Hyper-V hosts (vmms service running, as collected by the Windows agent template) are classified as hypervisors by `organize` and `maps`.
+- Native dashboards: SVG graphs (traffic, temperature, errors, pages, voltage), top hosts and host availability for Zabbix 6.0/6.4; `setup --rebuild-dashboards` refreshes them with the current hosts.
+- CCTV (Hikvision, Dahua, Intelbras, Axis), VoIP (Grandstream, Yealink, Asterisk/FreePBX), Proxmox and rack PDU rules.
+- Devices that match a rule needing SNMP but do not answer SNMP go to `review` with an explanation in the new `note` column.
+- `diff` compares two inventories; `scan --network/--site` scans part of the configured networks.
+- API retries never repeat a write that may have been executed (only connection failures and 502/503).
 - Supports Zabbix 6.0 to 8.0.

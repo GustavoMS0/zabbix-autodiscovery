@@ -11,14 +11,15 @@ from .config import site_for
 # IANA enterprise number from the sysObjectID -> vendor (tag and report only)
 VENDORS = {
     "9": "Cisco", "11": "HP", "171": "D-Link", "232": "HPE", "236": "Samsung", "253": "Xerox",
-    "311": "Microsoft", "318": "APC", "367": "Ricoh", "534": "Eaton", "641": "Lexmark", "674": "Dell",
-    "890": "Zyxel", "1248": "Epson", "1347": "Kyocera", "1602": "Canon", "1916": "Extreme",
-    "2011": "Huawei", "2385": "Sharp", "2435": "Brother", "2604": "Sophos", "2620": "Check Point",
-    "2636": "Juniper", "4526": "Netgear", "6574": "Synology", "6876": "VMware", "8072": "Net-SNMP",
-    "8741": "SonicWall", "10642": "Zebra", "11863": "TP-Link", "12325": "pfSense", "12356": "Fortinet",
-    "14823": "Aruba", "14988": "MikroTik", "18334": "Konica Minolta", "24681": "QNAP", "25053": "Ruckus",
-    "25461": "Palo Alto", "25506": "H3C/HPE Comware", "26381": "NHS", "29671": "Meraki",
-    "30065": "Arista", "41112": "Ubiquiti", "47196": "Aruba",
+    "311": "Microsoft", "318": "APC", "367": "Ricoh", "368": "Axis", "534": "Eaton", "641": "Lexmark",
+    "674": "Dell", "890": "Zyxel", "1248": "Epson", "1347": "Kyocera", "1602": "Canon", "1718": "Server Technology",
+    "1916": "Extreme", "2011": "Huawei", "2385": "Sharp", "2435": "Brother", "2604": "Sophos",
+    "2620": "Check Point", "2636": "Juniper", "4526": "Netgear", "6574": "Synology", "6876": "VMware",
+    "8072": "Net-SNMP", "8741": "SonicWall", "10418": "Vertiv", "10642": "Zebra", "11863": "TP-Link",
+    "12325": "pfSense", "12356": "Fortinet", "13742": "Raritan", "14823": "Aruba", "14988": "MikroTik",
+    "18334": "Konica Minolta", "20974": "Grandstream", "21280": "Dahua", "24681": "QNAP", "25053": "Ruckus",
+    "25461": "Palo Alto", "25506": "H3C/HPE Comware", "26138": "Intelbras", "26381": "NHS", "29671": "Meraki",
+    "30065": "Arista", "35705": "Yealink", "39165": "Hikvision", "41112": "Ubiquiti", "47196": "Aruba",
 }
 
 CONDITIONS = {"sysobjectid_prefix", "sysdescr_regex", "agent_uname_regex", "web_server_regex",
@@ -181,6 +182,7 @@ def classify(dev, cfg):
         **certificate_columns(dev),
     }
     rule = next((r for r in cfg.get("rules", []) if rule_matches(r, dev)), None)
+    note = ""
     if rule is None:
         row.update(category="unknown", rule="-", group="", templates="", interface="", tags="",
                    action="ignore")
@@ -189,5 +191,12 @@ def classify(dev, cfg):
                    templates=",".join(as_list(rule.get("templates"))),
                    interface=rule.get("interface", "snmp"), tags=format_tags(rule.get("tags")),
                    action=rule.get("action", "review"))
+        # The rule wants SNMP but the device did not answer it (matched by ports or web banner):
+        # never guess, leave the decision to the administrator.
+        if row["interface"] == "snmp" and not dev.snmp and row["action"] != "ignore":
+            row["action"] = "review"
+            note = ("no SNMP answer: enable SNMP on the device and scan again, "
+                    "or set interface/templates manually (e.g. interface=icmp, templates=ICMP Ping)")
+    row["note"] = note
     row["hostname"], row["visible_name"], row["name_source"] = host_name(dev, row["category"])
     return row

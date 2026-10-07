@@ -1,4 +1,6 @@
 """Minimal JSON-RPC client for the Zabbix API (6.0 to 8.0)."""
+import time
+
 import requests
 
 
@@ -7,6 +9,9 @@ class ZabbixError(Exception):
 
 
 class ZabbixAPI:
+    MAX_ATTEMPTS = 3
+    BACKOFF = 1.0          # seconds, doubled at each retry
+
     def __init__(self, url, token=None, user=None, password=None, verify_tls=True):
         url = url.rstrip("/")
         self.url = url if url.endswith(".php") else url + "/api_jsonrpc.php"
@@ -43,13 +48,35 @@ class ZabbixAPI:
             headers["Authorization"] = None      # None drops the header inherited from the session
         elif self._auth and method not in ("apiinfo.version", "user.login"):
             payload["auth"] = self._auth
-        resp = self.session.post(self.url, json=payload, headers=headers, timeout=60)
-        resp.raise_for_status()
-        body = resp.json()
-        if "error" in body:
-            err = body["error"]
-            raise ZabbixError(f"{method}: {err.get('message')} {err.get('data', '')}".strip())
-        return body["result"]
+
+        # Retries never repeat a write that may already have been executed: writes are retried only when
+        # the request surely did not reach Zabbix (connection refused/reset, 502/503 from a proxy).
+        # Read timeouts and 504 (the backend may have processed it) are retried for reads only.
+        read_only = method.endswith(".get") or method in ("apiinfo.version", "user.checkAuthentication")
+        retry_status = {502, 503} | ({504} if read_only else set())
+        for attempt in range(self.MAX_ATTEMPTS):
+            last = attempt == self.MAX_ATTEMPTS - 1
+            try:
+                resp = self.session.post(self.url, json=payload, headers=headers, timeout=60)
+            except requests.ConnectionError as exc:              # includes ConnectTimeout: nothing was sent
+                if last:
+                    raise ZabbixError(f"connection failed calling {method}: {exc}") from exc
+                time.sleep(self.BACKOFF * (2 ** attempt))
+                continue
+            except requests.Timeout as exc:                       # read timeout: Zabbix may have run it
+                if last or not read_only:
+                    raise ZabbixError(f"timeout calling {method}: {exc}") from exc
+                time.sleep(self.BACKOFF * (2 ** attempt))
+                continue
+            if resp.status_code in retry_status and not last:
+                time.sleep(self.BACKOFF * (2 ** attempt))
+                continue
+            resp.raise_for_status()
+            body = resp.json()
+            if "error" in body:
+                err = body["error"]
+                raise ZabbixError(f"{method}: {err.get('message')} {err.get('data', '')}".strip())
+            return body["result"]
 
     # --- helpers ---
 

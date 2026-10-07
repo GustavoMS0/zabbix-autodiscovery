@@ -32,6 +32,13 @@ WIN_BUILD_26100 = "Hardware: x86 - Software: Windows Version 6.3 (Build 26100 Mu
     (Device("10.0.0.36", True, ports=[445, 10050]), "server-windows", "review"),
     (Device("10.0.0.40", True, sysobjectid="1.3.6.1.4.1.99999.1", sysdescr="something"), "network-generic", "review"),
     (Device("10.0.0.41", True, ports=[80]), "unknown", "ignore"),
+    (Device("10.0.0.50", True, sysobjectid="1.3.6.1.4.1.39165.1.1"), "cctv", "add"),
+    (Device("10.0.0.51", True, ports=[554, 37777]), "cctv", "review"),     # no SNMP: admin decides
+    (Device("10.0.0.52", True, ports=[554]), "cctv", "review"),
+    (Device("10.0.0.53", True, sysobjectid="1.3.6.1.4.1.20974.1"), "voip", "add"),
+    (Device("10.0.0.54", True, ports=[5060]), "voip", "review"),
+    (Device("10.0.0.55", True, sysdescr="Linux pve 6.2.16-3-pve", ports=[8006, 22]), "hypervisor", "add"),
+    (Device("10.0.0.56", True, sysobjectid="1.3.6.1.4.1.318.1.1.12.1"), "pdu", "add"),
 ])
 def test_rules(example_config, dev, category, action):
     row = classify(dev, example_config)
@@ -75,3 +82,15 @@ def test_vendor():
 ])
 def test_host_name(dev, expected):
     assert host_name(dev, "x") == expected
+
+
+def test_snmp_rule_without_snmp_answer_goes_to_review(example_config):
+    """Matched by ports only (e.g. RTSP + Dahua port): the administrator decides, nothing is guessed."""
+    row = classify(Device("10.0.0.60", True, ports=[80, 554, 37777]), example_config)
+    assert row["category"] == "cctv" and row["interface"] == "snmp"
+    assert row["action"] == "review" and row["note"].startswith("no SNMP answer")
+    with_snmp = classify(Device("10.0.0.61", True, ports=[554, 37777], sysobjectid="1.3.6.1.4.1.21280.1",
+                                sysdescr="DH-IPC", snmp_cred="v2-default"), example_config)
+    assert with_snmp["action"] == "add" and with_snmp["note"] == ""
+    icmp_rule = classify(Device("10.0.0.62", True, ports=[9100]), example_config)       # rule already ICMP
+    assert icmp_rule["action"] == "add" and icmp_rule["note"] == ""

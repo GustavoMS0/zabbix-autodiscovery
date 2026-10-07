@@ -30,7 +30,7 @@ from .config import ConfigError, credentials_by_name, default_community, in_netw
 from .inventory import category_of, network_hosts
 from .zabbix_api import ZabbixAPI, ZabbixError
 
-CSV_FIELDS = ["action", "site", "category", "hostname", "visible_name", "name_source", "ip", "group",
+CSV_FIELDS = ["action", "note", "site", "category", "hostname", "visible_name", "name_source", "ip", "group",
               "templates", "interface", "tags", "rule", "vendor", "sysname", "netbios", "dns",
               "dns_confirmed", "agent_hostname", "system_hostname", "sysobjectid", "sysdescr",
               "snmp_cred", "ports", "web_servers", "cert_names", "cert_expires", "cert_issuer",
@@ -86,8 +86,17 @@ def cmd_scan(cfg, args):
         if done == total or done % 25 == 0:
             print(f"  {phase}: {done}/{total} IPs probed, {found} responding", flush=True)
 
-    print("Scanning:", ", ".join(cfg["scan"]["networks"]))
-    devices = asyncio.run(scanner.scan(cfg["scan"], cfg.get("snmp_credentials", []), progress))
+    scan_cfg = dict(cfg["scan"])
+    if getattr(args, "network", None):
+        scan_cfg["networks"] = [args.network]
+    elif getattr(args, "site", None):
+        matching = [s["network"] for s in cfg.get("_sites", []) if s.get("site", "").lower() == args.site.lower()]
+        if not matching:
+            raise SystemExit(f"No networks found for site '{args.site}'")
+        scan_cfg["networks"] = matching
+
+    print("Scanning:", ", ".join(scan_cfg["networks"]))
+    devices = asyncio.run(scanner.scan(scan_cfg, cfg.get("snmp_credentials", []), progress))
     rows = [classifier.classify(d, cfg) for d in devices]
 
     with open(args.output, "w", newline="", encoding="utf-8-sig") as f:
@@ -101,6 +110,10 @@ def cmd_scan(cfg, args):
         print(f"  {cat:<20}{action:<10}{n}")
     sources = Counter(r["name_source"] for r in rows if r["action"] != "ignore")
     print("\n  Host name sources (add/review): " + ", ".join(f"{k}={v}" for k, v in sorted(sources.items())))
+    no_snmp = [r for r in rows if r.get("note", "").startswith("no SNMP answer")]
+    if no_snmp:
+        print(f"\n  {len(no_snmp)} device(s) matched a rule that needs SNMP but did not answer it -> action=review "
+              "(see the 'note' column): " + ", ".join(f"{r['ip']} [{r['category']}]" for r in no_snmp[:10]))
     missing = [r for r in rows if "agent=missing" in r.get("tags", "")]
     if missing:
         print(f"\n  {len(missing)} server(s) without Zabbix agent: "
@@ -120,7 +133,8 @@ def build_interface(row, cfg, global_community):
 
     cred = credentials_by_name(cfg).get(row.get("snmp_cred", ""))
     if not cred:
-        raise ValueError("SNMP interface without a valid SNMP credential (column snmp_cred)")
+        raise ValueError("the device did not answer SNMP during the scan (empty snmp_cred): enable SNMP on it "
+                         "and scan again, or set interface/templates manually in the CSV")
     version = str(cred.get("version", "2c"))
     if version in ("1", "2", "2c"):
         details = {"version": 1 if version == "1" else 2, "bulk": 1, "community": "{$SNMP_COMMUNITY}"}
@@ -505,7 +519,7 @@ def cmd_setup(cfg, args):
     api = connect(cfg)
     templates.ensure_addons(api, all_addons(cfg))
     provision.setup(api, cfg, native_discovery=args.native_discovery, force=args.force,
-                    zabbix_dashboards=not args.no_dashboards)
+                    zabbix_dashboards=not args.no_dashboards, rebuild_dashboards=args.rebuild_dashboards)
 
 
 def cmd_web(cfg, args):
@@ -532,6 +546,74 @@ def cmd_grafana_dashboards(cfg, args):
         print(f"written {path}")
 
 
+# ---------------------------------------------------------------- diff
+
+def cmd_diff(cfg, args):
+    old_rows = {r["ip"].strip(): r for r in read_inventory(args.old_file) if r.get("ip")}
+    new_rows = {r["ip"].strip(): r for r in read_inventory(args.new_file) if r.get("ip")}
+
+    import ipaddress
+
+    def _sort_key(ip):
+        try:
+            return (0, ipaddress.ip_address(ip))
+        except ValueError:
+            return (1, ip)
+
+    all_ips = sorted(set(old_rows.keys()) | set(new_rows.keys()), key=_sort_key)
+
+    added = []
+    removed = []
+    changed = []
+
+    for ip in all_ips:
+        if ip not in old_rows:
+            added.append(new_rows[ip])
+        elif ip not in new_rows:
+            removed.append(old_rows[ip])
+        else:
+            old = old_rows[ip]
+            new = new_rows[ip]
+            diffs = []
+            for field in ("category", "hostname", "vendor", "ports", "sysname", "rule"):
+                val_old = (old.get(field) or "").strip()
+                val_new = (new.get(field) or "").strip()
+                if val_old != val_new:
+                    diffs.append(f"{field}: '{val_old}' -> '{val_new}'")
+            if diffs:
+                changed.append((new, diffs))
+
+    print(f"\nInventory Diff: {args.old_file} -> {args.new_file}")
+    print(f"  + New devices:          {len(added)}")
+    print(f"  - Removed devices:      {len(removed)}")
+    print(f"  ~ Changed devices:      {len(changed)}\n")
+
+    if added:
+        print("== New devices detected ==")
+        for r in added:
+            host = r.get("hostname", "-")
+            rule = r.get("rule", "-")
+            print(f"  + {r['ip']:<16} [{r.get('category', 'unknown'):<15}] {host}  (rule: {rule})")
+        print()
+
+    if removed:
+        print("== Devices no longer responding ==")
+        for r in removed:
+            print(f"  - {r['ip']:<16} [{r.get('category', 'unknown'):<15}] {r.get('hostname', '-')}")
+        print()
+
+    if changed:
+        print("== Devices with changes ==")
+        for r, diffs in changed:
+            print(f"  ~ {r['ip']:<16} [{r.get('category', 'unknown'):<15}] {r.get('hostname', '-')}")
+            for d in diffs:
+                print(f"      * {d}")
+        print()
+
+    if not (added or removed or changed):
+        print("Both inventory files have the exact same devices and attributes.")
+
+
 # ---------------------------------------------------------------- main
 
 def build_parser():
@@ -547,6 +629,11 @@ def build_parser():
     p = sub.add_parser("scan", help="scan the networks and write the inventory CSV")
     p.add_argument("-o", "--output", default="inventory.csv")
     p.add_argument("--delimiter", default=";", help="CSV delimiter (default ';', Excel-friendly in most locales)")
+    p.add_argument("--network", help="scan only this specific network (e.g. 192.168.0.0/24)")
+    p.add_argument("--site", help="scan only networks belonging to this site name")
+    p = sub.add_parser("diff", help="compare two inventory CSV scans to detect new, removed or changed devices")
+    p.add_argument("-old", "--old-file", required=True, help="previous inventory CSV file")
+    p.add_argument("-new", "--new-file", required=True, help="new inventory CSV file")
     p = sub.add_parser("apply", help="create the CSV rows with action=add in Zabbix")
     p.add_argument("-i", "--input", default="inventory.csv")
     p.add_argument("--dry-run", action="store_true", help="only show what would be done")
@@ -558,6 +645,8 @@ def build_parser():
     p.add_argument("--force", action="store_true",
                    help="create native discovery even when monitored hosts are inside the ranges")
     p.add_argument("--no-dashboards", action="store_true", help="do not create native Zabbix dashboards")
+    p.add_argument("--rebuild-dashboards", action="store_true",
+                   help="refresh existing AutoDiscovery dashboards (e.g. after apply, so graphs include new hosts)")
     p = sub.add_parser("agent-sync", help="link agent templates to servers that now have an agent")
     p.add_argument("--dry-run", action="store_true")
     p = sub.add_parser("update-templates", help="link the category add-on templates to existing hosts")
@@ -586,6 +675,8 @@ def main(argv=None):
     args = build_parser().parse_args(argv)
     if args.cmd == "init":
         return cmd_init(args)
+    if args.cmd == "diff":
+        return cmd_diff(None, args)
     try:
         cfg = load_config(args.config)
     except ConfigError as exc:
