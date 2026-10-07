@@ -7,7 +7,7 @@ with this project; supply your own.
 import base64
 from pathlib import Path
 
-from .inventory import category_of, network_hosts
+from .inventory import category_of, hypervisor_hostids, network_hosts
 from .provision import PREFIX
 from .zabbix_api import ZabbixError
 
@@ -30,12 +30,12 @@ def vendor_of(host):
 __all__ = ["category_of", "layout", "provision"]
 
 
-def layout(hosts):
+def layout(hosts, hypervisors=frozenset()):
     """[(host, category, x, y)] in rows by category, wrapping at COLUMNS; returns (placed, width, height)."""
     placed, y = [], MARGIN
     by_cat = {}
     for h in hosts:
-        by_cat.setdefault(category_of(h), []).append(h)
+        by_cat.setdefault(category_of(h, hypervisors), []).append(h)
     max_cols = 1
     for cat in ROW_ORDER:
         items = sorted(by_cat.get(cat, []), key=lambda h: h["name"].lower())
@@ -100,7 +100,8 @@ def provision(api, cfg, base_dir, rebuild=False, dry_run=False, log=print):
     for site, networks in by_site.items():
         name = PREFIX + name_format.format(site=site)
         hosts = {h["hostid"]: h for n in networks for h in site_hosts(api, n)}.values()
-        placed, width, height = layout(list(hosts))
+        hosts = list(hosts)
+        placed, width, height = layout(hosts, hypervisor_hostids(api, [h["hostid"] for h in hosts]))
         if not placed:
             continue
         if name in existing and not rebuild:

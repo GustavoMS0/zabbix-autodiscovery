@@ -33,11 +33,23 @@ HOST_FIELDS = {"output": ["hostid", "host", "name", "status"], "selectTags": ["t
                "selectInterfaces": ["type", "ip", "available", "error"]}
 
 
+def hypervisor_hostids(api, hostids):
+    """Windows hosts running the Hyper-V management service (vmms state 0 = running),
+    read from the services the "Windows by Zabbix agent" template already discovers."""
+    if not hostids:
+        return set()
+    items = api.call("item.get", {"output": ["hostid", "lastvalue"], "hostids": list(hostids),
+                                  "search": {"key_": "vmms"}, "templated": False})
+    return {i["hostid"] for i in items if i["lastvalue"] == "0"}
+
+
 def tag_value(host, tag):
     return next((t["value"] for t in host.get("tags", []) if t["tag"] == tag), "")
 
 
-def category_of(host):
+def category_of(host, hypervisors=frozenset()):
+    if host.get("hostid") in hypervisors:
+        return "hypervisor"
     tag = tag_value(host, "type")
     if tag:
         return tag if tag in KNOWN_CATEGORIES else "other"

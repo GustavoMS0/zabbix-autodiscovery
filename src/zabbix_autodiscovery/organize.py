@@ -10,7 +10,7 @@ import socket
 from collections import Counter, defaultdict
 
 from .config import category_groups, site_for
-from .inventory import category_of, first_ip, network_hosts, tag_value
+from .inventory import category_of, first_ip, hypervisor_hostids, network_hosts, tag_value
 
 
 def plan(api, cfg):
@@ -18,15 +18,20 @@ def plan(api, cfg):
     groups_by_cat = category_groups(cfg)
     site_group = cfg.get("site_group", "Sites/{site}")
     out = []
-    for h in network_hosts(api, cfg["scan"]["networks"]):
-        cat = category_of(h)
+    hosts = network_hosts(api, cfg["scan"]["networks"])
+    hypervisors = hypervisor_hostids(api, [h["hostid"] for h in hosts])
+    for h in hosts:
+        cat = category_of(h, hypervisors)
         site = site_for(cfg, first_ip(h)).get("site", "")
         wanted = [g for g in (groups_by_cat.get(cat), site_group.format(site=site) if site and site_group else None)
                   if g]
         have = {g["name"] for g in h["hostgroups"]}
         tags = {}
-        if cat != "other" and not tag_value(h, "type"):
-            tags["type"] = cat
+        current = tag_value(h, "type")
+        # a Windows server found to run Hyper-V is promoted to hypervisor
+        if cat != "other" and (not current or (cat == "hypervisor" and current == "server-windows")):
+            if current != cat:
+                tags["type"] = cat
         if site and not tag_value(h, "site"):
             tags["site"] = site
         out.append((h, cat, [g for g in wanted if g not in have], tags))
@@ -59,7 +64,7 @@ def organize(api, cfg, dry_run=False, remove_groups=(), log=print):
             api.call("host.massadd", {"hosts": [{"hostid": h["hostid"]}],
                                       "groups": [{"groupid": api.ensure_hostgroup(g)} for g in add_groups]})
         if add_tags:
-            tags = [{"tag": t["tag"], "value": t["value"]} for t in h["tags"]]
+            tags = [{"tag": t["tag"], "value": t["value"]} for t in h["tags"] if t["tag"] not in add_tags]
             tags += [{"tag": k, "value": v} for k, v in add_tags.items()]
             api.call("host.update", {"hostid": h["hostid"], "tags": tags})
         ids = [remove_ids[g] for g in drop if g in remove_ids]

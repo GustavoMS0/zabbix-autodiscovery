@@ -23,4 +23,5 @@ First public version.
 - SNMP credentials are tried from the highest version down (v3 → v2c → v1).
 - `audit` and `organize`: report on and organize the hosts that already existed (type and site groups, tags), with the type inferred from their templates; `update-templates --all`.
 - `audit` also finds the same machine on several hosts (system.hostname), host IPs that disagree with DNS and agent `Hostname=` mismatches; `agent-sync` falls back to the data Zabbix collected when the agent only allows the Zabbix server.
+- Hyper-V hosts (vmms service running, as collected by the Windows agent template) are classified as hypervisors by `organize` and `maps`.
 - Supports Zabbix 6.0 to 8.0.
