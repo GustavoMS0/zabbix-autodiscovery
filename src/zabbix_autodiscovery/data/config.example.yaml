@@ -63,6 +63,20 @@ native_discovery:
   name: AutoDiscovery - Continuous discovery
   delay: 1h
 
+# Extra templates linked to every SNMP host of a category (by "apply" and "update-templates").
+# The two below are created by zabbix-autodiscovery; any existing template name also works.
+category_templates:
+  printer: ["AutoDiscovery - Printer by SNMP"]        # page counter, toner/drum levels, status, serial
+  switch: ["AutoDiscovery - Switch port usage"]       # ports in use / total / % (Zabbix 7.0+)
+
+# One Zabbix map per site ("maps" command). Icons: a built-in Zabbix image name or a local PNG,
+# per category or per vendor ("vendor:HP"). Defaults: Printer, Switch, Firewall, Router, Server, UPS...
+maps:
+  name_format: "Site: {site}"
+  # icons:
+  #   printer: Printer
+  #   vendor:HP: icons/hp-laserjet.png
+
 # SSL certificate and domain expiration monitoring ("zabbix-autodiscovery web").
 web:
   certificates:

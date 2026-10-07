@@ -10,6 +10,8 @@ Typical flow:
   zabbix-autodiscovery apply -i inventory.csv
   zabbix-autodiscovery agent-sync                          # switch servers that got an agent to agent templates
   zabbix-autodiscovery web [--dry-run]                     # SSL certificate and domain expiration monitoring
+  zabbix-autodiscovery update-templates [--dry-run]        # link category add-on templates to existing hosts
+  zabbix-autodiscovery maps [--rebuild]                    # one Zabbix map per site, icon per device type
   zabbix-autodiscovery grafana-dashboards -o ./dashboards  # optional: Grafana JSON per device type
 """
 import argparse
@@ -21,7 +23,7 @@ from collections import Counter
 from importlib import resources
 from pathlib import Path
 
-from . import __version__, classifier, dashboards, provision, scanner, web
+from . import __version__, classifier, dashboards, maps, provision, scanner, templates, web
 from .config import ConfigError, credentials_by_name, default_community, in_networks, load_config, site_for
 from .zabbix_api import ZabbixAPI, ZabbixError
 
@@ -161,6 +163,15 @@ def read_inventory(path):
         return list(csv.DictReader(f, delimiter=delimiter))
 
 
+def addon_templates(cfg, category):
+    """Add-on templates linked to every host of a category (config: category_templates)."""
+    return list((cfg.get("category_templates") or {}).get(category) or [])
+
+
+def all_addons(cfg):
+    return sorted({t for names in (cfg.get("category_templates") or {}).values() for t in names or []})
+
+
 def cmd_apply(cfg, args):
     rows = [r for r in read_inventory(args.input) if r.get("action", "").strip().lower() == "add"]
     if not rows:
@@ -169,6 +180,8 @@ def cmd_apply(cfg, args):
     api = connect(cfg)
     if not args.dry_run and any(provision.AGENT_TEMPLATE in r.get("templates", "") for r in rows):
         provision.ensure_agent_template(api)
+    if not args.dry_run:
+        templates.ensure_addons(api, all_addons(cfg))
     tmpl_map = api.template_ids()
     tmpl_names = {v: k for k, v in tmpl_map.items()}
     interfaces = api.call("hostinterface.get", {"output": ["ip", "dns"]})
@@ -207,9 +220,12 @@ def cmd_apply(cfg, args):
         visible = (row.get("visible_name") or "").strip()
         if visible and visible.lower() in existing_visible | existing_names:
             visible = f"{visible} ({ip})"
-        template_ids, missing = provision.resolve_templates(row.get("templates", ""), tmpl_map)
+        spec = ",".join(filter(None, [row.get("templates", "")] + (
+            addon_templates(cfg, row["category"]) if row.get("interface", "snmp") == "snmp" else [])))
+        template_ids, missing = provision.resolve_templates(spec, tmpl_map)
         for m in missing:
-            if not (args.dry_run and m == provision.AGENT_TEMPLATE):    # created by setup / real apply
+            created_later = m == provision.AGENT_TEMPLATE or m in templates.ENSURE
+            if not (args.dry_run and created_later):                    # created by setup / real apply
                 print(f"  ! {label}template not found: {m}")
         try:
             interface, macros = build_interface(row, cfg, global_community)
@@ -232,7 +248,8 @@ def cmd_apply(cfg, args):
         proxy = proxies.params(site.get("proxy") or cfg["zabbix"].get("proxy"))
 
         if args.dry_run:
-            used = [tmpl_names[t] for t in template_ids] + [m for m in missing if m == provision.AGENT_TEMPLATE]
+            used = [tmpl_names[t] for t in template_ids] + [
+                m for m in missing if m == provision.AGENT_TEMPLATE or m in templates.ENSURE]
             print(f"  + {label}{name:<28} [{' + '.join(groups)}]  name via {row.get('name_source') or '?'}\n"
                   f"      templates: {', '.join(used) or '(none)'}")
             stats["planned"] += 1
@@ -409,8 +426,58 @@ def cmd_check(cfg, args):
 
 # ---------------------------------------------------------------- setup / grafana
 
+def cmd_update_templates(cfg, args):
+    """Link the category add-on templates to hosts created earlier (only SNMP-monitored hosts)."""
+    wanted = cfg.get("category_templates") or {}
+    if not wanted:
+        raise SystemExit("Nothing to do: category_templates is empty in the config")
+    api = connect(cfg)
+    if not args.dry_run:
+        templates.ensure_addons(api, all_addons(cfg))
+    tmpl_map = api.template_ids()
+    hosts = api.call("host.get", {
+        "output": ["hostid", "host", "name"], "selectTags": ["tag", "value"],
+        "selectInterfaces": ["type"], "selectParentTemplates": ["templateid"],
+        "tags": [{"tag": "origin", "value": "autodiscovery", "operator": 1}]})
+    stats = Counter()
+    for h in sorted(hosts, key=lambda h: h["name"].lower()):
+        category = next((t["value"] for t in h["tags"] if t["tag"] == "type"), "")
+        names = wanted.get(category) or []
+        if not names or not any(i["type"] == "2" for i in h["interfaces"]):
+            continue
+        current = {t["templateid"] for t in h["parentTemplates"]}
+        ids, missing = provision.resolve_templates(",".join(names), tmpl_map)
+        new = [t for t in ids if t not in current]
+        if args.dry_run:
+            todo = [n for n in names if tmpl_map.get(n) not in current]
+            if todo:
+                print(f"  + {h['name']:<32} would link: {', '.join(todo)}")
+                stats["planned"] += 1
+            continue
+        for m in missing:
+            print(f"  ! {h['name']}: template not found: {m}")
+        if not new:
+            stats["up to date"] += 1
+            continue
+        try:
+            api.call("host.update", {"hostid": h["hostid"],
+                                     "templates": [{"templateid": t} for t in sorted(current) + new]})
+            print(f"  + {h['name']:<32} linked: {', '.join(n for n in names if tmpl_map.get(n) in new)}")
+            stats["updated"] += 1
+        except ZabbixError as exc:
+            print(f"  x {h['name']}: {exc}")
+            stats["error"] += 1
+    print("\nSummary:", ", ".join(f"{k}={v}" for k, v in sorted(stats.items())) or "nothing to do")
+
+
+def cmd_maps(cfg, args):
+    api = connect(cfg)
+    maps.provision(api, cfg, Path(args.config).resolve().parent, rebuild=args.rebuild, dry_run=args.dry_run)
+
+
 def cmd_setup(cfg, args):
     api = connect(cfg)
+    templates.ensure_addons(api, all_addons(cfg))
     provision.setup(api, cfg, native_discovery=args.native_discovery, force=args.force,
                     zabbix_dashboards=not args.no_dashboards)
 
@@ -467,6 +534,11 @@ def build_parser():
     p.add_argument("--no-dashboards", action="store_true", help="do not create native Zabbix dashboards")
     p = sub.add_parser("agent-sync", help="link agent templates to servers that now have an agent")
     p.add_argument("--dry-run", action="store_true")
+    p = sub.add_parser("update-templates", help="link the category add-on templates to existing hosts")
+    p.add_argument("--dry-run", action="store_true")
+    p = sub.add_parser("maps", help="one Zabbix map per site with an icon per device type, plus a dashboard")
+    p.add_argument("--rebuild", action="store_true", help="refresh existing AutoDiscovery maps with the current hosts")
+    p.add_argument("--dry-run", action="store_true")
     p = sub.add_parser("web", help="monitor SSL certificates and domain expiration (web section of the config)")
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("-i", "--input", help="also add the publicly trusted certificates found in this inventory CSV")
@@ -486,7 +558,8 @@ def main(argv=None):
     except ConfigError as exc:
         raise SystemExit(f"Config error: {exc}")
     commands = {"check": cmd_check, "scan": cmd_scan, "apply": cmd_apply, "setup": cmd_setup,
-                "agent-sync": cmd_agent_sync, "web": cmd_web, "grafana-dashboards": cmd_grafana_dashboards}
+                "agent-sync": cmd_agent_sync, "web": cmd_web, "update-templates": cmd_update_templates,
+                "maps": cmd_maps, "grafana-dashboards": cmd_grafana_dashboards}
     try:
         commands[args.cmd](cfg, args)
     except ZabbixError as exc:

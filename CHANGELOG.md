@@ -16,4 +16,9 @@ First public version.
 - `web`: SSL certificate monitoring (Zabbix agent 2) and domain expiration through RDAP at each TLD's registry, with alerts and a dashboard sorted by days left.
 - The scan identifies web servers (HTTP `Server` header) and TLS certificates; new `web_server_regex` rule condition (e.g. IIS → Windows server).
 - `apply` skips hosts whose name already exists with another IP (possible duplicate) unless `--allow-duplicate-names`.
+- Printer template (Printer-MIB): page counter, auto-discovered supplies with level %, status, model, serial.
+- Switch port usage template (ports in use / total / %), from one IF-MIB walk.
+- `category_templates` + `update-templates` to link add-on templates to new and existing hosts.
+- `maps`: one Zabbix map per site with an icon per device type (built-in images or your own PNGs) and a dashboard with one page per site.
+- SNMP credentials are tried from the highest version down (v3 → v2c → v1).
 - Supports Zabbix 6.0 to 8.0.

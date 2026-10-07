@@ -118,6 +118,14 @@ async def udp_request(ip, port, payload, timeout):
         transport.close()
 
 
+SNMP_VERSION_RANK = {"3": 0, "2c": 1, "2": 1, "1": 2}
+
+
+def prefer_highest_version(credentials):
+    """v3 first (encrypted), then v2c (bulk reads), then v1; config order is kept within a version."""
+    return sorted(credentials, key=lambda c: SNMP_VERSION_RANK.get(str(c.get("version", "2c")), 1))
+
+
 class SnmpProber:
     """SNMP GET of sysDescr/sysObjectID/sysName.
 
@@ -137,7 +145,7 @@ class SnmpProber:
         self.engine = None
         self.timeout = timeout
         self.retries = retries
-        self.credentials = [(c, self._auth_data(c)) for c in credentials]
+        self.credentials = [(c, self._auth_data(c)) for c in prefer_highest_version(credentials)]
 
     def _auth_data(self, cred):
         version = str(cred.get("version", "2c"))

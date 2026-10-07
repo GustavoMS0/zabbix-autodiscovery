@@ -13,6 +13,7 @@
 - **Revisão antes de alterar.** O `scan` gera um CSV editável no Excel. O `apply --dry-run` mostra exatamente o que seria criado. O `check` valida tudo sem tocar no Zabbix.
 - **Seguro num Zabbix que já existe.** Hosts já monitorados (mesmo IP ou DNS) são pulados. Macros, grupos, usuários e dashboards existentes nunca são alterados. Tudo o que o zabbix-autodiscovery cria leva o prefixo `AutoDiscovery -` ou a tag `origin=autodiscovery`.
 - **Servidores sem agente Zabbix** recebem um template que gera o problema *"Zabbix agent missing"*. O `agent-sync` troca esses hosts para os templates de agente depois da instalação.
+- **Impressoras** (contador, nível de toner/cilindro, status, número de série), **ocupação de portas dos switches** e **mapas por filial** com ícone por tipo.
 - **Certificados SSL e vencimento de domínios** (RDAP), com alertas e um dashboard ordenado por dias restantes. O scan também identifica servidores web (IIS, nginx, Apache…) e seus certificados.
 - **Várias filiais**, cada uma com nome (vira a tag `site` e o grupo `Sites/<nome>`) e, opcionalmente, um proxy Zabbix.
 - **Dashboards por tipo de dispositivo:** nativos do Zabbix (sem precisar de Grafana) e/ou do Grafana, montados com os nomes dos seus grupos de hosts.
@@ -53,6 +54,8 @@ Para não instalar nada no Windows, use `.\zabbix-autodiscovery.ps1 init` (preci
 | `zabbix-autodiscovery apply -i ARQ [--dry-run]` | sim | Cria as linhas com `action=add`; pula o que já é monitorado |
 | `zabbix-autodiscovery setup [--native-discovery] [--no-dashboards]` | sim | Grupos, `{$SNMP_COMMUNITY}` (só se não existir), template de agente ausente, dashboards do Zabbix, usuário somente leitura do Grafana (opcional) e descoberta contínua (opcional) |
 | `zabbix-autodiscovery agent-sync [--dry-run]` | sim | Passa os hosts `agent=missing` para os templates de agente quando o agente responde |
+| `zabbix-autodiscovery update-templates [--dry-run]` | sim | Vincula os templates extras por categoria aos hosts existentes |
+| `zabbix-autodiscovery maps [--dry-run] [--rebuild]` | sim | Um mapa por filial com ícone por tipo de dispositivo, mais um dashboard |
 | `zabbix-autodiscovery web [--dry-run] [-i ARQ]` | sim | Monitoramento de certificados SSL e vencimento de domínios |
 | `zabbix-autodiscovery grafana-dashboards -o DIR` | não | Gera os JSON dos dashboards do Grafana a partir do seu config |
 
@@ -118,6 +121,32 @@ Cada host recebe a tag `site=<nome>` e entra também no grupo da filial, então 
 ## Servidores sem agente Zabbix
 
 Servidores detectados sem agente entram com a tag `agent=missing` e o template **AutoDiscovery - Zabbix agent missing**. O servidor Zabbix testa a porta 10050 a cada 5 minutos. O trigger *"Zabbix agent missing on {HOST.NAME}"* só dispara enquanto o host responde ping, então um host fora do ar não gera esse alerta também. Depois que o agente é instalado, o problema se resolve sozinho; rode `zabbix-autodiscovery agent-sync` para vincular os templates de agente. Para receber aviso, crie uma ação de trigger com a condição *tag agent = missing*.
+
+## Impressoras, portas de switch e mapas
+
+**Templates extras por categoria** são vinculados a todo host SNMP daquela categoria, além do template do fabricante:
+
+```yaml
+category_templates:
+  printer: ["AutoDiscovery - Printer by SNMP"]
+  switch: ["AutoDiscovery - Switch port usage"]
+```
+
+- **AutoDiscovery - Printer by SNMP** lê a Printer-MIB padrão (RFC 3805), que quase toda impressora de rede implementa (HP, Brother, Epson, Samsung, Kyocera, Ricoh…). Coleta o contador total de páginas, cada suprimento (toner, tinta, cilindro) descoberto automaticamente com o nível em %, o status do equipamento e da impressora, a mensagem do painel, o modelo e o número de série. Alerta abaixo de 10% e de 3% (`{$PRINTER.SUPPLY.WARN}` / `{$PRINTER.SUPPLY.HIGH}`) e quando a impressora reporta alerta ou para. O Zabbix não traz template de impressora, então sem este as impressoras só têm ping e uptime.
+- **AutoDiscovery - Switch port usage** calcula, a partir de uma leitura SNMP da IF-MIB, as portas físicas em uso, o total de portas, a % de ocupação e as portas habilitadas sem link. Alerta acima de 90% (`{$SWITCH.PORT.USAGE.WARN}`). Precisa do Zabbix 7.0+.
+- O `apply` vincula esses templates aos hosts novos. O `update-templates [--dry-run]` vincula aos hosts cadastrados antes.
+
+**Mapas:** o `maps [--dry-run] [--rebuild]` cria um mapa do Zabbix por filial, com todos os hosts das redes da filial (inclusive os que já existiam). Os hosts ficam agrupados em linhas por tipo, com um ícone por tipo que muda de cor conforme os problemas. O dashboard *AutoDiscovery - Maps* mostra uma página por filial. Os ícones padrão são as imagens que já vêm com o Zabbix. Cada categoria ou fabricante pode usar outra imagem do Zabbix ou um PNG seu, por exemplo a foto do modelo; fotos de produto não vêm com o projeto.
+
+```yaml
+maps:
+  name_format: "Filial {site}"
+  icons:
+    printer: Printer                       # imagem que já vem no Zabbix
+    vendor:HP: icons/hp-laserjet.png       # PNG local, enviado uma vez
+```
+
+**Versão do SNMP:** as credenciais são tentadas da versão mais alta para a mais baixa (v3, depois v2c, depois v1), mantendo a ordem do config dentro de cada versão. A primeira que responder é usada.
 
 ## Certificados SSL e vencimento de domínios
 

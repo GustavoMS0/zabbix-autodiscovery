@@ -37,6 +37,7 @@ $ zabbix-autodiscovery apply -i inventory.csv --dry-run
 - **Review before change.** `scan` writes a CSV you can edit in Excel. `apply --dry-run` shows exactly what would be created. `check` validates everything without touching Zabbix.
 - **Safe on an existing Zabbix.** Hosts already monitored (same IP or DNS) are skipped. Existing macros, groups, users and dashboards are never modified. Everything zabbix-autodiscovery creates is prefixed `AutoDiscovery -` or tagged `origin=autodiscovery`.
 - **Servers without a Zabbix agent** get a template that raises a *"Zabbix agent missing"* problem. `agent-sync` switches them to agent templates once the agent is installed.
+- **Printers** (page counter, toner/drum levels, status, serial), **switch port usage** and **site maps** with an icon per device type.
 - **SSL certificates and domain expiration** (RDAP), with alerts and a dashboard sorted by days left. The scan also identifies web servers (IIS, nginx, Apache…) and their certificates.
 - **Multiple sites**, each with a name (becomes a `site` tag and a `Sites/<name>` group) and an optional Zabbix proxy.
 - **Dashboards per device type**: native Zabbix dashboards (no Grafana needed) and/or Grafana dashboards. Both are built from your own host group names.
@@ -77,6 +78,8 @@ Without installing anything on Windows: `.\zabbix-autodiscovery.ps1 init` (needs
 | `zabbix-autodiscovery apply -i FILE [--dry-run]` | yes | Creates rows with `action=add`. Skips anything already monitored |
 | `zabbix-autodiscovery setup [--native-discovery] [--no-dashboards]` | yes | Host groups, `{$SNMP_COMMUNITY}` (only if missing), agent-missing template, Zabbix dashboards, optional Grafana read-only user, optional continuous discovery |
 | `zabbix-autodiscovery agent-sync [--dry-run]` | yes | Moves `agent=missing` hosts to agent templates when their agent answers |
+| `zabbix-autodiscovery update-templates [--dry-run]` | yes | Links the category add-on templates to existing hosts |
+| `zabbix-autodiscovery maps [--dry-run] [--rebuild]` | yes | One map per site with an icon per device type, plus a dashboard |
 | `zabbix-autodiscovery web [--dry-run] [-i FILE]` | yes | SSL certificate and domain expiration monitoring |
 | `zabbix-autodiscovery grafana-dashboards -o DIR` | no | Writes Grafana dashboard JSON files from your config |
 
@@ -142,6 +145,32 @@ Every host gets the tag `site=<name>` and also joins `Sites/<name>`, so you can 
 ## Servers without a Zabbix agent
 
 Servers detected without an agent are created with the tag `agent=missing` and the template **AutoDiscovery - Zabbix agent missing**. The Zabbix server checks port 10050 every 5 minutes. The trigger *"Zabbix agent missing on {HOST.NAME}"* fires only while the host answers ping, so a host that is down does not also raise this alert. Once the agent is installed the problem resolves by itself. Then run `zabbix-autodiscovery agent-sync` to link the agent templates. To get notified, create a trigger action with the condition *tag agent = missing*.
+
+## Printers, switch ports and maps
+
+**Category add-on templates** are linked to every SNMP host of a category, on top of the vendor template:
+
+```yaml
+category_templates:
+  printer: ["AutoDiscovery - Printer by SNMP"]
+  switch: ["AutoDiscovery - Switch port usage"]
+```
+
+- **AutoDiscovery - Printer by SNMP** reads the standard Printer-MIB (RFC 3805), which almost every network printer implements (HP, Brother, Epson, Samsung, Kyocera, Ricoh…). It collects the total page counter, every consumable (toner, ink, drum) discovered automatically with its level in %, device and printer status, the panel message, model and serial number. Alerts fire below 10% and 3% (`{$PRINTER.SUPPLY.WARN}` / `{$PRINTER.SUPPLY.HIGH}`) and when the printer reports a warning or is down. Zabbix ships no printer template, so without this one printers only get ping and uptime.
+- **AutoDiscovery - Switch port usage** computes physical ports in use, total ports, % used and enabled ports without link from one SNMP walk of the IF-MIB. It warns above 90% (`{$SWITCH.PORT.USAGE.WARN}`). Needs Zabbix 7.0+.
+- `apply` links them to new hosts. `update-templates [--dry-run]` links them to hosts created earlier.
+
+**Maps:** `maps [--dry-run] [--rebuild]` creates one Zabbix map per site, with every host in the site's networks (including hosts you already had). Hosts are grouped in rows by type, with an icon per type that changes color with problems. A dashboard *AutoDiscovery - Maps* shows one page per site. Icons default to the images bundled with Zabbix. Each category or vendor can use another built-in image or your own PNG, for example a photo of the model; product photos are not bundled with the project.
+
+```yaml
+maps:
+  name_format: "Site: {site}"
+  icons:
+    printer: Printer                       # built-in Zabbix image
+    vendor:HP: icons/hp-laserjet.png       # local PNG, uploaded once
+```
+
+**SNMP version:** credentials are tried from the highest version down (v3, then v2c, then v1), keeping the config order within the same version. The first that answers is used.
 
 ## SSL certificates and domain expiration
 
