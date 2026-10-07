@@ -93,9 +93,9 @@ class HyperVAPI(HostsAPI):
 
 
 def test_hyperv_host_is_promoted_to_hypervisor(example_config):
-    api = HyperVAPI([_host("1", "HV01", "192.168.0.31", ["Windows by Zabbix agent"], groups=("Servers/Windows",),
+    api = HyperVAPI([_host("1", "HV01", "192.168.0.50", ["Windows by Zabbix agent"], groups=("Servers/Windows",),
                            tags=[("type", "server-windows"), ("site", "HQ")]),
-                     _host("2", "APP01", "192.168.0.33", ["Windows by Zabbix agent"])], running={"1"})
+                     _host("2", "APP01", "192.168.0.51", ["Windows by Zabbix agent"])], running={"1"})
     plan = {h["name"]: (cat, groups, tags) for h, cat, groups, tags in organize.plan(api, example_config)}
     assert plan["HV01"] == ("hypervisor", ["Servers/Hypervisors", "Sites/HQ"], {"type": "hypervisor"})
     assert plan["APP01"][0] == "server-windows"
