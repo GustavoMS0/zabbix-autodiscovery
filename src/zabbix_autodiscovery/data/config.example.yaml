@@ -1,0 +1,387 @@
+# zabbix-autodiscovery configuration. Create yours with:  zabbix-autodiscovery init
+# Values written as ${VARIABLE} are read from environment variables or from a .env file
+# next to this config (keep secrets there, never in this file).
+
+zabbix:
+  url: http://127.0.0.1:8080          # frontend URL (/api_jsonrpc.php is appended automatically)
+  token: ${ZABBIX_TOKEN}              # API token (Users > API tokens), or use user/password below
+  # user: Admin
+  # password: ${ZABBIX_PASSWORD}
+  verify_tls: true
+  # proxy: my-proxy                   # default Zabbix proxy for new hosts (per-network override below)
+
+# Extra host group per site ("" disables it). {site} is replaced by the site name.
+site_group: "Sites/{site}"
+
+# Read-only Zabbix user for the Grafana datasource (created by "setup"; optional).
+# Remove this block if you do not use Grafana.
+grafana_user:
+  username: ${ZABBIX_GRAFANA_USER}
+  password: ${ZABBIX_GRAFANA_PASSWORD}
+
+scan:
+  # Each entry is a plain network ("10.0.0.0/24", "10.0.0.10-10.0.0.50", "10.0.0.7")
+  # or {network, site, proxy}: site -> "site" tag + site host group; proxy -> Zabbix proxy for that network.
+  networks:
+    - {network: 192.168.0.0/24, site: HQ}
+    - {network: 192.168.10.0/24, site: Branch-01, proxy: proxy-branch-01}
+    - 192.168.20.0/24
+  exclude:                            # never scanned (e.g. the workstation DHCP pool)
+    - 192.168.0.100-192.168.0.199
+  ports: [22, 23, 80, 88, 135, 139, 389, 443, 445, 515, 631, 902, 1433, 3306, 3389, 5432, 5985, 8080, 8291, 8443, 9100, 10050]
+  concurrency: 30
+  timeout: 2.0                        # seconds per TCP/SNMP probe (the second pass uses twice this)
+  snmp_retries: 1
+  ping: true
+  reverse_dns: true
+  second_pass: true                   # re-probe responsive hosts to avoid false negatives
+
+# Tried in order; the first one that answers is used for the host.
+# "setup" creates the global macro {$SNMP_COMMUNITY} from the first v2c community ONLY if the macro
+# does not exist yet. Otherwise the existing value is kept and new hosts get a host-level macro.
+snmp_credentials:
+  - name: v2-default
+    version: 2c
+    community: ${SNMP_COMMUNITY}
+  - name: v2-public
+    version: 2c
+    community: public
+  - name: v1-public                   # some older printers (e.g. Epson) only answer SNMP v1
+    version: 1
+    community: public
+  # - name: v3-network
+  #   version: 3
+  #   user: zabbix
+  #   auth_protocol: SHA              # MD5 | SHA | SHA256 | SHA512
+  #   auth_pass: ${SNMPV3_AUTH}
+  #   priv_protocol: AES              # DES | AES | AES256
+  #   priv_pass: ${SNMPV3_PRIV}
+
+# Continuous Zabbix network discovery ("setup --native-discovery").
+# Only rules with sysobjectid_prefix and action "add" become discovery actions.
+native_discovery:
+  name: AutoDiscovery - Continuous discovery
+  delay: 1h
+
+# ---------------------------------------------------------------------------
+# Classification rules: evaluated in order, the first match wins.
+# No rule uses host names: classification depends only on what the device answers
+# (SNMP, Zabbix agent and open ports), so it works with any naming convention.
+#   match:     a mapping (all conditions must match) or a list of mappings (any of them)
+#   conditions: sysobjectid_prefix, sysdescr_regex, agent_uname_regex,
+#               ports_any, ports_all, ports_none, snmp, agent, alive
+#   templates: list; each item may hold alternatives separated by "|" (first existing one is used)
+#   interface: snmp | agent | icmp
+#   tags:      extra host tags (e.g. {agent: missing})
+#   action:    add | review | ignore
+# The group names below are free text: rename them to your own convention.
+# ---------------------------------------------------------------------------
+rules:
+  # --- Firewalls ---
+  - name: fortigate
+    category: firewall
+    group: Network/Firewalls
+    match: {sysobjectid_prefix: [1.3.6.1.4.1.12356]}
+    templates: ["FortiGate by SNMP|Network Generic Device by SNMP"]
+    interface: snmp
+    action: add
+  - name: pfsense
+    category: firewall
+    group: Network/Firewalls
+    match:
+      - {sysdescr_regex: 'pfsense|opnsense'}
+      - {sysobjectid_prefix: [1.3.6.1.4.1.12325]}
+    templates: ["PFSense by SNMP|Network Generic Device by SNMP"]
+    interface: snmp
+    action: add
+  - name: firewall-other
+    category: firewall
+    group: Network/Firewalls
+    match:
+      - {sysobjectid_prefix: [1.3.6.1.4.1.25461, 1.3.6.1.4.1.2604, 1.3.6.1.4.1.8741, 1.3.6.1.4.1.2620]}  # Palo Alto, Sophos, SonicWall, Check Point
+      - {sysdescr_regex: 'Adaptive Security Appliance|Firepower'}
+    templates: ["Network Generic Device by SNMP"]
+    interface: snmp
+    action: add
+
+  # --- Access points ---
+  - name: unifi-ap
+    category: ap
+    group: Network/Access Points
+    match: {sysdescr_regex: '^(UAP|U6|U7|UAL|UniFi)|UniFi'}
+    templates: ["Ubiquiti AirOS by SNMP|Network Generic Device by SNMP"]
+    interface: snmp
+    action: add
+  - name: ubiquiti
+    category: ap
+    group: Network/Access Points
+    match: {sysobjectid_prefix: [1.3.6.1.4.1.41112]}
+    templates: ["Ubiquiti AirOS by SNMP|Network Generic Device by SNMP"]
+    interface: snmp
+    action: add
+  - name: ap-other
+    category: ap
+    group: Network/Access Points
+    match:
+      - {sysobjectid_prefix: [1.3.6.1.4.1.14823, 1.3.6.1.4.1.25053, 1.3.6.1.4.1.29671]}  # Aruba, Ruckus, Meraki
+      - {sysdescr_regex: 'access point|\bAIR-|\bEAP\d|Omada'}
+    templates: ["Network Generic Device by SNMP"]
+    interface: snmp
+    action: add
+
+  # --- Printers ---
+  - name: printer
+    category: printer
+    group: Network/Printers
+    match:
+      - {sysobjectid_prefix: [1.3.6.1.4.1.11.2.3.9.1, 1.3.6.1.4.1.2435, 1.3.6.1.4.1.1347, 1.3.6.1.4.1.367, 1.3.6.1.4.1.641, 1.3.6.1.4.1.253, 1.3.6.1.4.1.1248, 1.3.6.1.4.1.1602, 1.3.6.1.4.1.18334, 1.3.6.1.4.1.2385, 1.3.6.1.4.1.2001, 1.3.6.1.4.1.10642, 1.3.6.1.4.1.236.11]}
+      - {sysdescr_regex: 'printer|laserjet|officejet|pagewide|brother|kyocera|ecosys|taskalfa|ricoh|lexmark|xerox|epson|canon|konica|bizhub|sharp|\boki\b|zebra'}
+      - {snmp: true, ports_any: [9100, 515]}
+    templates: ["Printer Generic by SNMP|Generic by SNMP"]
+    interface: snmp
+    action: add
+  - name: printer-no-snmp
+    category: printer
+    group: Network/Printers
+    match: {snmp: false, agent: false, ports_any: [9100, 515]}
+    templates: ["ICMP Ping"]
+    interface: icmp
+    action: add
+
+  # --- UPS / storage / server hardware ---
+  - name: ups-apc
+    category: ups
+    group: Infrastructure/UPS
+    match: {sysobjectid_prefix: [1.3.6.1.4.1.318]}
+    templates: ["APC UPS by SNMP|Generic by SNMP"]
+    interface: snmp
+    action: add
+  - name: ups-other
+    category: ups
+    group: Infrastructure/UPS
+    match:
+      - {sysobjectid_prefix: [1.3.6.1.4.1.534, 1.3.6.1.4.1.935, 1.3.6.1.4.1.26381]}   # Eaton, PPC/Megatec, NHS
+      - {sysdescr_regex: '\bUPS\b|nobreak|\bSMS\b'}
+    templates: ["Generic by SNMP"]
+    interface: snmp
+    action: add
+  - name: storage-nas
+    category: storage
+    group: Infrastructure/Storage
+    match:
+      - {sysobjectid_prefix: [1.3.6.1.4.1.6574, 1.3.6.1.4.1.24681]}  # Synology, QNAP
+      - {sysdescr_regex: 'synology|qnap|truenas|freenas'}
+    templates: ["Synology DiskStation by SNMP|Linux by SNMP|Generic by SNMP"]
+    interface: snmp
+    action: add
+  - name: idrac
+    category: server-hardware
+    group: Infrastructure/Server Hardware
+    match: {sysobjectid_prefix: [1.3.6.1.4.1.674.10892]}
+    templates: ["Dell iDRAC by SNMP|Generic by SNMP"]
+    interface: snmp
+    action: add
+  - name: ilo
+    category: server-hardware
+    group: Infrastructure/Server Hardware
+    match: {sysobjectid_prefix: [1.3.6.1.4.1.232]}
+    templates: ["HPE iLO by SNMP|Generic by SNMP"]
+    interface: snmp
+    action: add
+
+  # --- Switches / routers ---
+  - name: cisco
+    category: switch
+    group: Network/Switches
+    match: {sysobjectid_prefix: [1.3.6.1.4.1.9]}
+    templates: ["Cisco IOS by SNMP|Network Generic Device by SNMP"]
+    interface: snmp
+    action: add
+  - name: hp-comware
+    category: switch
+    group: Network/Switches
+    match: {sysobjectid_prefix: [1.3.6.1.4.1.25506]}
+    templates: ["HP Comware HH3C by SNMP|Network Generic Device by SNMP"]
+    interface: snmp
+    action: add
+  - name: hp-procurve-aruba
+    category: switch
+    group: Network/Switches
+    match: {sysobjectid_prefix: [1.3.6.1.4.1.11.2.3.7, 1.3.6.1.4.1.47196]}
+    templates: ["HP Enterprise Switch by SNMP|Network Generic Device by SNMP"]
+    interface: snmp
+    action: add
+  - name: huawei
+    category: switch
+    group: Network/Switches
+    match: {sysobjectid_prefix: [1.3.6.1.4.1.2011]}
+    templates: ["Huawei VRP by SNMP|Network Generic Device by SNMP"]
+    interface: snmp
+    action: add
+  - name: juniper
+    category: switch
+    group: Network/Switches
+    match: {sysobjectid_prefix: [1.3.6.1.4.1.2636]}
+    templates: ["Juniper by SNMP|Network Generic Device by SNMP"]
+    interface: snmp
+    action: add
+  - name: tplink
+    category: switch
+    group: Network/Switches
+    match: {sysobjectid_prefix: [1.3.6.1.4.1.11863]}
+    templates: ["TP-LINK by SNMP|Network Generic Device by SNMP"]
+    interface: snmp
+    action: add
+  - name: dlink
+    category: switch
+    group: Network/Switches
+    match: {sysobjectid_prefix: [1.3.6.1.4.1.171]}
+    templates: ["D-Link DES_DGS Switch by SNMP|Network Generic Device by SNMP"]
+    interface: snmp
+    action: add
+  - name: mikrotik
+    category: router
+    group: Network/Routers
+    match:
+      - {sysobjectid_prefix: [1.3.6.1.4.1.14988]}
+      - {sysdescr_regex: 'RouterOS'}
+    templates: ["Mikrotik by SNMP|Network Generic Device by SNMP"]
+    interface: snmp
+    action: add
+  - name: switch-other
+    category: switch
+    group: Network/Switches
+    match:
+      - {sysobjectid_prefix: [1.3.6.1.4.1.674.10895, 1.3.6.1.4.1.4526, 1.3.6.1.4.1.1916, 1.3.6.1.4.1.30065, 1.3.6.1.4.1.890]}  # Dell, Netgear, Extreme, Arista, Zyxel
+      - {sysdescr_regex: 'switch|intelbras|SG\d{3,}'}
+    templates: ["Network Generic Device by SNMP"]
+    interface: snmp
+    action: add
+
+  # --- Servers ---
+  - name: windows-server-agent
+    category: server-windows
+    group: Servers/Windows
+    match: {agent: true, agent_uname_regex: 'Windows.*Server'}
+    templates: ["Windows by Zabbix agent", "ICMP Ping"]
+    interface: agent
+    tags: {agent: installed}
+    action: add
+  - name: windows-client-agent        # agent installed on a workstation: not monitored
+    category: workstation
+    group: ""
+    match: {agent: true, agent_uname_regex: '^Windows'}
+    templates: []
+    interface: agent
+    action: ignore
+  - name: linux-agent
+    category: server-linux
+    group: Servers/Linux
+    match: {agent: true, agent_uname_regex: '^Linux|FreeBSD'}
+    templates: ["Linux by Zabbix agent", "ICMP Ping"]
+    interface: agent
+    tags: {agent: installed}
+    action: add
+  - name: esxi
+    category: hypervisor
+    group: Servers/Hypervisors
+    match:
+      - {sysobjectid_prefix: [1.3.6.1.4.1.6876]}
+      - {sysdescr_regex: 'VMware ESXi'}
+    templates: ["Generic by SNMP"]
+    interface: snmp
+    action: add
+  # Windows with SNMP: Microsoft's sysObjectID tells the machine role
+  #   ...311.1.1.3.1.1 = workstation | ...3.1.2 = server | ...3.1.3 = domain controller
+  - name: windows-server-snmp
+    category: server-windows
+    group: Servers/Windows
+    match: {sysobjectid_prefix: [1.3.6.1.4.1.311.1.1.3.1.2, 1.3.6.1.4.1.311.1.1.3.1.3]}
+    templates: ["Windows by SNMP|Generic by SNMP", "AutoDiscovery - Zabbix agent missing"]
+    interface: snmp
+    tags: {agent: missing}
+    action: add
+  - name: windows-workstation-snmp
+    category: workstation
+    group: ""
+    match:
+      - {sysobjectid_prefix: [1.3.6.1.4.1.311.1.1.3.1.1]}
+      - {snmp: true, sysdescr_regex: 'Software: Windows'}
+    templates: []
+    interface: snmp
+    action: ignore
+  - name: linux-snmp
+    category: server-linux
+    group: Servers/Linux
+    match: {snmp: true, sysdescr_regex: '^Linux'}
+    templates: ["Linux by SNMP|Generic by SNMP"]
+    interface: snmp
+    action: review                    # many appliances run net-snmp on Linux: check before adding
+
+  # --- Agent installed, but it refused the scanner (scanner IP not in the agent's Server=) ---
+  - name: windows-agent-refused
+    category: server-windows
+    group: Servers/Windows
+    match: {agent: false, ports_all: [10050], ports_any: [135, 445, 3389, 5985]}
+    templates: ["Windows by Zabbix agent", "ICMP Ping"]
+    interface: agent
+    tags: {agent: installed}
+    action: review
+  - name: linux-agent-refused
+    category: server-linux
+    group: Servers/Linux
+    match: {agent: false, ports_all: [10050, 22]}
+    templates: ["Linux by Zabbix agent", "ICMP Ping"]
+    interface: agent
+    tags: {agent: installed}
+    action: review
+
+  # --- Servers WITHOUT agent: added with the "AutoDiscovery - Zabbix agent missing" template,
+  #     which raises a problem and feeds the "servers without agent" dashboards ---
+  - name: windows-dc-no-agent         # Kerberos + LDAP = domain controller
+    category: server-windows
+    group: Servers/Windows
+    match: {snmp: false, agent: false, ports_all: [88, 389]}
+    templates: ["ICMP Ping", "AutoDiscovery - Zabbix agent missing"]
+    interface: agent
+    tags: {agent: missing}
+    action: add
+  - name: windows-server-no-agent     # SMB + WinRM or SQL Server: typical server
+    category: server-windows
+    group: Servers/Windows
+    match: {snmp: false, agent: false, ports_all: [445], ports_any: [5985, 1433]}
+    templates: ["ICMP Ping", "AutoDiscovery - Zabbix agent missing"]
+    interface: agent
+    tags: {agent: missing}
+    action: review
+  - name: linux-no-agent              # SSH without Windows/printer ports
+    category: server-linux
+    group: Servers/Linux
+    match: {snmp: false, agent: false, ports_all: [22], ports_none: [135, 139, 445, 3389, 9100, 515]}
+    templates: ["ICMP Ping", "AutoDiscovery - Zabbix agent missing"]
+    interface: agent
+    tags: {agent: missing}
+    action: review
+
+  # --- Workstations and leftovers ---
+  - name: windows-workstation
+    category: workstation
+    group: ""
+    match: {snmp: false, agent: false, ports_any: [135, 139, 445, 3389]}
+    templates: []
+    interface: icmp
+    action: ignore
+  - name: snmp-generic
+    category: network-generic
+    group: Network/Other
+    match: {snmp: true}
+    templates: ["Network Generic Device by SNMP"]
+    interface: snmp
+    action: review
+  - name: unknown
+    category: unknown
+    group: ""
+    match: {alive: true}
+    templates: ["ICMP Ping"]
+    interface: icmp
+    action: ignore

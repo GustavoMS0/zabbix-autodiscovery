@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.10", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: pip install -e ".[dev]"
+      - run: ruff check src tests
+      - run: pytest -q
+      - name: Bundled Grafana dashboards are up to date
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
+        run: |
+          cp src/zabbix_autodiscovery/data/config.example.yaml /tmp/config.yaml
+          zabbix-autodiscovery -c /tmp/config.yaml grafana-dashboards -o deploy/grafana/dashboards
+          git diff --exit-code deploy/grafana/dashboards

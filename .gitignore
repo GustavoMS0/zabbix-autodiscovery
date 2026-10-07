@@ -1,0 +1,18 @@
+# local configuration and secrets
+config.yaml
+.env
+*.csv
+grafana-dashboards/
+
+# python
+__pycache__/
+*.egg-info/
+.venv/
+.deps/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+
+# docker deployment secrets
+deploy/.env

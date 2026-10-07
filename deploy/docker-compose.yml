@@ -1,0 +1,82 @@
+# Optional deployment for zabbix-autodiscovery. Pick what you need with profiles:
+#   docker compose --profile zabbix --profile grafana up -d   # new Zabbix + Grafana
+#   docker compose --profile zabbix up -d                     # new Zabbix only
+#   docker compose --profile grafana up -d                    # Grafana for an existing Zabbix (set ZABBIX_API_URL)
+# Copy .env.example to .env first and change every password.
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    profiles: [zabbix]
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: zabbix
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  zabbix-server:
+    image: zabbix/zabbix-server-pgsql:${ZABBIX_TAG}
+    profiles: [zabbix]
+    restart: unless-stopped
+    depends_on: [postgres]
+    environment:
+      DB_SERVER_HOST: postgres
+      POSTGRES_DB: zabbix
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      ZBX_STARTDISCOVERERS: 5
+      ZBX_STARTPINGERS: 5
+      ZBX_STARTPOLLERS: 20
+      ZBX_STARTPOLLERSUNREACHABLE: 5
+      ZBX_CACHESIZE: 256M
+      ZBX_TIMEOUT: 10
+    ports:
+      - "10051:10051"
+
+  zabbix-web:
+    image: zabbix/zabbix-web-nginx-pgsql:${ZABBIX_TAG}
+    profiles: [zabbix]
+    restart: unless-stopped
+    depends_on: [postgres, zabbix-server]
+    environment:
+      ZBX_SERVER_HOST: zabbix-server
+      DB_SERVER_HOST: postgres
+      POSTGRES_DB: zabbix
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PHP_TZ: ${TZ}
+    ports:
+      - "8080:8080"
+
+  zabbix-agent:                     # monitors the Zabbix server itself
+    image: zabbix/zabbix-agent2:${ZABBIX_TAG}
+    profiles: [zabbix]
+    restart: unless-stopped
+    depends_on: [zabbix-server]
+    environment:
+      ZBX_HOSTNAME: Zabbix server
+      ZBX_SERVER_HOST: zabbix-server
+
+  grafana:
+    image: grafana/grafana:${GRAFANA_VERSION}
+    profiles: [grafana]
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GF_PLUGINS_PREINSTALL: alexanderzobnin-zabbix-app
+      GF_DEFAULT_INSTANCE_TIMEZONE: ${TZ}
+      ZABBIX_API_URL: ${ZABBIX_API_URL}
+      ZABBIX_GRAFANA_USER: ${ZABBIX_GRAFANA_USER}
+      ZABBIX_GRAFANA_PASSWORD: ${ZABBIX_GRAFANA_PASSWORD}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+
+volumes:
+  pgdata:
+  grafana-data:
