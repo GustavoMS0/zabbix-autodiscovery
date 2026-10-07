@@ -239,6 +239,8 @@ Grafana panels select items by regex, because every vendor template names items 
 
 Start with a small network, always run `apply --dry-run` first, and filter by `origin=autodiscovery` to review or roll back.
 
+**Fixing agent `Hostname=` mismatches** reported by `audit` (typical of cloned VMs): run `tools/fix-agent-hostname.ps1` as Administrator on the Windows server, or remotely with `Invoke-Command -ComputerName SRV01,SRV02 -FilePath toolsix-agent-hostname.ps1`. It sets `Hostname=` to the computer name, keeps a backup and restarts the agent. Add `-WhatIf` to preview.
+
 ## Requirements on the devices
 
 - **Network gear, printers, UPS:** SNMP enabled, with the ACL allowing the Zabbix server and the scanning machine.

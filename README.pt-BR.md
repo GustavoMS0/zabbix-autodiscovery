@@ -215,6 +215,8 @@ Os painéis do Grafana buscam os itens por regex, porque cada fabricante nomeia 
 
 Comece por uma rede pequena, sempre rode o `apply --dry-run` antes e filtre por `origin=autodiscovery` para revisar ou desfazer.
 
+**Corrigindo `Hostname=` do agente** apontado pelo `audit` (comum em VMs clonadas): rode `tools/fix-agent-hostname.ps1` como Administrador no servidor Windows, ou remotamente com `Invoke-Command -ComputerName SRV01,SRV02 -FilePath toolsix-agent-hostname.ps1`. Ele grava o nome do computador em `Hostname=`, guarda um backup e reinicia o agente. Use `-WhatIf` para só visualizar.
+
 ## Pré-requisitos nos equipamentos
 
 - **Rede, impressoras e nobreaks:** SNMP habilitado, com ACL liberando o servidor Zabbix e a máquina que faz o scan.
