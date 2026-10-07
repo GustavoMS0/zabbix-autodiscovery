@@ -5,10 +5,9 @@ another built-in image name or to a local PNG, which is uploaded once. Product p
 with this project; supply your own.
 """
 import base64
-import re
 from pathlib import Path
 
-from .config import in_network
+from .inventory import category_of, network_hosts
 from .provision import PREFIX
 from .zabbix_api import ZabbixError
 
@@ -21,42 +20,14 @@ DEFAULT_ICONS = {
 }
 ROW_ORDER = ["firewall", "router", "switch", "ap", "server-windows", "server-linux", "hypervisor",
              "server-hardware", "storage", "ups", "printer", "network-generic", "other"]
-# For hosts not created by this tool: guess the category from their linked templates, then host groups
-TEMPLATE_HINTS = [
-    ("fortigate|pfsense|firewall|palo alto|sophos|check point|adaptive security", "firewall"),
-    (r"\bups\b|nobreak|\bapc\b|eaton", "ups"),
-    (r"idrac|\bilo\b|ipmi", "server-hardware"),
-    ("ubiquiti|airos|unifi|access point|wireless", "ap"),
-    ("printer", "printer"),
-    (r"synology|qnap|storage|\bnas\b", "storage"),
-    ("vmware|esxi|hyper-v", "hypervisor"),
-    ("mikrotik c[rs]s|switch|comware|hh3c|procurve|aruba|cisco ios|catalyst|huawei vrp|juniper|tp-link|d-link|"
-     "netgear|extreme|arista|dell force", "switch"),
-    ("mikrotik|routeros|router", "router"),
-    ("windows", "server-windows"),
-    ("linux", "server-linux"),
-]
-GROUP_HINTS = [("firewall", "firewall"), ("router|roteador", "router"), ("switch", "switch"),
-               ("access point|wireless|wifi|\\bap\\b", "ap"), ("printer|impressora", "printer"),
-               ("ups|nobreak", "ups"), ("storage|nas", "storage"), ("idrac|ilo|hardware", "server-hardware"),
-               ("server|servidor|linux|windows", "server-windows")]
 COLUMNS, CELL_W, CELL_H, MARGIN = 8, 150, 120, 40
-
-
-def category_of(host):
-    tag = next((t["value"] for t in host.get("tags", []) if t["tag"] == "type"), "")
-    if tag:
-        return tag if tag in DEFAULT_ICONS else "other"
-    linked = " ".join(t["name"] for t in host.get("parentTemplates", [])).lower()
-    for pattern, cat in TEMPLATE_HINTS:
-        if re.search(pattern, linked):
-            return cat
-    groups = " ".join(g["name"] for g in host.get("hostgroups", [])).lower()
-    return next((cat for pattern, cat in GROUP_HINTS if re.search(pattern, groups)), "other")
 
 
 def vendor_of(host):
     return next((t["value"] for t in host.get("tags", []) if t["tag"] == "vendor"), "")
+
+
+__all__ = ["category_of", "layout", "provision"]
 
 
 def layout(hosts):
@@ -110,11 +81,7 @@ class IconResolver:
 
 
 def site_hosts(api, network):
-    hosts = api.call("host.get", {"output": ["hostid", "host", "name"], "selectTags": ["tag", "value"],
-                                  "selectHostGroups": ["name"], "selectInterfaces": ["ip"],
-                                  "selectParentTemplates": ["name"],
-                                  "filter": {"status": 0}})
-    return [h for h in hosts if any(i["ip"] and in_network(network, i["ip"]) for i in h["interfaces"])]
+    return network_hosts(api, [network])
 
 
 def provision(api, cfg, base_dir, rebuild=False, dry_run=False, log=print):

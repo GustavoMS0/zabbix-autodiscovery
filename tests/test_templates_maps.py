@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from zabbix_autodiscovery import maps, templates, web
+from zabbix_autodiscovery import inventory, maps, templates, web
 from zabbix_autodiscovery.scanner import prefer_highest_version
 
 
@@ -124,13 +124,13 @@ def _host(name, category="", groups=()):
 
 
 def test_map_category_and_layout():
-    assert maps.category_of(_host("a", "printer")) == "printer"
-    assert maps.category_of(_host("b", groups=["Network/Firewalls"])) == "firewall"
-    assert maps.category_of(_host("c", groups=["Discovered hosts"])) == "other"
+    assert inventory.category_of(_host("a", "printer")) == "printer"
+    assert inventory.category_of(_host("b", groups=["Network/Firewalls"])) == "firewall"
+    assert inventory.category_of(_host("c", groups=["Discovered hosts"])) == "other"
     for template, cat in (("FortiGate by SNMP", "firewall"), ("MikroTik CSS326-24G-2S+RM by SNMP", "switch"),
                           ("Mikrotik by SNMP", "router"), ("NHS Prime Online GII - UPS SNMP", "ups"),
                           ("HP Comware HH3C by SNMP", "switch"), ("Dell iDRAC by SNMP", "server-hardware")):
-        assert maps.category_of({"tags": [], "hostgroups": [{"name": "Network"}],
+        assert inventory.category_of({"tags": [], "hostgroups": [{"name": "Network"}],
                                  "parentTemplates": [{"name": template}]}) == cat, template
     hosts = [_host(f"p{i}", "printer") for i in range(10)] + [_host("fw", "firewall")]
     placed, width, height = maps.layout(hosts)

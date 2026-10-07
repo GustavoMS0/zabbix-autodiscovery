@@ -79,6 +79,8 @@ Without installing anything on Windows: `.\zabbix-autodiscovery.ps1 init` (needs
 | `zabbix-autodiscovery setup [--native-discovery] [--no-dashboards]` | yes | Host groups, `{$SNMP_COMMUNITY}` (only if missing), agent-missing template, Zabbix dashboards, optional Grafana read-only user, optional continuous discovery |
 | `zabbix-autodiscovery agent-sync [--dry-run]` | yes | Moves `agent=missing` hosts to agent templates when their agent answers |
 | `zabbix-autodiscovery update-templates [--dry-run]` | yes | Links the category add-on templates to existing hosts |
+| `zabbix-autodiscovery audit` | no | Organization, duplicate IPs, agent and item problems |
+| `zabbix-autodiscovery organize [--dry-run]` | yes | Puts pre-existing hosts in their type and site groups, with tags |
 | `zabbix-autodiscovery maps [--dry-run] [--rebuild]` | yes | One map per site with an icon per device type, plus a dashboard |
 | `zabbix-autodiscovery web [--dry-run] [-i FILE]` | yes | SSL certificate and domain expiration monitoring |
 | `zabbix-autodiscovery grafana-dashboards -o DIR` | no | Writes Grafana dashboard JSON files from your config |
@@ -171,6 +173,14 @@ maps:
 ```
 
 **SNMP version:** credentials are tried from the highest version down (v3, then v2c, then v1), keeping the config order within the same version. The first that answers is used.
+
+## Organizing what already exists
+
+On a Zabbix that was already in use, the hosts you had before are not changed by `apply`. Three commands bring them into the same organization:
+
+- `audit` (read-only): what `organize` would change, the same IP on more than one host (possible duplicates), agent templates on hosts whose agent is unavailable, and the hosts with the most unsupported items.
+- `organize [--dry-run] [--remove-groups G1,G2]`: every host of the configured networks joins the group of its type and of its site and gets the `type` / `site` tags. For hosts not created by this tool, the type comes from the templates they use (FortiGate → firewall, Comware/Aruba → switch, Dell iDRAC → server hardware…), then from their group names. It only adds, unless you list legacy groups to remove.
+- `update-templates --all`: also links the category add-on templates (e.g. switch port usage) to those hosts.
 
 ## SSL certificates and domain expiration
 

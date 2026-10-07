@@ -21,4 +21,5 @@ First public version.
 - `category_templates` + `update-templates` to link add-on templates to new and existing hosts.
 - `maps`: one Zabbix map per site with an icon per device type (built-in images or your own PNGs) and a dashboard with one page per site.
 - SNMP credentials are tried from the highest version down (v3 → v2c → v1).
+- `audit` and `organize`: report on and organize the hosts that already existed (type and site groups, tags), with the type inferred from their templates; `update-templates --all`.
 - Supports Zabbix 6.0 to 8.0.

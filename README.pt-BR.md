@@ -55,6 +55,8 @@ Para não instalar nada no Windows, use `.\zabbix-autodiscovery.ps1 init` (preci
 | `zabbix-autodiscovery setup [--native-discovery] [--no-dashboards]` | sim | Grupos, `{$SNMP_COMMUNITY}` (só se não existir), template de agente ausente, dashboards do Zabbix, usuário somente leitura do Grafana (opcional) e descoberta contínua (opcional) |
 | `zabbix-autodiscovery agent-sync [--dry-run]` | sim | Passa os hosts `agent=missing` para os templates de agente quando o agente responde |
 | `zabbix-autodiscovery update-templates [--dry-run]` | sim | Vincula os templates extras por categoria aos hosts existentes |
+| `zabbix-autodiscovery audit` | não | Organização, IPs duplicados, problemas de agente e de itens |
+| `zabbix-autodiscovery organize [--dry-run]` | sim | Coloca os hosts antigos nos grupos do seu tipo e filial, com tags |
 | `zabbix-autodiscovery maps [--dry-run] [--rebuild]` | sim | Um mapa por filial com ícone por tipo de dispositivo, mais um dashboard |
 | `zabbix-autodiscovery web [--dry-run] [-i ARQ]` | sim | Monitoramento de certificados SSL e vencimento de domínios |
 | `zabbix-autodiscovery grafana-dashboards -o DIR` | não | Gera os JSON dos dashboards do Grafana a partir do seu config |
@@ -147,6 +149,14 @@ maps:
 ```
 
 **Versão do SNMP:** as credenciais são tentadas da versão mais alta para a mais baixa (v3, depois v2c, depois v1), mantendo a ordem do config dentro de cada versão. A primeira que responder é usada.
+
+## Organizando o que já existe
+
+Num Zabbix que já estava em uso, o `apply` não altera os hosts que já existiam. Três comandos trazem esses hosts para a mesma organização:
+
+- `audit` (somente leitura): o que o `organize` mudaria, o mesmo IP em mais de um host (possível duplicidade), templates de agente em hosts sem agente disponível e os hosts com mais itens sem suporte.
+- `organize [--dry-run] [--remove-groups G1,G2]`: todo host das redes configuradas entra no grupo do seu tipo e da sua filial e recebe as tags `type` / `site`. Para hosts que não foram criados pela ferramenta, o tipo vem dos templates que eles usam (FortiGate → firewall, Comware/Aruba → switch, Dell iDRAC → hardware de servidor…) e, em seguida, do nome dos grupos. Só acrescenta, a não ser que você liste grupos antigos para remover.
+- `update-templates --all`: vincula também a esses hosts os templates extras por categoria (por exemplo, a ocupação de portas dos switches).
 
 ## Certificados SSL e vencimento de domínios
 

@@ -10,7 +10,9 @@ Typical flow:
   zabbix-autodiscovery apply -i inventory.csv
   zabbix-autodiscovery agent-sync                          # switch servers that got an agent to agent templates
   zabbix-autodiscovery web [--dry-run]                     # SSL certificate and domain expiration monitoring
-  zabbix-autodiscovery update-templates [--dry-run]        # link category add-on templates to existing hosts
+  zabbix-autodiscovery update-templates [--dry-run] [--all] # link category add-on templates to existing hosts
+  zabbix-autodiscovery organize [--dry-run]                # put pre-existing hosts in their type/site groups
+  zabbix-autodiscovery audit                               # read-only report: organization, duplicates, errors
   zabbix-autodiscovery maps [--rebuild]                    # one Zabbix map per site, icon per device type
   zabbix-autodiscovery grafana-dashboards -o ./dashboards  # optional: Grafana JSON per device type
 """
@@ -23,8 +25,9 @@ from collections import Counter
 from importlib import resources
 from pathlib import Path
 
-from . import __version__, classifier, dashboards, maps, provision, scanner, templates, web
+from . import __version__, classifier, dashboards, maps, organize, provision, scanner, templates, web
 from .config import ConfigError, credentials_by_name, default_community, in_networks, load_config, site_for
+from .inventory import category_of, network_hosts
 from .zabbix_api import ZabbixAPI, ZabbixError
 
 CSV_FIELDS = ["action", "site", "category", "hostname", "visible_name", "name_source", "ip", "group",
@@ -435,13 +438,16 @@ def cmd_update_templates(cfg, args):
     if not args.dry_run:
         templates.ensure_addons(api, all_addons(cfg))
     tmpl_map = api.template_ids()
-    hosts = api.call("host.get", {
-        "output": ["hostid", "host", "name"], "selectTags": ["tag", "value"],
-        "selectInterfaces": ["type"], "selectParentTemplates": ["templateid"],
-        "tags": [{"tag": "origin", "value": "autodiscovery", "operator": 1}]})
+    if args.all:      # every host of the configured networks, type inferred for pre-existing hosts
+        hosts = network_hosts(api, cfg["scan"]["networks"])
+    else:
+        hosts = api.call("host.get", {
+            "output": ["hostid", "host", "name"], "selectTags": ["tag", "value"],
+            "selectInterfaces": ["type"], "selectParentTemplates": ["templateid", "name"],
+            "tags": [{"tag": "origin", "value": "autodiscovery", "operator": 1}]})
     stats = Counter()
     for h in sorted(hosts, key=lambda h: h["name"].lower()):
-        category = next((t["value"] for t in h["tags"] if t["tag"] == "type"), "")
+        category = category_of(h)
         names = wanted.get(category) or []
         if not names or not any(i["type"] == "2" for i in h["interfaces"]):
             continue
@@ -468,6 +474,17 @@ def cmd_update_templates(cfg, args):
             print(f"  x {h['name']}: {exc}")
             stats["error"] += 1
     print("\nSummary:", ", ".join(f"{k}={v}" for k, v in sorted(stats.items())) or "nothing to do")
+
+
+def cmd_organize(cfg, args):
+    api = connect(cfg)
+    stats = organize.organize(api, cfg, dry_run=args.dry_run,
+                              remove_groups=(args.remove_groups or "").split(","))
+    print("\nSummary:", ", ".join(f"{k}={v}" for k, v in sorted(stats.items())))
+
+
+def cmd_audit(cfg, args):
+    organize.audit(connect(cfg), cfg)
 
 
 def cmd_maps(cfg, args):
@@ -536,6 +553,13 @@ def build_parser():
     p.add_argument("--dry-run", action="store_true")
     p = sub.add_parser("update-templates", help="link the category add-on templates to existing hosts")
     p.add_argument("--dry-run", action="store_true")
+    p.add_argument("--all", action="store_true",
+                   help="also hosts not created by this tool (type inferred from their templates and groups)")
+    p = sub.add_parser("organize", help="add every host of the configured networks to its type and site groups")
+    p.add_argument("--dry-run", action="store_true")
+    p.add_argument("--remove-groups", metavar="G1,G2",
+                   help="also remove these legacy groups from hosts whose type was identified")
+    sub.add_parser("audit", help="read-only report: organization, duplicate IPs, agent and item problems")
     p = sub.add_parser("maps", help="one Zabbix map per site with an icon per device type, plus a dashboard")
     p.add_argument("--rebuild", action="store_true", help="refresh existing AutoDiscovery maps with the current hosts")
     p.add_argument("--dry-run", action="store_true")
@@ -559,7 +583,8 @@ def main(argv=None):
         raise SystemExit(f"Config error: {exc}")
     commands = {"check": cmd_check, "scan": cmd_scan, "apply": cmd_apply, "setup": cmd_setup,
                 "agent-sync": cmd_agent_sync, "web": cmd_web, "update-templates": cmd_update_templates,
-                "maps": cmd_maps, "grafana-dashboards": cmd_grafana_dashboards}
+                "maps": cmd_maps, "organize": cmd_organize, "audit": cmd_audit,
+                "grafana-dashboards": cmd_grafana_dashboards}
     try:
         commands[args.cmd](cfg, args)
     except ZabbixError as exc:
