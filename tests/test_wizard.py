@@ -96,6 +96,7 @@ def test_networks_typed_manually(tmp_path, monkeypatch):
 def test_run_writes_config_and_env(tmp_path, monkeypatch):
     config = tmp_path / "config.yaml"
     seen = {}
+    monkeypatch.setattr(Wizard, "offer_install", lambda self: False)      # would ask on a Linux runner
     monkeypatch.setattr(Wizard, "connect", lambda self: ("http://zbx.example", "secret-token", FakeAPI()))
     monkeypatch.setattr(Wizard, "networks", lambda self, api: ([("10.0.0.0/24", "HQ")], [], False))
     monkeypatch.setattr(cli, "connect", lambda cfg: "api")
