@@ -16,7 +16,7 @@ Passo a passo para usar o zabbix-autodiscovery em três situações. Escolha a s
 
 ## Atalho: assistente interativo
 
-Se preferir não editar arquivos à mão, um comando instala a ferramenta e abre um assistente que cobre os cenários A, B e C (o Zabbix e o Grafana do cenário A precisam estar no ar antes; veja o passo 1 do cenário A):
+Se preferir não editar arquivos à mão, um comando instala a ferramenta e abre um assistente que cobre os cenários A, B e C:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/install.sh | bash        # Linux, por exemplo no servidor do Zabbix
@@ -27,6 +27,8 @@ irm https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/insta
 ```
 
 O assistente detecta o Zabbix local, valida o token, sugere as redes a partir dos IPs já cadastrados e dos IPs da máquina, grava `config.yaml` e `.env` e conduz `check`, `setup`, `scan` e `apply`. Num Zabbix que já tem hosts, oferece também `audit`, `organize`, templates extras e serviços. Toda alteração pede confirmação e o padrão é "não". O resto deste guia explica as mesmas etapas, para quem quer fazer manualmente.
+
+**Servidor novo (Linux):** se nenhum Zabbix responder na máquina, o assistente oferece instalar um. Ele instala o Docker pelo script oficial (get.docker.com, pede a senha do sudo) se faltar, grava `deploy/.env` com senhas aleatórias, sobe o Zabbix 8 (e o Grafana, se você quiser) com o `deploy/docker-compose.yml`, cria o token de API do Admin e troca a senha padrão do Admin. Depois segue direto para as redes e o scan, sem você precisar abrir a interface do Zabbix.
 
 ---
 

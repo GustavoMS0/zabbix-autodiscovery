@@ -16,7 +16,7 @@ Step by step for three situations. Pick yours:
 
 ## Shortcut: interactive wizard
 
-If you would rather not edit files by hand, one command installs the tool and opens a wizard that covers scenarios A, B and C (for scenario A, Zabbix and Grafana must be running first; see step 1 of scenario A):
+If you would rather not edit files by hand, one command installs the tool and opens a wizard that covers scenarios A, B and C:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/install.sh | bash        # Linux, e.g. on the Zabbix server
@@ -27,6 +27,8 @@ irm https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/insta
 ```
 
 The wizard detects a local Zabbix, validates the token, suggests networks from the IPs already in Zabbix and the machine's own IPs, writes `config.yaml` and `.env`, and runs `check`, `setup`, `scan` and `apply`. On a Zabbix that already has hosts it also offers `audit`, `organize`, add-on templates and services. Every change asks for confirmation and defaults to "no". The rest of this guide explains the same steps for doing them manually.
+
+**Fresh server (Linux):** if no Zabbix answers on the machine, the wizard offers to install one. It installs Docker with the official script (get.docker.com, asks for your sudo password) if needed, writes `deploy/.env` with random passwords, starts Zabbix 8 (and Grafana, if you want) from `deploy/docker-compose.yml`, creates the Admin API token and changes the default Admin password. It then goes straight to networks and scanning, without opening the Zabbix frontend.
 
 ---
 

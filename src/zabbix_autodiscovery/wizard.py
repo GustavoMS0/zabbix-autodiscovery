@@ -65,6 +65,27 @@ TEXT = {
                  "Mensalmente: scan + diff para achar equipamentos novos.",
                  "Ao instalar o agente num servidor: agent-sync.",
                  "Guia completo: docs/GUIA-DE-IMPLANTACAO.md"],
+        "inst": "Instalação do Zabbix",
+        "inst_q": "Nenhum Zabbix respondeu nesta máquina. Instalar um Zabbix 8 novo aqui, com Docker?",
+        "inst_no_compose_file": "Não achei deploy/docker-compose.yml ao lado do config.yaml; rode o assistente na pasta do projeto.",
+        "docker_missing": "O Docker não está instalado.",
+        "docker_q": "Instalar o Docker agora com o script oficial (get.docker.com)? Vai pedir a senha do sudo.",
+        "docker_manual": "Instale o Docker e o plugin Docker Compose (https://docs.docker.com/engine/install/) e rode o assistente de novo.",
+        "docker_failed": "O Docker não ficou disponível depois da instalação.",
+        "compose_missing": "O plugin 'docker compose' não está instalado (ex.: apt install docker-compose-plugin).",
+        "inst_grafana": "Instalar também o Grafana (porta 3000), já ligado a este Zabbix?",
+        "env_reuse": "Usando o deploy/.env que já existe (as senhas dele são mantidas).",
+        "env_written": "Senhas aleatórias gravadas em {file} (somente o seu usuário lê).",
+        "compose_up": "Baixando as imagens e iniciando os containers (pode levar alguns minutos)...",
+        "wait_api": "Aguardando o Zabbix criar o banco e responder",
+        "wait_timeout": "O Zabbix não respondeu a tempo. Veja: docker compose logs zabbix-server (na pasta deploy).",
+        "admin_new": "Nova senha do usuário Admin do Zabbix (Enter = gerar uma aleatória)",
+        "admin_confirm": "Repita a senha",
+        "admin_mismatch": "As senhas não conferem.",
+        "admin_current": "A senha padrão do Admin não funcionou. Senha atual do Admin (Enter = informar um token manualmente)",
+        "inst_done": "Zabbix pronto em {url} (usuário Admin). Token de API criado e salvo no .env.",
+        "admin_generated": "Senha do Admin: {password}  <- anote agora, ela não fica gravada em nenhum arquivo",
+        "grafana_ready": "Grafana em http://<este-servidor>:{port} (usuário admin, senha em GRAFANA_ADMIN_PASSWORD no deploy/.env).",
         "yes": "s", "no": "n", "skipped": "pulado",
     },
     "en": {
@@ -115,6 +136,27 @@ TEXT = {
                  "Monthly: scan + diff to find new devices.",
                  "When an agent is installed on a server: agent-sync.",
                  "Full guide: docs/DEPLOYMENT-GUIDE.md"],
+        "inst": "Zabbix installation",
+        "inst_q": "No Zabbix answered on this machine. Install a new Zabbix 8 here with Docker?",
+        "inst_no_compose_file": "deploy/docker-compose.yml was not found next to config.yaml; run the wizard from the project folder.",
+        "docker_missing": "Docker is not installed.",
+        "docker_q": "Install Docker now with the official script (get.docker.com)? It will ask for your sudo password.",
+        "docker_manual": "Install Docker and the Docker Compose plugin (https://docs.docker.com/engine/install/) and run the wizard again.",
+        "docker_failed": "Docker is still not available after the installation.",
+        "compose_missing": "The 'docker compose' plugin is not installed (e.g. apt install docker-compose-plugin).",
+        "inst_grafana": "Also install Grafana (port 3000), already connected to this Zabbix?",
+        "env_reuse": "Using the existing deploy/.env (its passwords are kept).",
+        "env_written": "Random passwords written to {file} (readable by your user only).",
+        "compose_up": "Pulling the images and starting the containers (this may take a few minutes)...",
+        "wait_api": "Waiting for Zabbix to create its database and answer",
+        "wait_timeout": "Zabbix did not answer in time. See: docker compose logs zabbix-server (in the deploy folder).",
+        "admin_new": "New password for the Zabbix Admin user (Enter = generate a random one)",
+        "admin_confirm": "Repeat the password",
+        "admin_mismatch": "The passwords do not match.",
+        "admin_current": "The default Admin password did not work. Current Admin password (Enter = type a token instead)",
+        "inst_done": "Zabbix ready at {url} (user Admin). API token created and saved in .env.",
+        "admin_generated": "Admin password: {password}  <- write it down now, it is not stored in any file",
+        "grafana_ready": "Grafana at http://<this-server>:{port} (user admin, password in GRAFANA_ADMIN_PASSWORD in deploy/.env).",
         "yes": "y", "no": "n", "skipped": "skipped",
     },
 }
@@ -272,6 +314,91 @@ class Wizard:
         except Exception:
             return None
 
+    def offer_install(self):
+        """Only on Linux, and only when no Zabbix answers on this machine."""
+        if not sys.platform.startswith("linux") or any(self._probe(u) for u in LOCAL_URLS):
+            return False
+        return self.yes(self.t["inst_q"], default=False)
+
+    def install_zabbix(self):
+        """Docker (if asked) -> deploy/.env -> docker compose up -> token + new Admin password.
+        Returns {url, token, api, grafana, grafana_user, grafana_password}, or None to fall back to connect()."""
+        import subprocess
+        try:
+            return self._install_zabbix()
+        except subprocess.CalledProcessError as exc:
+            self.out(f"  ! {' '.join(map(str, exc.cmd))} -> exit {exc.returncode}")
+            return None
+
+    def _install_zabbix(self):
+        from . import bootstrap
+        from .zabbix_api import ZabbixAPI, ZabbixError
+        self.step(self.t["inst"])
+        deploy = self.config.resolve().parent / "deploy"
+        if not (deploy / "docker-compose.yml").exists():
+            self.out(f"  ! {self.t['inst_no_compose_file']}")
+            return None
+        prefix = bootstrap.docker_prefix()
+        if prefix is None:
+            self.out(f"  {self.t['docker_missing']}")
+            if not self.yes(self.t["docker_q"]):
+                self.out(f"  {self.t['docker_manual']}")
+                return None
+            bootstrap.install_docker()
+            prefix = bootstrap.docker_prefix()
+            if prefix is None:
+                self.out(f"  ! {self.t['docker_failed']}")
+                return None
+        if not bootstrap.has_compose(prefix):
+            self.out(f"  ! {self.t['compose_missing']}")
+            return None
+        grafana = self.yes(self.t["inst_grafana"])
+        env_file = deploy / ".env"
+        if env_file.exists():
+            self.out(f"  {self.t['env_reuse']}")
+        else:
+            example = (deploy / ".env.example").read_text("utf-8")
+            env_file.write_text(bootstrap.render_deploy_env(example, bootstrap.local_timezone()), "utf-8")
+            env_file.chmod(0o600)
+            self.out(f"  {self.t['env_written'].format(file=env_file)}")
+        env = bootstrap.read_env(env_file.read_text("utf-8"))
+        self.out(f"  {self.t['compose_up']}")
+        bootstrap.compose_up(prefix, deploy, grafana)
+        self.out(f"  {self.t['wait_api']}", end="", flush=True)
+        url = bootstrap.ZABBIX_URL
+        version = bootstrap.wait_for_api(url, self._probe, out=self.out)
+        self.out("")
+        if not version:
+            self.out(f"  ! {self.t['wait_timeout']}")
+            return None
+        self.out(f"  ok: {self.t['url_ok'].format(version=version)}")
+
+        while True:
+            new = self.secret_fn(f"{self.t['admin_new']}: ").strip()
+            if not new or self.secret_fn(f"{self.t['admin_confirm']}: ").strip() == new:
+                break
+            self.out(f"  ! {self.t['admin_mismatch']}")
+        generated = not new
+        new = new or bootstrap.new_password()
+        current = bootstrap.DEFAULT_ADMIN_PASSWORD
+        while True:
+            try:
+                token = bootstrap.first_access(url, current, new)
+                break
+            except ZabbixError as exc:
+                self.out(f"  ! {str(exc)[:120]}")
+                current = self.secret_fn(f"{self.t['admin_current']}: ").strip()
+                if not current:
+                    return None
+        self.out(f"  ok: {self.t['inst_done'].format(url=url)}")
+        if generated:
+            self.out(f"  {self.t['admin_generated'].format(password=new)}")
+        if grafana:
+            self.out(f"  {self.t['grafana_ready'].format(port=bootstrap.GRAFANA_PORT)}")
+        return {"url": url, "token": token, "api": ZabbixAPI(url, token=token), "grafana": grafana,
+                "grafana_user": env.get("ZABBIX_GRAFANA_USER", "grafana"),
+                "grafana_password": env.get("ZABBIX_GRAFANA_PASSWORD", "")}
+
     def networks(self, api):
         self.step(self.t["net"])
         known = [i["ip"] for i in api.call("hostinterface.get", {"output": ["ip"]}) if i["ip"]]
@@ -307,7 +434,9 @@ class Wizard:
             api = cli.connect(cfg)
             existing = int(api.call("host.get", {"countOutput": True})) > 5
         else:
-            url, token, api = self.connect()
+            installed = self.install_zabbix() if self.offer_install() else None
+            url, token, api = (installed["url"], installed["token"], installed["api"]) if installed \
+                else self.connect()
             networks, exclude, existing = self.networks(api)
             self.step("SNMP")
             community = self.ask(self.t["snmp"], "public")
@@ -316,8 +445,11 @@ class Wizard:
             pt_groups = self.lang == "pt" and self.yes(self.t["pt_groups"], default=True)
             self.step("Grafana")
             guser = gpass = ""
-            grafana = self.yes(self.t["grafana"], default=False)
-            if grafana:
+            if installed:
+                grafana, guser, gpass = installed["grafana"], installed["grafana_user"], installed["grafana_password"]
+            else:
+                grafana = self.yes(self.t["grafana"], default=False)
+            if grafana and not installed:
                 guser = self.ask(self.t["grafana_user"], "grafana")
                 gpass = self.secret_fn(f"{self.t['grafana_pass']}: ")
             example = resources.files("zabbix_autodiscovery").joinpath("data/config.example.yaml").read_text("utf-8")

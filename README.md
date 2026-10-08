@@ -66,7 +66,7 @@ $ zabbix-autodiscovery apply -i inventory.csv --dry-run
 
 Um comando baixa a ferramenta e abre um assistente que conduz a implantação em etapas: URL do Zabbix, token de API, redes e filiais, SNMP, Grafana, e então `check` → `setup` → `scan` → `apply` → organização → dashboards e mapas. Nada é alterado no Zabbix sem você responder "sim", e a resposta padrão de toda alteração é "não".
 
-**Linux** (por exemplo, no próprio servidor do Zabbix; não usa sudo):
+**Linux** (no servidor do Zabbix, ou num servidor novo: se nenhum Zabbix responder, o assistente oferece instalar o Zabbix 8, com Grafana opcional, via Docker, e instala o próprio Docker se faltar):
 ```bash
 curl -fsSL https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/install.sh | bash
 ```

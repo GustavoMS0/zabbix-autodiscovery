@@ -5,7 +5,8 @@
 #
 # What it does: downloads the project into ~/zabbix-autodiscovery, creates a Python virtual environment,
 # installs the package and starts the interactive wizard. Running it again updates the code and keeps
-# config.yaml, .env and your CSV files. It never uses sudo.
+# config.yaml, .env and your CSV files. The installer itself never uses sudo; the wizard asks for it only
+# if you choose to install Docker to run a new Zabbix on this machine.
 #
 # Options (environment variables):
 #   ZAD_DIR=/opt/zabbix-autodiscovery   install folder (default: ~/zabbix-autodiscovery)
