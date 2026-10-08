@@ -6,7 +6,7 @@ Everything is idempotent and prefixed with "AutoDiscovery - "; existing objects 
 import string
 from itertools import product
 
-from . import dashboards, scanner
+from . import dashboards, scanner, zbxdash
 from .classifier import as_list
 from .config import category_groups, default_community, in_networks
 from .zabbix_api import ZabbixError
@@ -92,9 +92,12 @@ def setup_zabbix_dashboards(api, cfg, rebuild=False, log=print):
             kept += 1
             continue
         groupids = [api.ensure_hostgroup(g) for g in groups]
-        hostnames = [h["name"] for h in api.call("host.get", {"output": ["name"], "groupids": groupids,
-                                                              "filter": {"status": 0}})]
-        widgets = dashboards.zabbix_widgets(spec, groupids, api.version, hostnames)
+        hosts = api.call("host.get", {"output": ["hostid", "name"], "groupids": groupids, "filter": {"status": 0}})
+        items = api.call("item.get", {"output": ["hostid", "name", "lastclock", "state"], "filter": {"status": 0},
+                                      "hostids": [h["hostid"] for h in hosts]}) if hosts else []
+        agent_missing = any(p["kind"] == "agent_missing" for p in spec["panels"])
+        widgets = zbxdash.build(spec["key"], spec["title"], groupids, api.version, items,
+                                [h["name"] for h in hosts], agent_missing)
         if found:
             try:
                 api.call("dashboard.update", {"dashboardid": found[0]["dashboardid"], "pages": [{"widgets": widgets}]})

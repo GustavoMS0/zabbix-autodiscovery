@@ -29,4 +29,6 @@ First public version.
 - Devices that match a rule needing SNMP but do not answer SNMP go to `review` with an explanation in the new `note` column.
 - `diff` compares two inventories; `scan --network/--site` scans part of the configured networks.
 - API retries never repeat a write that may have been executed (only connection failures and 502/503).
+- Service detection (databases, clusters, directory, mail, virtualization, messaging, backup...) confirmed by protocol when possible; `service` tags, per-service port checks and the `services` command for existing hosts.
+- Scope documented: local / on-premises networks.
 - Supports Zabbix 6.0 to 8.0.

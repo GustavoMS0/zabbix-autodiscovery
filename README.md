@@ -7,6 +7,8 @@
 
 **Scan your corporate networks, automatically identify infrastructure equipment, and onboard them into Zabbix with the right template, host group, interface, and tags.** Workstations and laptops are filtered out automatically. Native Zabbix dashboards are included (Grafana dashboards are optional).
 
+> **Scope: local environments.** zabbix-autodiscovery is built for **on-premises networks**: the LAN, VLANs and branch offices reached over VPN or MPLS, scanned from a machine inside them (ideally the Zabbix server or proxy). It does not inventory cloud resources (AWS, Azure, GCP) or the internet, and it should only be run on networks you are responsible for.
+
 ```text
 $ zabbix-autodiscovery scan -o inventory.csv
 Scanning: 192.168.0.0/24, 192.168.10.0/24, 192.168.20.0/24
@@ -208,6 +210,16 @@ If you have an active Zabbix installation with hundreds of monitored hosts, **yo
 
 ---
 
+## Service Detection
+
+Besides the device type, the scan identifies the **services** each host runs: databases (SQL Server, MySQL/MariaDB, PostgreSQL, Oracle, MongoDB, Redis, Elasticsearch…), **clusters** (Windows Failover Cluster, SQL AlwaysOn, Hyper-V live migration, Pacemaker, Galera, Kubernetes, etcd…), directory (Active Directory, LDAP, Kerberos, DNS), mail, messaging (RabbitMQ, Kafka, MQTT), virtualization (ESXi, Proxmox, Docker), backup (Veeam), file sharing, remote access and monitoring.
+
+- When the protocol allows, the service is **confirmed by talking to it**: MySQL greeting, PostgreSQL SSL handshake, Redis `PING`, SSH/SMTP/FTP/IMAP banners, Elasticsearch, Prometheus, Grafana and Docker HTTP answers. Another program listening on the same port is not reported.
+- Results go to the `services` column and become `service=<name>` tags in Zabbix, so you can filter hosts and problems by service.
+- Services of the groups in `service_checks` (databases, clusters, directory, mail, messaging, backup and virtualization by default) get a template **AutoDiscovery - Service <name>** that raises a problem when the port stops answering. It checks from the Zabbix server or proxy and needs no credentials. For deep metrics (queries, replication…), link the official Zabbix template of that product as well.
+- `apply` handles new hosts. For hosts already in Zabbix, `services -i inventory.csv [--dry-run]` adds the tags and checks, matching hosts by IP.
+- Rules can use services too: `services_any: [mssql]` or `services_all: [kubernetes-api, etcd]`.
+
 ## Command Reference
 
 | Command | Modifies Zabbix? | Description |
@@ -222,6 +234,7 @@ If you have an active Zabbix installation with hundreds of monitored hosts, **yo
 | `zabbix-autodiscovery agent-sync [--dry-run]` | **Yes** | Promotes `agent=missing` servers to OS agent templates once their agent answers. |
 | `zabbix-autodiscovery organize [--dry-run] [--remove-groups G1,G2]` | **Yes** | Assigns pre-existing hosts into standardized type/site groups with tags. |
 | `zabbix-autodiscovery update-templates [--all] [--dry-run]` | **Yes** | Links category add-on templates (switch ports, printer MIB) to existing hosts. |
+| `zabbix-autodiscovery services -i CSV [--dry-run]` | **Yes** | Adds service tags and service checks to hosts already in Zabbix (matched by IP). |
 | `zabbix-autodiscovery maps [--dry-run] [--rebuild]` | **Yes** | Generates per-site topology maps with status icons and a map dashboard. |
 | `zabbix-autodiscovery web [-i CSV] [--dry-run]` | **Yes** | Sets up SSL certificate tracking (Zabbix Agent 2) and domain expiration (RDAP). |
 | `zabbix-autodiscovery grafana-dashboards -o DIR` | No | Exports Grafana dashboard JSON files matching your configured host groups. |

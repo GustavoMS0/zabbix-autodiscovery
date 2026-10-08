@@ -23,6 +23,7 @@ VENDORS = {
 }
 
 CONDITIONS = {"sysobjectid_prefix", "sysdescr_regex", "agent_uname_regex", "web_server_regex",
+              "services_any", "services_all",
               "ports_any", "ports_all", "ports_none", "snmp", "agent", "alive"}
 
 # Factory-default sysName values that do not identify the device
@@ -60,6 +61,10 @@ def _condition_matches(cond, dev):
     if "sysdescr_regex" in cond and not re.search(cond["sysdescr_regex"], dev.sysdescr, re.I):
         return False
     if "agent_uname_regex" in cond and not re.search(cond["agent_uname_regex"], dev.agent_uname, re.I):
+        return False
+    if "services_any" in cond and not set(dev.services) & set(as_list(cond["services_any"])):
+        return False
+    if "services_all" in cond and not set(as_list(cond["services_all"])) <= set(dev.services):
         return False
     if "web_server_regex" in cond and not re.search(cond["web_server_regex"], web_servers(dev), re.I):
         return False
@@ -179,6 +184,7 @@ def classify(dev, cfg):
         "agent_uname": dev.agent_uname[:200],
         "netbios": dev.netbios,
         "web_servers": web_servers(dev),
+        "services": ",".join(dev.services),
         **certificate_columns(dev),
     }
     rule = next((r for r in cfg.get("rules", []) if rule_matches(r, dev)), None)

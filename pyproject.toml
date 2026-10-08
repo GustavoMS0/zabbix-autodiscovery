@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "zabbix-autodiscovery"
 dynamic = ["version"]
-description = "Discover network devices (switches, APs, firewalls, printers, servers, UPS...) and onboard them into Zabbix with the right template, with optional Grafana dashboards."
+description = "For local/on-premises networks: discover network devices (switches, APs, firewalls, printers, servers, UPS...) and onboard them into Zabbix with the right template, with optional Grafana dashboards."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]

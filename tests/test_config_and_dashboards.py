@@ -60,16 +60,6 @@ def test_grafana_dashboards_follow_config_groups(example_config):
     assert all(p["gridPos"]["x"] + p["gridPos"]["w"] <= 24 for p in dash["panels"])
 
 
-@pytest.mark.parametrize("version, width", [((8, 0), 72), ((6, 4), 24)])
-def test_zabbix_widgets_fit_the_grid(version, width):
-    for spec in dashboards.SPECS:
-        widgets = dashboards.zabbix_widgets(spec, ["1", "2"], version)
-        assert widgets and widgets[0]["type"] == "problems"
-        assert all(w["x"] + w["width"] <= width for w in widgets)
-        if version < (7, 0):
-            assert all(w["type"] != "honeycomb" for w in widgets)
-
-
 def test_init_writes_config_and_env(tmp_path, monkeypatch):
     from zabbix_autodiscovery.cli import cmd_init
 

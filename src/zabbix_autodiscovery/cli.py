@@ -25,7 +25,7 @@ from collections import Counter
 from importlib import resources
 from pathlib import Path
 
-from . import __version__, classifier, dashboards, maps, organize, provision, scanner, templates, web
+from . import __version__, classifier, dashboards, maps, organize, provision, scanner, services, templates, web
 from .config import ConfigError, credentials_by_name, default_community, in_networks, load_config, site_for
 from .inventory import category_of, network_hosts
 from .zabbix_api import ZabbixAPI, ZabbixError
@@ -33,7 +33,7 @@ from .zabbix_api import ZabbixAPI, ZabbixError
 CSV_FIELDS = ["action", "note", "site", "category", "hostname", "visible_name", "name_source", "ip", "group",
               "templates", "interface", "tags", "rule", "vendor", "sysname", "netbios", "dns",
               "dns_confirmed", "agent_hostname", "system_hostname", "sysobjectid", "sysdescr",
-              "snmp_cred", "ports", "web_servers", "cert_names", "cert_expires", "cert_issuer",
+              "snmp_cred", "ports", "services", "web_servers", "cert_names", "cert_expires", "cert_issuer",
               "cert_self_signed", "ping", "agent_uname"]
 SNMP_AUTH = {"MD5": 0, "SHA": 1, "SHA256": 3, "SHA512": 5}
 SNMP_PRIV = {"DES": 0, "AES": 1, "AES256": 3}
@@ -110,6 +110,13 @@ def cmd_scan(cfg, args):
         print(f"  {cat:<20}{action:<10}{n}")
     sources = Counter(r["name_source"] for r in rows if r["action"] != "ignore")
     print("\n  Host name sources (add/review): " + ", ".join(f"{k}={v}" for k, v in sorted(sources.items())))
+    svc = Counter(s for r in rows for s in services.parse(r.get("services")))
+    if svc:
+        groups = Counter()
+        for name, n in svc.items():
+            groups[services.BY_NAME[name][2]] += n
+        print("\n  Services: " + ", ".join(f"{k}={v}" for k, v in svc.most_common(15)))
+        print("  by group: " + ", ".join(f"{k}={v}" for k, v in groups.most_common()))
     no_snmp = [r for r in rows if r.get("note", "").startswith("no SNMP answer")]
     if no_snmp:
         print(f"\n  {len(no_snmp)} device(s) matched a rule that needs SNMP but did not answer it -> action=review "
@@ -199,6 +206,7 @@ def cmd_apply(cfg, args):
         provision.ensure_agent_template(api)
     if not args.dry_run:
         templates.ensure_addons(api, all_addons(cfg))
+        ensure_service_templates(api, cfg, rows)
     tmpl_map = api.template_ids()
     tmpl_names = {v: k for k, v in tmpl_map.items()}
     interfaces = api.call("hostinterface.get", {"output": ["ip", "dns"]})
@@ -237,11 +245,13 @@ def cmd_apply(cfg, args):
         visible = (row.get("visible_name") or "").strip()
         if visible and visible.lower() in existing_visible | existing_names:
             visible = f"{visible} ({ip})"
+        svc_templates = service_template_names(cfg, row)
         spec = ",".join(filter(None, [row.get("templates", "")] + (
-            addon_templates(cfg, row["category"]) if row.get("interface", "snmp") == "snmp" else [])))
+            addon_templates(cfg, row["category"]) if row.get("interface", "snmp") == "snmp" else [])
+            + svc_templates))
         template_ids, missing = provision.resolve_templates(spec, tmpl_map)
         for m in missing:
-            created_later = m == provision.AGENT_TEMPLATE or m in templates.ENSURE
+            created_later = m == provision.AGENT_TEMPLATE or m in templates.ENSURE or m in svc_templates
             if not (args.dry_run and created_later):                    # created by setup / real apply
                 print(f"  ! {label}template not found: {m}")
         try:
@@ -255,6 +265,7 @@ def cmd_apply(cfg, args):
         if row.get("vendor"):
             tags.append({"tag": "vendor", "value": row["vendor"]})
         tags += parse_tags(row.get("tags"))
+        tags += services.service_tags(services.parse(row.get("services")))
         site = site_for(cfg, ip)
         site_name = (row.get("site") or site.get("site") or "").strip()
         if site_name:
@@ -266,7 +277,7 @@ def cmd_apply(cfg, args):
 
         if args.dry_run:
             used = [tmpl_names[t] for t in template_ids] + [
-                m for m in missing if m == provision.AGENT_TEMPLATE or m in templates.ENSURE]
+                m for m in missing if m == provision.AGENT_TEMPLATE or m in templates.ENSURE or m in svc_templates]
             print(f"  + {label}{name:<28} [{' + '.join(groups)}]  name via {row.get('name_source') or '?'}\n"
                   f"      templates: {', '.join(used) or '(none)'}")
             stats["planned"] += 1
@@ -510,6 +521,70 @@ def cmd_audit(cfg, args):
     organize.audit(connect(cfg), cfg)
 
 
+def service_template_names(cfg, row):
+    """Service check templates for a row: services of the config's service_checks groups."""
+    open_ports = [int(p) for p in (row.get("ports") or "").split(",") if p.strip().isdigit()]
+    return [services.template_name(s, services.check_port(s, open_ports))
+            for s in services.checked_services(services.parse(row.get("services")), cfg)]
+
+
+def ensure_service_templates(api, cfg, rows):
+    for row in rows:
+        open_ports = [int(p) for p in (row.get("ports") or "").split(",") if p.strip().isdigit()]
+        for s in services.checked_services(services.parse(row.get("services")), cfg):
+            services.ensure_service_template(api, s, services.check_port(s, open_ports))
+
+
+def cmd_services(cfg, args):
+    """Add service tags and service check templates to hosts that already exist in Zabbix (matched by IP)."""
+    rows = [r for r in read_inventory(args.input) if services.parse(r.get("services"))]
+    if not rows:
+        raise SystemExit("No detected services in the CSV (column 'services').")
+    api = connect(cfg)
+    interfaces = api.call("hostinterface.get", {"output": ["hostid", "ip"]})
+    host_by_ip = {}
+    for i in interfaces:
+        host_by_ip.setdefault(i["ip"], i["hostid"])
+    if not args.dry_run:
+        ensure_service_templates(api, cfg, [r for r in rows if r["ip"].strip() in host_by_ip])
+    tmpl_map = api.template_ids()
+    stats = Counter()
+    for row in rows:
+        hostid = host_by_ip.get(row["ip"].strip())
+        if not hostid:
+            stats["not in Zabbix"] += 1
+            continue
+        h = api.call("host.get", {"hostids": hostid, "output": ["hostid", "name"],
+                                  "selectTags": ["tag", "value"], "selectParentTemplates": ["templateid"]})[0]
+        found = services.parse(row.get("services"))
+        have_tags = {(t["tag"], t["value"]) for t in h["tags"]}
+        new_tags = [t for t in services.service_tags(found) if (t["tag"], t["value"]) not in have_tags]
+        current = [t["templateid"] for t in h["parentTemplates"]]
+        names = service_template_names(cfg, row)
+        new_tpl = [tmpl_map[n] for n in names if n in tmpl_map and tmpl_map[n] not in current]
+        todo = [n for n in names if tmpl_map.get(n) not in current]
+        if not new_tags and not (new_tpl or (args.dry_run and todo)):
+            stats["up to date"] += 1
+            continue
+        print(f"  {'~' if args.dry_run else '+'} {h['name']:<30} services: {', '.join(found)}"
+              + (f"\n      checks: {', '.join(todo)}" if todo else ""))
+        if args.dry_run:
+            stats["planned"] += 1
+            continue
+        update = {"hostid": hostid}
+        if new_tags:
+            update["tags"] = [{"tag": t["tag"], "value": t["value"]} for t in h["tags"]] + new_tags
+        if new_tpl:
+            update["templates"] = [{"templateid": t} for t in dict.fromkeys(current + new_tpl)]
+        try:
+            api.call("host.update", update)
+            stats["updated"] += 1
+        except ZabbixError as exc:
+            print(f"  x {h['name']}: {exc}")
+            stats["error"] += 1
+    print("\nSummary:", ", ".join(f"{k}={v}" for k, v in sorted(stats.items())))
+
+
 def cmd_maps(cfg, args):
     api = connect(cfg)
     maps.provision(api, cfg, Path(args.config).resolve().parent, rebuild=args.rebuild, dry_run=args.dry_run)
@@ -658,6 +733,9 @@ def build_parser():
     p.add_argument("--remove-groups", metavar="G1,G2",
                    help="also remove these legacy groups from hosts whose type was identified")
     sub.add_parser("audit", help="read-only report: organization, duplicate IPs, agent and item problems")
+    p = sub.add_parser("services", help="add service tags and service checks to existing hosts (from a scan CSV)")
+    p.add_argument("-i", "--input", default="inventory.csv")
+    p.add_argument("--dry-run", action="store_true")
     p = sub.add_parser("maps", help="one Zabbix map per site with an icon per device type, plus a dashboard")
     p.add_argument("--rebuild", action="store_true", help="refresh existing AutoDiscovery maps with the current hosts")
     p.add_argument("--dry-run", action="store_true")
@@ -683,7 +761,7 @@ def main(argv=None):
         raise SystemExit(f"Config error: {exc}")
     commands = {"check": cmd_check, "scan": cmd_scan, "apply": cmd_apply, "setup": cmd_setup,
                 "agent-sync": cmd_agent_sync, "web": cmd_web, "update-templates": cmd_update_templates,
-                "maps": cmd_maps, "organize": cmd_organize, "audit": cmd_audit,
+                "maps": cmd_maps, "organize": cmd_organize, "audit": cmd_audit, "services": cmd_services,
                 "grafana-dashboards": cmd_grafana_dashboards}
     try:
         commands[args.cmd](cfg, args)

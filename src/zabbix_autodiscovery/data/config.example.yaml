@@ -35,6 +35,7 @@ scan:
   ping: true
   reverse_dns: true
   second_pass: true                   # re-probe responsive hosts to avoid false negatives
+  detect_services: true               # also probe database, cluster, directory, mail... ports (see below)
 
 # Tried in order; the first one that answers is used for the host.
 # "setup" creates the global macro {$SNMP_COMMUNITY} from the first v2c community ONLY if the macro
@@ -65,6 +66,12 @@ native_discovery:
 
 # Extra templates linked to every SNMP host of a category (by "apply" and "update-templates").
 # The two below are created by zabbix-autodiscovery; any existing template name also works.
+# Service detection (scan.detect_services): databases, clusters, directory, mail, virtualization,
+# messaging, backup, file sharing, remote access... Detected services become the "services" column and
+# "service" tags. Services of these groups also get a template that alerts when the port stops answering
+# (TCP check from the Zabbix server/proxy, no credentials). Use [] or false to disable.
+service_checks: [database, cluster, directory, mail, messaging, backup, virtualization]
+
 category_templates:
   printer: ["AutoDiscovery - Printer by SNMP"]        # page counter, toner/drum levels, status, serial
   switch: ["AutoDiscovery - Switch port usage"]       # ports in use / total / % (Zabbix 7.0+)

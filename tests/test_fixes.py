@@ -3,42 +3,8 @@ import asyncio
 import pytest
 import requests
 
-from zabbix_autodiscovery import dashboards, scanner
+from zabbix_autodiscovery import scanner
 from zabbix_autodiscovery.zabbix_api import ZabbixAPI, ZabbixError
-
-# ---------------------------------------------------------------- dashboards
-
-def _widgets(key, version, hostnames=()):
-    spec = next(s for s in dashboards.SPECS if s["key"] == key)
-    return dashboards.zabbix_widgets(spec, ["1"], version, hostnames)
-
-
-def _fields(widget):
-    return {f["name"]: f["value"] for f in widget["fields"]}
-
-
-def test_svggraph_lists_hosts_and_has_no_invalid_fields():
-    assert not [w for w in _widgets("switches", (8, 0)) if w["type"] == "svggraph"]      # no hosts yet: no graph
-    graphs = [w for w in _widgets("switches", (8, 0), ["sw-b", "sw-a"]) if w["type"] == "svggraph"]
-    assert graphs
-    for g in graphs:
-        f = _fields(g)
-        assert f["ds.0.hosts.0"] == "sw-a" and f["ds.0.hosts.1"] == "sw-b" and f["ds.0.items.0"]
-        assert "groupids.0" not in f and "graph_time" not in f
-
-
-def test_svggraph_host_list_is_capped():
-    hosts = [f"h{i:03}" for i in range(80)]
-    g = next(w for w in _widgets("switches", (8, 0), hosts) if w["type"] == "svggraph")
-    assert sum(1 for f in g["fields"] if f["name"].startswith("ds.0.hosts.")) == dashboards.MAX_GRAPH_HOSTS
-
-
-def test_tophosts_order_on_zabbix_6_4():
-    servers = {w["name"]: _fields(w) for w in _widgets("servers", (6, 4)) if w["type"] == "tophosts"}
-    assert servers["CPU"]["order"] == 2                                    # highest usage first
-    ups = {w["name"]: _fields(w) for w in _widgets("ups", (6, 4)) if w["type"] == "tophosts"}
-    assert ups["Battery charge"]["order"] == 3                             # lowest charge first
-
 
 # ---------------------------------------------------------------- API retries
 

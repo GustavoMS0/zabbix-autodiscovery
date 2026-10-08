@@ -34,6 +34,7 @@ class Device:
     netbios: str = ""
     dns_confirmed: bool = False
     web: list = field(default_factory=list)       # [{port, tls, server, cert}]
+    services: list = field(default_factory=list)  # names from services.CATALOG
 
     @property
     def snmp(self):
@@ -415,6 +416,10 @@ async def scan_host(ip, ctx):
         if ctx.get("web", True):
             probes = [http_probe(ip, p, WEB_PORTS[p], timeout) for p in dev.ports if p in WEB_PORTS]
             dev.web = [w for w in await asyncio.gather(*probes) if w]
+        if ctx.get("services", True) and dev.ports:
+            from .services import detect
+            servers = "; ".join(w.get("server") or "" for w in dev.web)
+            dev.services = await detect(ip, dev.ports, timeout, servers)
         if dev.responded and not dev.agent and ctx.get("netbios", True):
             dev.netbios = await netbios_name(ip, timeout)
         if dev.responded and ctx["reverse_dns"]:
@@ -425,7 +430,11 @@ async def scan_host(ip, ctx):
 async def scan(scan_cfg, credentials, progress=None):
     excluded = set(expand_targets(scan_cfg.get("exclude")))
     targets = [str(ip) for ip in expand_targets(scan_cfg["networks"]) if ip not in excluded]
-    ports = sorted(set(int(p) for p in scan_cfg.get("ports", [])) | {AGENT_PORT})
+    ports = set(int(p) for p in scan_cfg.get("ports", [])) | {AGENT_PORT}
+    if scan_cfg.get("detect_services", True):           # databases, clusters, directory, mail...
+        from .services import service_ports
+        ports |= set(service_ports())
+    ports = sorted(ports)
     ctx = {
         "sem": asyncio.Semaphore(int(scan_cfg.get("concurrency", 50))),
         "timeout": float(scan_cfg.get("timeout", 1.5)),
@@ -433,6 +442,7 @@ async def scan(scan_cfg, credentials, progress=None):
         "ping": scan_cfg.get("ping", True),
         "reverse_dns": scan_cfg.get("reverse_dns", True),
         "web": scan_cfg.get("web", True),
+        "services": scan_cfg.get("detect_services", True),
         "snmp": SnmpProber(credentials, float(scan_cfg.get("timeout", 1.5)),
                            int(scan_cfg.get("snmp_retries", 1))),
     }
@@ -474,3 +484,4 @@ def merge(dev, again):
         dev.netbios = ""
     known = {w["port"] for w in dev.web}
     dev.web += [w for w in again.web if w["port"] not in known]
+    dev.services = sorted(set(dev.services) | set(again.services), key=(dev.services + again.services).index)
