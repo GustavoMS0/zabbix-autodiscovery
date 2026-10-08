@@ -3,11 +3,11 @@
 [![CI](https://github.com/GustavoMS0/zabbix-autodiscovery/actions/workflows/ci.yml/badge.svg)](https://github.com/GustavoMS0/zabbix-autodiscovery/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-🇧🇷 [Leia em português](README.pt-BR.md)
+🇺🇸 [Read in English](README.en.md)
 
-**Scan your corporate networks, automatically identify infrastructure equipment, and onboard them into Zabbix with the right template, host group, interface, and tags.** Workstations and laptops are filtered out automatically. Native Zabbix dashboards are included (Grafana dashboards are optional).
+**Varre as suas redes corporativas, identifica automaticamente os equipamentos de infraestrutura e os cadastra no Zabbix com o template, o grupo de hosts, a interface e as tags ideais.** Estações de trabalho e notebooks são filtrados e descartados automaticamente. Dashboards nativos do Zabbix inclusos (e Grafana opcional).
 
-> **Scope: local environments.** zabbix-autodiscovery is built for **on-premises networks**: the LAN, VLANs and branch offices reached over VPN or MPLS, scanned from a machine inside them (ideally the Zabbix server or proxy). It does not inventory cloud resources (AWS, Azure, GCP) or the internet, and it should only be run on networks you are responsible for.
+> **Escopo: ambientes locais.** O zabbix-autodiscovery foi feito para **redes locais (on-premises)**: a LAN, as VLANs e as filiais acessadas por VPN ou MPLS, varridas a partir de uma máquina dentro delas (de preferência o servidor ou proxy Zabbix). Ele não inventaria recursos de nuvem (AWS, Azure, GCP) nem a internet, e só deve ser executado em redes pelas quais você é responsável.
 
 ```text
 $ zabbix-autodiscovery scan -o inventory.csv
@@ -25,187 +25,187 @@ Scanning: 192.168.0.0/24, 192.168.10.0/24, 192.168.20.0/24
   Host name sources (add/review): snmp=48, agent=6, netbios=4, dns=2
 
 $ zabbix-autodiscovery apply -i inventory.csv --dry-run
-  + 192.168.10.52   printer     PRN-FINANCE       [Network/Printers + Sites/Branch-01]  name via snmp
+  + 192.168.10.52   printer     PRN-FINANCEIRO    [Rede/Impressoras + Filiais/PR]  name via snmp
       templates: AutoDiscovery - Printer by SNMP, Generic by SNMP
-  + 192.168.10.22   server-hw   idrac-SRV01       [Infrastructure/Server Hardware + Sites/Branch-01]  name via snmp
+  + 192.168.10.22   server-hw   idrac-SRV01       [Infra/Server Hardware + Filiais/PR]  name via snmp
       templates: Dell iDRAC by SNMP
   = 192.168.0.1     firewall    IP already monitored, skipped
 ```
 
 ---
 
-## Key Features
+## Recursos Principais
 
-- **Comprehensive Concurrent Discovery:** High-speed asynchronous scanning using ICMP Ping, TCP ports, SNMP v1/v2c/v3, Zabbix Agent (passive query), NetBIOS (UDP 137), HTTP/TLS banner probing, and forward-confirmed reverse DNS. A second pass with extended timeouts prevents false negatives on busy or VPN links.
-- **Name-Agnostic Classification:** Never guesses a device role based on its host name. Decides strictly by what the device answers technically (SNMP sysObjectID, sysDescr, open ports, server banner, and `system.uname`). Comes with rules for:
-  - **Network & Wi-Fi:** Cisco, HPE/Aruba, H3C, Huawei, Juniper, MikroTik, TP-Link, D-Link, Ubiquiti/UniFi, Ruckus, Meraki;
-  - **Firewalls & Security:** Fortinet/FortiGate, pfSense, OPNsense, Palo Alto, Sophos, SonicWall, Check Point;
-  - **CCTV & IP Cameras:** Hikvision, Dahua, Intelbras (MHDX/NVD/VIP), Axis (RTSP ports 554, 8000, 37777);
-  - **VoIP & IP Telephony:** Grandstream, Yealink, Asterisk, FreePBX, Issabel (SIP port 5060);
-  - **Servers & Hypervisors:** Windows Server, Linux (Debian, Ubuntu, RHEL), VMware ESXi, Hyper-V, Proxmox VE, iDRAC (Dell), iLO (HPE);
-  - **Power, Storage & Peripherals:** APC, Eaton, SMS, NHS UPS; managed rack PDUs; Synology, QNAP, TrueNAS storage; HP, Brother, Epson, Kyocera, Ricoh, Lexmark, Xerox, and Zebra printers.
-- **Strict Workstation Exclusion:** Microsoft's SNMP sysObjectID separates workstations from servers even on Windows 11 and Windows Server 2025 (which share build 26100). On machines without SNMP, port fingerprints and the Zabbix agent prevent adding laptops or desktop PCs.
-- **Detection of Servers without Agent:** Servers detected without port 10050 receive the `AutoDiscovery - Zabbix agent missing` template and tag `agent=missing`. An alert fires only while the server answers ping (preventing duplicate alerts with host down). Once the agent is installed, `agent-sync` promotes them to OS templates.
-- **Change Audit & Rogue Device Detection (`diff`):** Compare two inventory scans to instantly spot newly connected network equipment (*rogue devices*), decommissioned hosts, or changes in ports and hostnames.
-- **Bundled Add-on Templates:**
-  - **Printers (RFC 3805):** Lifetime page counter, consumables (toner/drum) discovered automatically with percentage calculations, status, and serial number;
-  - **Switches:** Percentage of physical ports in use calculated from an SNMP IF-MIB walk (Zabbix 7.0+).
-- **Optimized Native Zabbix Dashboards:** Pre-configured dashboards per device category with vector SVG graphs (network traffic, errors, temperature), Top Hosts latency/CPU/Memory rankings, and Honeycomb matrix views (7.0+) or complete `hostavail` tables (6.0 LTS). No Grafana required.
-- **SSL Certificate and Domain Expiration Monitoring:** Checks TLS certificates via Zabbix Agent 2 and domain expiration via RDAP (RFC 7480/9082) without external scripts.
-- **Site Topology Maps:** Automated Zabbix network maps per site with category rows and icon status indicators.
-- **Compatibility:** Zabbix **6.0 LTS to 8.0**. Runs on Linux, Windows, and macOS (Python 3.10+).
+- **Descoberta Completa e Concorrente:** Varredura rápida assíncrona por ICMP Ping, portas TCP, SNMP v1/v2c/v3, Zabbix Agent (passivo), NetBIOS (UDP 137), banner HTTP/TLS e DNS reverso confirmado. Uma segunda passada automática com timeout estendido elimina falsos negativos causados por latência ou enlaces VPN.
+- **Classificação Agnóstica de Nome:** A regra nunca adivinha a função pelo nome do host. A decisão baseia-se estritamente no que o ativo responde (OIDs SNMP do `sysObjectID`, `sysDescr`, portas abertas, banner do servidor e `system.uname`). Já conta com regras prontas para:
+  - **Rede & Wi-Fi:** Cisco, HPE/Aruba, H3C, Huawei, Juniper, MikroTik, TP-Link, D-Link, Ubiquiti/UniFi, Ruckus, Meraki;
+  - **Segurança & Firewalls:** Fortinet/FortiGate, pfSense, OPNsense, Palo Alto, Sophos, SonicWall, Check Point;
+  - **CFTV & Câmeras IP:** Hikvision, Dahua, Intelbras (MHDX/NVD/VIP), Axis (portas RTSP 554, 8000, 37777);
+  - **Telefonia IP & VoIP:** Grandstream, Yealink, centrais Asterisk, FreePBX e Issabel (porta SIP 5060);
+  - **Servidores & Hipervisores:** Windows Server, Linux (Debian, Ubuntu, RHEL), VMware ESXi, Hyper-V, Proxmox VE, iDRAC (Dell), iLO (HPE);
+  - **Energia, Storage & Periféricos:** Nobreaks APC, Eaton, SMS e NHS; PDUs de rack gerenciáveis; storages Synology, QNAP e TrueNAS; impressoras HP, Brother, Epson, Kyocera, Ricoh, Lexmark, Xerox e Zebra.
+- **Exclusão Precisa de Estações de Trabalho:** O `sysObjectID` da Microsoft diferencia workstations de servidores mesmo no Windows 11 e Windows Server 2025 (que compartilham o build 26100). Em máquinas sem SNMP, o perfil de portas e o agent Zabbix impedem o cadastro acidental de notebooks e desktops.
+- **Detecção de Servidores sem Agente:** Servidores encontrados sem porta 10050 recebem o template `AutoDiscovery - Zabbix agent missing` e a tag `agent=missing`. Um alarme dedicado é disparado (somente se o host responder ping, evitando duplicidade com host down). Após a instalação do agente, o comando `agent-sync` migra o host para os templates de SO correspondentes.
+- **Auditoria de Mudanças (`diff`):** Compare dois inventários para detectar imediatamente novos equipamentos conectados à rede (*rogue devices*), hosts desligados ou mudanças de portas e hostnames.
+- **Templates Nativos Add-on Inclusos:**
+  - **Impressoras (RFC 3805):** Contador vitalício de páginas, suprimentos (toner/cilindro) descobertos automaticamente com % e cálculo de nível, status de painel e número de série;
+  - **Switches:** Ocupação percentual de portas físicas em uso a partir do walk IF-MIB (Zabbix 7.0+).
+- **Dashboards Nativos Otimizados no Próprio Zabbix:** Dashboards pré-configurados por categoria com gráficos vetoriais (tráfego de rede, erros, temperatura), Top Hosts de latência e consumo, e matrizes Honeycomb (7.0+) ou tabelas de disponibilidade `hostavail` (6.0 LTS). Sem dependência obrigatória de Grafana.
+- **Monitoramento de Certificados SSL e Domínios:** Verificação de validade de certificados TLS via Zabbix Agent 2 e expiração de domínios via RDAP (RFC 7480/9082), sem necessidade de scripts externos.
+- **Mapas de Rede por Filial:** Geração de mapas visuais no Zabbix por localidade/filial, com posicionamento ordenado por categoria e ícones de status.
+- **Compatibilidade:** Zabbix **6.0 LTS a 8.0**. Executável em Linux, Windows e macOS (Python 3.10+).
 
 ---
 
-## Quick Start & Installation
+## Instalação e Requisitos
 
-> 📘 **Step-by-step deployment guide** (new Zabbix with or without Grafana, or an existing Zabbix): [docs/DEPLOYMENT-GUIDE.md](docs/DEPLOYMENT-GUIDE.md)
+> 📘 **Guia de implantação passo a passo** (Zabbix novo com ou sem Grafana, ou Zabbix já existente): [docs/GUIA-DE-IMPLANTACAO.md](docs/GUIA-DE-IMPLANTACAO.md)
 
 
-### Installation:
+### Instalação rápida:
 ```bash
-# Via pip or uv (recommended)
+# Via pip ou uv (recomendado)
 pip install git+https://github.com/GustavoMS0/zabbix-autodiscovery
 ```
 
-On Windows without global Python: run `./zabbix-autodiscovery.ps1 init` (uses [uv](https://docs.astral.sh/uv/) or system Python).  
-On Linux/macOS: run `./zabbix-autodiscovery.sh init`.
+No Windows sem instalar Python globalmente: execute `./zabbix-autodiscovery.ps1 init` (usa o [uv](https://docs.astral.sh/uv/) ou Python local).  
+No Linux/macOS: execute `./zabbix-autodiscovery.sh init`.
 
 ---
 
-## Implementation Guide: Choose Your Scenario
+## Guia de Implementação: Escolha o seu Cenário
 
-`zabbix-autodiscovery` is built to handle both brand-new Zabbix deployments and **long-standing production environments with zero risk of breaking existing configurations**.
+O `zabbix-autodiscovery` foi arquitetado tanto para iniciar o monitoramento de uma infraestrutura do zero quanto para atuar com **total segurança** em um ambiente Zabbix que já está em produção há anos.
 
 ```
                            ┌───────────────────────────────────────────────┐
                            │          zabbix-autodiscovery init            │
                            └──────────────────────┬────────────────────────┘
                                                   ▼
-                                      What is your scenario?
+                                      Qual é o seu cenário?
                                                   │
                  ┌────────────────────────────────┴────────────────────────────────┐
                  ▼                                                                 ▼
-      【 SCENARIO 1: NEW ZABBIX 】                                     【 SCENARIO 2: EXISTING ZABBIX 】
+      【 CENÁRIO 1: ZABBIX NOVO 】                                     【 CENÁRIO 2: ZABBIX EM PRODUÇÃO 】
       • zabbix-autodiscovery check                                     • zabbix-autodiscovery check
-      • zabbix-autodiscovery setup                                     • zabbix-autodiscovery audit  (health report)
+      • zabbix-autodiscovery setup                                     • zabbix-autodiscovery audit  (diagnóstico)
       • zabbix-autodiscovery scan -o inventory.csv                     • zabbix-autodiscovery scan -o inventory.csv
-      • zabbix-autodiscovery apply -i inventory.csv                    • zabbix-autodiscovery diff (compare scans)
-      • zabbix-autodiscovery maps                                      • zabbix-autodiscovery apply (new hosts only)
-      • zabbix-autodiscovery web                                       • zabbix-autodiscovery organize (organize old)
+      • zabbix-autodiscovery apply -i inventory.csv                    • zabbix-autodiscovery diff (compara scans)
+      • zabbix-autodiscovery maps                                      • zabbix-autodiscovery apply (só novos)
+      • zabbix-autodiscovery web                                       • zabbix-autodiscovery organize (organiza antigos)
                                                                        • zabbix-autodiscovery update-templates --all
 ```
 
 ---
 
-### Scenario 1: New Zabbix Deployment (Greenfield / From Scratch)
+### Cenário 1: Novo Ambiente Zabbix (Do Zero / Greenfield)
 
-Ideal when setting up a fresh Zabbix installation and you want to onboard dozens or hundreds of devices in minutes with clean naming, groups, and templates.
+Ideal para quem está configurando uma nova instalação do Zabbix e deseja cadastrar dezenas ou centenas de equipamentos rapidamente com templates e grupos padronizados.
 
-1. **Deploy Zabbix (if not already running):**
-   You can use the bundled Docker Compose stack in `deploy/`:
+1. **Suba o Zabbix (se ainda não tiver):**
+   Você pode usar a stack Docker inclusa neste repositório:
    ```bash
    cd deploy
-   cp .env.example .env     # Set secure passwords in .env
+   cp .env.example .env     # Defina senhas seguras no .env
    docker compose --profile zabbix --profile grafana up -d
    ```
-2. **Generate an API Token:**
-   In Zabbix frontend, go to *Users → API tokens* and create a token for a user with **Super admin** role. (On Zabbix 8.0, ensure API access is enabled on the user's role).
-3. **Initialize Configuration:**
+2. **Gere o Token da API:**
+   No frontend do Zabbix, acesse *Users → API tokens* e crie um token para um usuário com privilégio **Super admin**. (No Zabbix 8.0, certifique-se de que a role do usuário possui o acesso à API habilitado).
+3. **Crie os arquivos de configuração do projeto:**
    ```bash
-   mkdir my-monitoring && cd my-monitoring
+   mkdir meu-monitoramento && cd meu-monitoramento
    zabbix-autodiscovery init
    ```
-   This creates `config.yaml` and `.env`.
-4. **Configure Secrets and Networks:**
-   * In `.env`: set your `ZABBIX_TOKEN` and `SNMP_COMMUNITY`.
-   * In `config.yaml`: set your `zabbix.url` and network CIDRs under `scan.networks`.
-5. **Validate Prerequisites:**
+   Isso criará o `config.yaml` e o arquivo `.env`.
+4. **Configure os segredos e parâmetros:**
+   * No arquivo `.env`: insira seu `ZABBIX_TOKEN` e a `SNMP_COMMUNITY`.
+   * No arquivo `config.yaml`: informe a URL do frontend Zabbix (`zabbix.url`) e as faixas de rede em `scan.networks`.
+5. **Valide os pré-requisitos:**
    ```bash
    zabbix-autodiscovery check
    ```
-   Validates API connectivity, token permissions, and template availability.
-6. **Provision Base Objects in Zabbix:**
+   O `check` verifica conectividade com a API, permissões do token e disponibilidade dos templates.
+6. **Provisione a base no Zabbix:**
    ```bash
    zabbix-autodiscovery setup
    ```
-   Creates host groups, the global `{$SNMP_COMMUNITY}` macro (only if missing), agent missing template, and native dashboards.
-7. **Scan and Classify the Networks:**
+   Cria os grupos de hosts, a macro global `{$SNMP_COMMUNITY}` (apenas se não existir), o template de detecção de agente ausente e os dashboards nativos otimizados.
+7. **Varra e classifique a rede:**
    ```bash
    zabbix-autodiscovery scan -o inventory.csv
    ```
-   Probes all responsive devices and outputs `inventory.csv`.
-8. **Review and Apply:**
-   Open `inventory.csv` in Excel or an editor. Only rows with `action = add` will be created in Zabbix. Rows marked `review` need your decision; the `note` column says why. When a device matched a rule that needs SNMP but did not answer SNMP (e.g. a camera found by its RTSP port), nothing is guessed: enable SNMP on the device and scan again, or set `interface`/`templates` yourself (e.g. `icmp` / `ICMP Ping`) and change `action` to `add`.
+   O comando gera uma planilha CSV com todos os ativos identificados e suas respectivas categorias.
+8. **Revise e aplique:**
+   Abra o arquivo `inventory.csv` no Excel ou editor de texto. Apenas as linhas com a coluna `action = add` serão cadastradas. Linhas marcadas como `review` dependem da sua decisão, e a coluna `note` explica o motivo. Quando um equipamento casa com uma regra que exige SNMP, mas não respondeu SNMP (por exemplo, uma câmera encontrada pela porta RTSP), a ferramenta não adivinha nada: habilite o SNMP no equipamento e refaça o scan, ou ajuste `interface`/`templates` você mesmo (por exemplo, `icmp` / `ICMP Ping`) e mude `action` para `add`.
    ```bash
-   zabbix-autodiscovery apply -i inventory.csv --dry-run   # Preview plan
-   zabbix-autodiscovery apply -i inventory.csv             # Create hosts in Zabbix
+   zabbix-autodiscovery apply -i inventory.csv --dry-run   # Simula o cadastro
+   zabbix-autodiscovery apply -i inventory.csv             # Cadastra os hosts no Zabbix
    ```
-9. **Generate Site Topology Maps:**
+9. **Gere os mapas de topologia:**
    ```bash
    zabbix-autodiscovery maps
    ```
-   Generates site maps with icons reflecting host problem states.
+   Cria um mapa topológico por filial com ícones categorizados por tipo de equipamento.
 
 ---
 
-### Scenario 2: Existing Production Zabbix (Brownfield / Safe Onboarding)
+### Cenário 2: Zabbix Já em Produção / Ativo (Brownfield)
 
-If you have an active Zabbix installation with hundreds of monitored hosts, **you can run `zabbix-autodiscovery` with complete confidence**:
+Se o seu Zabbix já está ativo e monitora a sua infraestrutura, **você pode usar a ferramenta sem nenhum receio**:
 
 > [!IMPORTANT]
-> **Production Safety Guarantees:**
-> - **Existing hosts are never overwritten or deleted.** Any IP or DNS already present in Zabbix is automatically skipped during `apply`.
-> - **Existing global macros are preserved.** If `{$SNMP_COMMUNITY}` already exists with another value, it is not modified; new hosts receive a host-level macro instead.
-> - **All created objects are traceable.** Prefixed with `AutoDiscovery - ` and tagged with `origin=autodiscovery`.
-> - **Safe simulations everywhere.** Mutation commands support `--dry-run`.
+> **Garantias de Não Destruição em Ambientes de Produção:**
+> - **Nenhum host existente é sobrescrito ou apagado.** Hosts com IP ou DNS já cadastrados no Zabbix são automaticamente ignorados pelo `apply`.
+> - **Macros globais existentes são preservadas.** Se `{$SNMP_COMMUNITY}` já tiver um valor diferente no Zabbix, ele não será alterado; os novos hosts receberão a comunidade como macro a nível de host.
+> - **Todos os objetos gerados são rastreáveis.** Levam o prefixo `AutoDiscovery - ` e a tag `origin=autodiscovery`.
+> - **Simulação disponível em tudo.** Os comandos aceitam `--dry-run`.
 
-#### Recommended Safe Workflow for Existing Zabbix:
+#### Fluxo Seguro Recomendado para Zabbix Ativo:
 
-1. **Audit Zabbix Health (Read-Only):**
+1. **Audite a saúde atual do Zabbix (100% Leitura):**
    ```bash
    zabbix-autodiscovery audit
    ```
-   Generates a non-intrusive diagnostic report:
-   - Identifies duplicate IPs (multiple hosts configured with the same IP);
-   - Detects cloned VMs sharing the same `system.hostname`;
-   - Flags agent `Hostname=` mismatches (a leading cause of active check failures);
-   - Lists hosts with agent templates where the agent is unreachable;
-   - Lists hosts with the highest count of unsupported items.
+   Emite um relatório detalhado sem alterar absolutamente nada:
+   - Identifica IPs duplicados (mais de um host apontando para o mesmo IP);
+   - Detecta máquinas virtuais clonadas com o mesmo `system.hostname`;
+   - Aponta hosts onde o `Hostname=` do agente não coincide com o nome técnico do Zabbix (causa comum de falha em checagens ativas);
+   - Lista hosts com templates de agente onde o agente está offline;
+   - Lista os hosts com maior número de itens não suportados.
 
-2. **Scan the Networks for Unmonitored Devices:**
+2. **Varra a rede para descobrir ativos não monitorados:**
    ```bash
    zabbix-autodiscovery scan -o inventory.csv
    ```
-   *Tip:* Target specific subnets or sites without editing `config.yaml`:
+   *Dica:* Para varrer apenas uma sub-rede ou filial específica sem mexer no config:
    ```bash
-   zabbix-autodiscovery scan --network 10.0.0.0/24 -o branch-scan.csv
-   zabbix-autodiscovery scan --site Branch-01 -o site1.csv
+   zabbix-autodiscovery scan --network 192.168.10.0/24 -o filial-pr.csv
+   zabbix-autodiscovery scan --site Matriz -o matriz.csv
    ```
 
-3. **Check for Changes and Rogue Devices (`diff`):**
-   Compare previous scans with the latest scan:
+3. **Verifique novos ativos com o comando `diff`:**
+   Se você já fez uma varredura anterior, compare os inventários para identificar equipamentos novos (*rogue devices*) ou mudanças de porta:
    ```bash
-   zabbix-autodiscovery diff -old inventory-previous.csv -new inventory.csv
+   zabbix-autodiscovery diff -old inventory-anterior.csv -new inventory.csv
    ```
 
-4. **Onboard Only the Newly Discovered Devices:**
+4. **Cadastre apenas os ativos novos que faltavam no Zabbix:**
    ```bash
    zabbix-autodiscovery apply -i inventory.csv --dry-run
    zabbix-autodiscovery apply -i inventory.csv
    ```
-   Any device already in Zabbix outputs `IP already monitored, skipped` and remains untouched.
+   Qualquer dispositivo que já estava monitorado no Zabbix exibirá `IP already monitored, skipped` e não sofrerá alteração.
 
-5. **Bring Legacy Hosts into Standard Groups and Tags:**
-   If your pre-existing hosts lack consistent grouping, `organize` assigns them to their device type group (e.g. *Network/Switches*, *Network/Firewalls*) and site groups, adding standard `type` and `site` tags:
+5. **Organize os hosts legados em grupos e tags padronizados:**
+   Se os hosts antigos estavam desorganizados, o comando `organize` insere cada host das redes configuradas no grupo do seu tipo (ex: *Network/Switches*, *Network/Firewalls*) e no grupo da sua filial, adicionando as tags `type` e `site`:
    ```bash
    zabbix-autodiscovery organize --dry-run
    zabbix-autodiscovery organize
    ```
-   *Note:* `organize` is purely additive. It never removes legacy groups unless explicitly requested via `--remove-groups LegacyGroup1,LegacyGroup2`.
+   *Nota:* O `organize` é estritamente aditivo. Ele não remove grupos existentes a menos que você especifique `--remove-groups GrupoAntigo1,GrupoAntigo2`.
 
-6. **Link Complementary Add-on Templates to Existing Hosts:**
-   To add port usage metrics or printer consumable discovery to legacy hosts without altering their vendor templates:
+6. **Vincule templates complementares a equipamentos antigos:**
+   Se você tem switches ou impressoras legadas no Zabbix e deseja adicionar as métricas de suprimento ou portas em uso sem alterar o template do fabricante:
    ```bash
    zabbix-autodiscovery update-templates --all --dry-run
    zabbix-autodiscovery update-templates --all
@@ -213,77 +213,78 @@ If you have an active Zabbix installation with hundreds of monitored hosts, **yo
 
 ---
 
-## Service Detection
+## Detecção de Serviços
 
-Besides the device type, the scan identifies the **services** each host runs: databases (SQL Server, MySQL/MariaDB, PostgreSQL, Oracle, MongoDB, Redis, Elasticsearch…), **clusters** (Windows Failover Cluster, SQL AlwaysOn, Hyper-V live migration, Pacemaker, Galera, Kubernetes, etcd…), directory (Active Directory, LDAP, Kerberos, DNS), mail, messaging (RabbitMQ, Kafka, MQTT), virtualization (ESXi, Proxmox, Docker), backup (Veeam), file sharing, remote access and monitoring.
+Além do tipo de equipamento, o scan identifica os **serviços** que cada host executa: bancos de dados (SQL Server, MySQL/MariaDB, PostgreSQL, Oracle, MongoDB, Redis, Elasticsearch…), **clusters** (Windows Failover Cluster, SQL AlwaysOn, live migration do Hyper-V, Pacemaker, Galera, Kubernetes, etcd…), diretório (Active Directory, LDAP, Kerberos, DNS), e-mail, mensageria (RabbitMQ, Kafka, MQTT), virtualização (ESXi, Proxmox, Docker), backup (Veeam), compartilhamento de arquivos, acesso remoto e monitoramento.
 
-- When the protocol allows, the service is **confirmed by talking to it**: MySQL greeting, PostgreSQL SSL handshake, Redis `PING`, SSH/SMTP/FTP/IMAP banners, Elasticsearch, Prometheus, Grafana and Docker HTTP answers. Another program listening on the same port is not reported.
-- Results go to the `services` column and become `service=<name>` tags in Zabbix, so you can filter hosts and problems by service.
-- Services of the groups in `service_checks` (databases, clusters, directory, mail, messaging, backup and virtualization by default) get a template **AutoDiscovery - Service <name>** that raises a problem when the port stops answering. It checks from the Zabbix server or proxy and needs no credentials. For deep metrics (queries, replication…), link the official Zabbix template of that product as well.
-- `apply` handles new hosts. For hosts already in Zabbix, `services -i inventory.csv [--dry-run]` adds the tags and checks, matching hosts by IP.
-- Rules can use services too: `services_any: [mssql]` or `services_all: [kubernetes-api, etcd]`.
+- Quando o protocolo permite, o serviço é **confirmado conversando com ele**: saudação do MySQL, handshake SSL do PostgreSQL, `PING` do Redis, banners de SSH/SMTP/FTP/IMAP e respostas HTTP do Elasticsearch, Prometheus, Grafana e Docker. Outro programa escutando na mesma porta não é reportado.
+- O resultado vai para a coluna `services` e vira tags `service=<nome>` no Zabbix, para filtrar hosts e problemas por serviço.
+- Os serviços dos grupos listados em `service_checks` (por padrão bancos de dados, clusters, diretório, e-mail, mensageria, backup e virtualização) recebem um template **AutoDiscovery - Service <nome>**, que gera um problema quando a porta para de responder. A checagem é feita a partir do servidor ou proxy Zabbix e não precisa de credenciais. Para métricas detalhadas (consultas, replicação…), vincule também o template oficial do Zabbix daquele produto.
+- O `apply` cuida dos hosts novos. Para hosts que já estão no Zabbix, o `services -i inventory.csv [--dry-run]` acrescenta as tags e as checagens, casando os hosts pelo IP.
+- As regras também podem usar serviços: `services_any: [mssql]` ou `services_all: [kubernetes-api, etcd]`.
 
-## Command Reference
+## Tabela de Comandos
 
-| Command | Modifies Zabbix? | Description |
+| Comando | Altera o Zabbix? | Descrição |
 |---|---|---|
-| `zabbix-autodiscovery init [--force]` | No | Creates starter `config.yaml` and `.env` files. |
-| `zabbix-autodiscovery check` | No | Validates API connectivity, token role, templates, and network overlap. |
-| `zabbix-autodiscovery audit` | No | Non-intrusive health audit: duplicate IPs, cloned machines, item errors, agent issues. |
-| `zabbix-autodiscovery scan [-o CSV] [--network CIDR] [--site NAME]` | No | Probes networks, classifies discovered devices, and writes inventory CSV. |
-| `zabbix-autodiscovery diff -old CSV1 -new CSV2` | No | Compares two scan inventories to detect new devices, removals, and changes. |
-| `zabbix-autodiscovery apply -i CSV [--dry-run]` | **Yes** | Onboards CSV rows with `action=add`. Skips already monitored IPs/names. |
-| `zabbix-autodiscovery setup [--no-dashboards] [--rebuild-dashboards]` | **Yes** | Provisions host groups, SNMP macro, agent missing template, and dashboards. |
-| `zabbix-autodiscovery agent-sync [--dry-run]` | **Yes** | Promotes `agent=missing` servers to OS agent templates once their agent answers. |
-| `zabbix-autodiscovery organize [--dry-run] [--remove-groups G1,G2]` | **Yes** | Assigns pre-existing hosts into standardized type/site groups with tags. |
-| `zabbix-autodiscovery update-templates [--all] [--dry-run]` | **Yes** | Links category add-on templates (switch ports, printer MIB) to existing hosts. |
-| `zabbix-autodiscovery services -i CSV [--dry-run]` | **Yes** | Adds service tags and service checks to hosts already in Zabbix (matched by IP). |
-| `zabbix-autodiscovery maps [--dry-run] [--rebuild]` | **Yes** | Generates per-site topology maps with status icons and a map dashboard. |
-| `zabbix-autodiscovery web [-i CSV] [--dry-run]` | **Yes** | Sets up SSL certificate tracking (Zabbix Agent 2) and domain expiration (RDAP). |
-| `zabbix-autodiscovery grafana-dashboards -o DIR` | No | Exports Grafana dashboard JSON files matching your configured host groups. |
+| `zabbix-autodiscovery init [--force]` | Não | Cria os arquivos iniciais `config.yaml` e `.env`. |
+| `zabbix-autodiscovery check` | Não | Valida conexão, permissões de token, disponibilidade de templates e faixas de rede. |
+| `zabbix-autodiscovery audit` | Não | Relatório de auditoria de consistência, IPs duplicados, itens não suportados e agentes. |
+| `zabbix-autodiscovery scan [-o CSV] [--network CIDR] [--site NOME]` | Não | Varre as redes, classifica os dispositivos e grava a planilha de inventário. |
+| `zabbix-autodiscovery diff -old CSV1 -new CSV2` | Não | Compara dois inventários gerados por scan e detalha inclusões, remoções e alterações. |
+| `zabbix-autodiscovery apply -i CSV [--dry-run]` | **Sim** | Cadastra no Zabbix os hosts marcados com `action=add`. Pula o que já existe. |
+| `zabbix-autodiscovery setup [--no-dashboards] [--rebuild-dashboards]` | **Sim** | Provisiona grupos de hosts, macro SNMP, template de agente ausente e dashboards. `--rebuild-dashboards` atualiza os dashboards existentes (ex.: depois de um `apply`, para os gráficos incluírem os hosts novos). |
+| `zabbix-autodiscovery agent-sync [--dry-run]` | **Sim** | Migra servidores com tag `agent=missing` para os templates de agente quando responderem. |
+| `zabbix-autodiscovery organize [--dry-run] [--remove-groups G1,G2]` | **Sim** | Insere hosts legados dos blocos escaneados nos grupos e tags de tipo/filial padronizados. |
+| `zabbix-autodiscovery update-templates [--all] [--dry-run]` | **Sim** | Vincula templates extras (portas de switch, impressoras) a hosts legados do Zabbix. |
+| `zabbix-autodiscovery services -i CSV [--dry-run]` | **Sim** | Acrescenta tags e checagens de serviço a hosts que já estão no Zabbix (casando pelo IP). |
+| `zabbix-autodiscovery maps [--dry-run] [--rebuild]` | **Sim** | Cria um mapa de topologia por filial com ícones por categoria e dashboard de mapas. |
+| `zabbix-autodiscovery web [-i CSV] [--dry-run]` | **Sim** | Cadastra monitoramento de certificados SSL (via Agent 2) e vencimento de domínios (RDAP). |
+| `zabbix-autodiscovery grafana-dashboards -o DIR` | Não | Exporta os arquivos JSON dos dashboards formatados para importação no Grafana. |
 
 ---
 
-## Native Zabbix Dashboards
+## Otimizações nos Dashboards Nativos do Zabbix
 
-When running `zabbix-autodiscovery setup`, optimized native dashboards are built directly inside Zabbix matching your host group names. Zabbix graphs select hosts by name (not by group), so graphs list the hosts of each type's groups when the dashboard is built: after onboarding new hosts, run `zabbix-autodiscovery setup --rebuild-dashboards`.
+Ao rodar `zabbix-autodiscovery setup`, a ferramenta cria dashboards nativos no Zabbix construídos a partir dos seus próprios grupos de hosts. Os dashboards foram aprimorados para entregar máxima utilidade técnica:
 
-1. **Category-Specific Dashboards:**
-   - Dedicated views for: *Switches*, *Routers*, *Firewalls*, *Access Points*, *Printers*, *Servers*, *UPS*, *Storage*, *CCTV*, *VoIP*, and *PDUs*.
-2. **SVG Vector Graphs (`svggraph`):**
-   - Inbound/outbound interface traffic (`*Bits received*` / `*Bits sent*`), discards, errors, and temperature graphs rendered natively without third-party plugins.
-3. **Performance Rankings (`tophosts`):**
-   - Top hosts ranked by ICMP response time and packet loss;
-   - Top servers ranked by CPU and Memory utilization (Zabbix 6.4+ / 7.0+).
-4. **Availability & Matrices:**
-   - **Zabbix 7.0 / 8.0:** Honeycomb matrix panels for ICMP availability and Zabbix agent reachability.
-   - **Zabbix 6.0 LTS:** Full Host Availability (`hostavail`) summary tables showing Up/Down/Unknown counts per group.
-5. **Servers Without Agent:**
-   - Dedicated dashboard widget tracking servers missing the Zabbix agent.
+1. **Visão Geral e Painéis por Categoria:**
+   - Dashboards para: *Switches*, *Roteadores*, *Firewalls*, *Access Points*, *Impressoras*, *Servidores*, *Nobreaks*, *Storage*, *CFTV*, *Telefonia VoIP* e *PDUs*.
+2. **Gráficos Vetoriais SVG (`svggraph`):**
+   - Tráfego de interfaces de rede (Bits in/out), pacotes descartados/erros e temperatura exibidos diretamente na tela inicial do Zabbix sem plugins externos.
+   - O gráfico do Zabbix seleciona hosts pelo nome (não por grupo): os gráficos listam os hosts dos grupos de cada tipo no momento em que o dashboard é criado. Depois de cadastrar hosts novos, rode `zabbix-autodiscovery setup --rebuild-dashboards`.
+3. **Métricas de Desempenho e Top Hosts (`tophosts`):**
+   - Ranking dos hosts com maior latência e perda de pacotes ICMP;
+   - Ranking dos servidores com maior consumo de CPU e Memória (Zabbix 6.4+ / 7.0+).
+4. **Disponibilidade e Visão Matricial:**
+   - **Zabbix 7.0 / 8.0:** Painéis Honeycomb de disponibilidade ICMP e status da porta do agente Zabbix.
+   - **Zabbix 6.0 LTS:** Tabela completa de disponibilidade de hosts (`hostavail`) com contagem de ativos Up/Down/Unknown por grupo.
+5. **Servidores sem Agente:**
+   - Painel de alerta dedicado filtrado por tag `agent:missing`.
 
 ---
 
-## Multi-Site & Proxy Architecture
+## Gerenciamento de Múltiplas Filiais
 
-Organize networks by physical location in `config.yaml`:
+No `config.yaml`, estruture suas redes por localidade:
 
 ```yaml
-site_group: "Sites/{site}"                 # Creates host groups like "Sites/HQ" and "Sites/Branch-01"
+site_group: "Filiais/{site}"               # Cria grupos como "Filiais/Matriz" e "Filiais/PR"
 scan:
   networks:
-    - {network: 192.168.0.0/24, site: HQ}
-    - {network: 10.20.0.0/23,   site: Branch-01, proxy: proxy-branch-01}
-    - 172.16.5.0/24                        # Network without explicit site
+    - {network: 192.168.0.0/24, site: Matriz}
+    - {network: 10.20.0.0/23,   site: Curitiba, proxy: proxy-curitiba}
+    - 172.16.5.0/24                        # Rede sem filial específica
 ```
 
-Each host automatically receives a `site=<name>` tag and joins its site host group, enabling seamless filtering in Zabbix and Grafana.
+Cada host recebe automaticamente a tag `site=<nome>` e entra no respectivo grupo da filial, permitindo filtros cruzados no Zabbix e Grafana (ex.: visualizar apenas switches da filial de Curitiba).
 
 ---
 
-## Contributing
+## Contribuindo
 
-Contributions including new vendor classification rules, dashboards, and enhancements are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contribuições com novas regras de fabricantes, melhorias em dashboards e relatórios são sempre bem-vindas! Consulte o arquivo [CONTRIBUTING.md](CONTRIBUTING.md) para detalhes sobre como submeter pull requests.
 
-## License
+## Licença
 
-This project is licensed under the terms of the [MIT License](LICENSE).
+Este projeto é distribuído sob os termos da licença [MIT](LICENSE).
