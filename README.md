@@ -59,6 +59,9 @@ $ zabbix-autodiscovery apply -i inventory.csv --dry-run
 
 ## Quick Start & Installation
 
+> 📘 **Step-by-step deployment guide** (new Zabbix with or without Grafana, or an existing Zabbix): [docs/DEPLOYMENT-GUIDE.md](docs/DEPLOYMENT-GUIDE.md)
+
+
 ### Installation:
 ```bash
 # Via pip or uv (recommended)
