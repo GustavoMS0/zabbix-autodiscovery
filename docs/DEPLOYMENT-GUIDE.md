@@ -14,6 +14,22 @@ Step by step for three situations. Pick yours:
 
 ---
 
+## Shortcut: interactive wizard
+
+If you would rather not edit files by hand, one command installs the tool and opens a wizard that covers scenarios A, B and C (for scenario A, Zabbix and Grafana must be running first; see step 1 of scenario A):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/install.sh | bash        # Linux, e.g. on the Zabbix server
+```
+
+```powershell
+irm https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/install.ps1 | iex               # Windows, with just the URL and an API token
+```
+
+The wizard detects a local Zabbix, validates the token, suggests networks from the IPs already in Zabbix and the machine's own IPs, writes `config.yaml` and `.env`, and runs `check`, `setup`, `scan` and `apply`. On a Zabbix that already has hosts it also offers `audit`, `organize`, add-on templates and services. Every change asks for confirmation and defaults to "no". The rest of this guide explains the same steps for doing them manually.
+
+---
+
 ## Before you start (all scenarios)
 
 **1. Machine that runs the tool.** Linux, Windows or macOS, able to reach every network to be scanned.

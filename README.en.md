@@ -62,7 +62,23 @@ $ zabbix-autodiscovery apply -i inventory.csv --dry-run
 > 📘 **Step-by-step deployment guide** (new Zabbix with or without Grafana, or an existing Zabbix): [docs/DEPLOYMENT-GUIDE.md](docs/DEPLOYMENT-GUIDE.md)
 
 
-### Installation:
+### Interactive wizard (the easiest way)
+
+One command downloads the tool and opens a wizard that walks you through the deployment: Zabbix URL, API token, networks and sites, SNMP, Grafana, then `check` → `setup` → `scan` → `apply` → organize → dashboards and maps. Nothing is changed in Zabbix unless you answer "yes", and every change defaults to "no".
+
+**Linux** (for example on the Zabbix server itself; no sudo):
+```bash
+curl -fsSL https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/install.sh | bash
+```
+
+**Windows** (PowerShell, from any machine on the network, with just the URL and an API token):
+```powershell
+irm https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/install.ps1 | iex
+```
+
+The tool goes to `~/zabbix-autodiscovery` (Windows: `%USERPROFILE%\zabbix-autodiscovery`). Running the command again updates the code and keeps `config.yaml`, `.env` and your CSVs. To open the wizard later: `./zabbix-autodiscovery.sh wizard` or `.\zabbix-autodiscovery.ps1 wizard`. Optional variables: `ZAD_DIR` (folder), `ZAD_REF` (branch or tag) and `ZAD_NO_WIZARD=1` (install only).
+
+### Manual installation:
 ```bash
 # Via pip or uv (recommended)
 pip install git+https://github.com/GustavoMS0/zabbix-autodiscovery
@@ -227,6 +243,7 @@ Besides the device type, the scan identifies the **services** each host runs: da
 
 | Command | Modifies Zabbix? | Description |
 |---|---|---|
+| `zabbix-autodiscovery wizard [--lang pt\|en]` | Only when confirmed | Interactive wizard: writes the configuration and runs each step, asking before any change. |
 | `zabbix-autodiscovery init [--force]` | No | Creates starter `config.yaml` and `.env` files. |
 | `zabbix-autodiscovery check` | No | Validates API connectivity, token role, templates, and network overlap. |
 | `zabbix-autodiscovery audit` | No | Non-intrusive health audit: duplicate IPs, cloned machines, item errors, agent issues. |

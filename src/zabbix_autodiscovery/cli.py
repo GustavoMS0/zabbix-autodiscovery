@@ -1,6 +1,7 @@
 """zabbix-autodiscovery: discover network devices and onboard them into Zabbix (6.0 to 8.0).
 
 Typical flow:
+  zabbix-autodiscovery wizard                              # interactive assistant: does everything step by step
   zabbix-autodiscovery init                                # write config.yaml (+ .env) in the current folder
   zabbix-autodiscovery check                               # read-only: token, permissions, templates, what would change
   zabbix-autodiscovery scan  -o inventory.csv              # scan + classify, writes a CSV (Zabbix is not touched)
@@ -698,6 +699,9 @@ def build_parser():
     parser.add_argument("-c", "--config", default="config.yaml", help="config file (default: config.yaml)")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
+    p = sub.add_parser("wizard", help="interactive step-by-step assistant (connection, networks, scan, apply...)")
+    p.add_argument("--lang", choices=["pt", "en"], help="language (default: from the system locale)")
+    p.add_argument("--force-tty", action="store_true", help=argparse.SUPPRESS)
     p = sub.add_parser("init", help="write a starter config.yaml and .env")
     p.add_argument("--force", action="store_true", help="overwrite an existing config")
     sub.add_parser("check", help="read-only: validate token, permissions, templates and planned changes")
@@ -753,6 +757,9 @@ def main(argv=None):
     args = build_parser().parse_args(argv)
     if args.cmd == "init":
         return cmd_init(args)
+    if args.cmd == "wizard":
+        from .wizard import main as wizard_main
+        return wizard_main(args)
     if args.cmd == "diff":
         return cmd_diff(None, args)
     try:

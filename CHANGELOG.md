@@ -27,6 +27,7 @@ First public version.
 - Native dashboards: SVG graphs (traffic, temperature, errors, pages, voltage), top hosts and host availability for Zabbix 6.0/6.4; `setup --rebuild-dashboards` refreshes them with the current hosts.
 - CCTV (Hikvision, Dahua, Intelbras, Axis), VoIP (Grandstream, Yealink, Asterisk/FreePBX), Proxmox and rack PDU rules.
 - Devices that match a rule needing SNMP but do not answer SNMP go to `review` with an explanation in the new `note` column.
+- `wizard`: interactive step-by-step assistant (Portuguese or English), plus one-line installers `install.sh` (Linux/macOS) and `install.ps1` (Windows) that download or update the tool and start it.
 - `diff` compares two inventories; `scan --network/--site` scans part of the configured networks.
 - API retries never repeat a write that may have been executed (only connection failures and 502/503).
 - Service detection (databases, clusters, directory, mail, virtualization, messaging, backup...) confirmed by protocol when possible; `service` tags, per-service port checks and the `services` command for existing hosts.

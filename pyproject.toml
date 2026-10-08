@@ -54,3 +54,6 @@ ignore = ["B006", "B023", "B904"]   # B904: SystemExit messages intentionally hi
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/zabbix_autodiscovery/wizard.py" = ["E501"]   # user-facing message strings stay on one line

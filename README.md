@@ -62,7 +62,23 @@ $ zabbix-autodiscovery apply -i inventory.csv --dry-run
 > 📘 **Guia de implantação passo a passo** (Zabbix novo com ou sem Grafana, ou Zabbix já existente): [docs/GUIA-DE-IMPLANTACAO.md](docs/GUIA-DE-IMPLANTACAO.md)
 
 
-### Instalação rápida:
+### Assistente interativo (o jeito mais fácil)
+
+Um comando baixa a ferramenta e abre um assistente que conduz a implantação em etapas: URL do Zabbix, token de API, redes e filiais, SNMP, Grafana, e então `check` → `setup` → `scan` → `apply` → organização → dashboards e mapas. Nada é alterado no Zabbix sem você responder "sim", e a resposta padrão de toda alteração é "não".
+
+**Linux** (por exemplo, no próprio servidor do Zabbix; não usa sudo):
+```bash
+curl -fsSL https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/install.sh | bash
+```
+
+**Windows** (PowerShell, de qualquer máquina da rede, só com a URL e o token de API):
+```powershell
+irm https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/install.ps1 | iex
+```
+
+A ferramenta fica em `~/zabbix-autodiscovery` (Windows: `%USERPROFILE%\zabbix-autodiscovery`). Rodar o comando de novo atualiza o código e mantém `config.yaml`, `.env` e os CSVs. Para abrir o assistente depois: `./zabbix-autodiscovery.sh wizard` ou `.\zabbix-autodiscovery.ps1 wizard`. Variáveis opcionais: `ZAD_DIR` (pasta), `ZAD_REF` (branch ou tag) e `ZAD_NO_WIZARD=1` (só instalar).
+
+### Instalação manual:
 ```bash
 # Via pip ou uv (recomendado)
 pip install git+https://github.com/GustavoMS0/zabbix-autodiscovery
@@ -227,6 +243,7 @@ Além do tipo de equipamento, o scan identifica os **serviços** que cada host e
 
 | Comando | Altera o Zabbix? | Descrição |
 |---|---|---|
+| `zabbix-autodiscovery wizard [--lang pt\|en]` | Só com confirmação | Assistente interativo: cria a configuração e conduz cada etapa, pedindo confirmação antes de qualquer alteração. |
 | `zabbix-autodiscovery init [--force]` | Não | Cria os arquivos iniciais `config.yaml` e `.env`. |
 | `zabbix-autodiscovery check` | Não | Valida conexão, permissões de token, disponibilidade de templates e faixas de rede. |
 | `zabbix-autodiscovery audit` | Não | Relatório de auditoria de consistência, IPs duplicados, itens não suportados e agentes. |

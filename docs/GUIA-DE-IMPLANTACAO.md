@@ -14,6 +14,22 @@ Passo a passo para usar o zabbix-autodiscovery em três situações. Escolha a s
 
 ---
 
+## Atalho: assistente interativo
+
+Se preferir não editar arquivos à mão, um comando instala a ferramenta e abre um assistente que cobre os cenários A, B e C (o Zabbix e o Grafana do cenário A precisam estar no ar antes; veja o passo 1 do cenário A):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/install.sh | bash        # Linux, por exemplo no servidor do Zabbix
+```
+
+```powershell
+irm https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/install.ps1 | iex               # Windows, só com a URL e o token de API
+```
+
+O assistente detecta o Zabbix local, valida o token, sugere as redes a partir dos IPs já cadastrados e dos IPs da máquina, grava `config.yaml` e `.env` e conduz `check`, `setup`, `scan` e `apply`. Num Zabbix que já tem hosts, oferece também `audit`, `organize`, templates extras e serviços. Toda alteração pede confirmação e o padrão é "não". O resto deste guia explica as mesmas etapas, para quem quer fazer manualmente.
+
+---
+
 ## Antes de começar (todos os cenários)
 
 **1. Máquina que vai rodar a ferramenta.** Linux, Windows ou macOS, com acesso a todas as redes que serão varridas.
