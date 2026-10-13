@@ -191,3 +191,4 @@
   const obs = new MutationObserver(() => initMapInteractivity());
   obs.observe(document.body, { childList: true, subtree: true });
 })();
+
