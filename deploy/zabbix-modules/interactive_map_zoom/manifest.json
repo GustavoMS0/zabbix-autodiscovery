@@ -1,0 +1,14 @@
+{
+  "manifest_version": 2.0,
+  "id": "interactive_map_zoom",
+  "name": "NOC Interactive Map Controls",
+  "version": "1.0",
+  "namespace": "InteractiveMapZoom",
+  "author": "AutoDiscovery NOC",
+  "description": "Adiciona zoom fluido com scroll do mouse, pan livre (arrastar) e foco em alertas para todos os mapas nativos do Zabbix.",
+  "actions": {},
+  "assets": {
+    "js": ["assets/js/map_controls.js"],
+    "css": ["assets/css/map_controls.css"]
+  }
+}
