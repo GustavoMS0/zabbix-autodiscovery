@@ -27,6 +27,12 @@ function Test-RealPython {
     return $false
 }
 
+Write-Host "┌─────────────────────────────────────────────────────────────┐" -ForegroundColor Cyan
+Write-Host "│  Zabbix Auto-Discovery - Instalador Automatizado            │" -ForegroundColor Cyan
+Write-Host "│  Autor: Gustavo Martins (@GustavoMS0)                       │" -ForegroundColor Cyan
+Write-Host "│  https://github.com/GustavoMS0/zabbix-autodiscovery         │" -ForegroundColor Cyan
+Write-Host "└─────────────────────────────────────────────────────────────┘`n" -ForegroundColor Cyan
+
 Say "Downloading $Repo ($Ref) into $Dir"
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 $tmp = Join-Path ([IO.Path]::GetTempPath()) ("zad-" + [guid]::NewGuid().ToString('N'))

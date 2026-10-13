@@ -261,6 +261,7 @@ def provision(api, cfg, base_dir, rebuild=False, dry_run=False, log=print):
         hosts = list(hosts)
         placed, width, height = layout(hosts, hypervisor_hostids(api, [h["hostid"] for h in hosts]))
         if not placed:
+            log(f"  i map '{name}' skipped: no infrastructure hosts found in network")
             continue
         if name in existing and not rebuild:
             log(f"  = map '{name}' already exists (use --rebuild to refresh it)")
