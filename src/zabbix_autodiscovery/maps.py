@@ -276,8 +276,11 @@ def provision(api, cfg, base_dir, rebuild=False, dry_run=False, log=print):
                       "iconid_off": icons.icon(cat, vendor_of(h)), "x": x, "y": y,
                       "label": "{HOST.NAME}\n{HOST.CONN}"} for i, (h, cat, x, y) in enumerate(placed)]
         links = infer_links(placed, selements)
-        params = {"name": name, "width": width, "height": height, "label_type": 0,
-                  "selements": selements, "links": links}
+        params = {
+            "name": name, "width": width, "height": height, "label_type": 0,
+            "highlight": 1, "expandproblem": 1, "markelements": 1, "show_unack": 0, "label_location": 0,
+            "selements": selements, "links": links,
+        }
         if name in existing:
             api.call("map.update", {"sysmapid": existing[name], **params})
             map_ids[site] = existing[name]
