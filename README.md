@@ -176,6 +176,10 @@ Se o seu Zabbix já está ativo e monitora a sua infraestrutura, **você pode us
 > - **Todos os objetos gerados são rastreáveis.** Levam o prefixo `AutoDiscovery - ` e a tag `origin=autodiscovery`.
 > - **Simulação disponível em tudo.** Os comandos aceitam `--dry-run`.
 
+> [!TIP]
+> **Atenção a Regras Nativas de Network Discovery:**  
+> Se o seu ambiente já tiver regras nativas de *Discovery* ativas na interface web (*Data collection → Discovery*) nas mesmas faixas e com intervalos curtos (ex: 30s ou 60s), elas realizam testes síncronos pesados que podem saturar a fila de *discovery workers* do Zabbix Server (>75% de ocupação). Como o `zabbix-autodiscovery` faz a varredura completa sob demanda de forma assíncrona e rápida, desative ou estenda o intervalo dessas regras nativas (ex: para 86400s / 1x ao dia).
+
 #### Fluxo Seguro Recomendado para Zabbix Ativo:
 
 1. **Audite a saúde atual do Zabbix (100% Leitura):**
@@ -258,8 +262,31 @@ Além do tipo de equipamento, o scan identifica os **serviços** que cada host e
 | `zabbix-autodiscovery maps [--dry-run] [--rebuild]` | **Sim** | Cria um mapa de topologia por filial com ícones por categoria e dashboard de mapas. |
 | `zabbix-autodiscovery web [-i CSV] [--dry-run]` | **Sim** | Cadastra monitoramento de certificados SSL (via Agent 2) e vencimento de domínios (RDAP). |
 | `zabbix-autodiscovery grafana-dashboards -o DIR` | Não | Exporta os arquivos JSON dos dashboards formatados para importação no Grafana. |
+| `zabbix-autodiscovery export [-f ansible\|netbox\|json] [-i CSV] [-o ARQ] [--from-zabbix]` | Não | Exporta os dispositivos descobertos ou ativos do Zabbix para Ansible Inventory ou NetBox. |
+| `zabbix-autodiscovery dependencies [--dry-run]` | **Sim** | Cria dependências de triggers baseadas na topologia (Root Cause Analysis: elimina tempestades de alertas). |
+| `zabbix-autodiscovery sla [--dry-run]` | **Sim** | Provisiona a árvore de Business Services e o SLA Global de 99.5% de disponibilidade no Zabbix 8. |
+| `zabbix-autodiscovery clean-unsupported [--dry-run]` | **Sim** | Desativa coletores internos inativos do Zabbix Server e limpa itens não suportados. |
+| `zabbix-autodiscovery menu` | Só com confirmação | Painel interativo de controle no terminal com atalhos numéricos para todas as operações. |
 
 ---
+
+## 🎛️ Painel de Controle Interativo (Menu TUI) e Executável Standalone
+
+Para facilitar o uso diário no NOC sem necessidade de memorizar linhas de comando ou instalar o ambiente Python em máquinas de operadores:
+
+### Menu Interativo no Terminal
+Basta executar a ferramenta sem argumentos (ou com o comando `menu`):
+```bash
+zabbix-autodiscovery
+```
+Um painel interativo em português é exibido permitindo selecionar operações com atalhos de `0` a `14` com valores padrão seguros (`Enter` = recomendação segura ou simulação *dry-run*).
+
+### Executável Autônomo para Windows (`.exe`)
+Você pode compilar o projeto em um executável único para Windows que roda diretamente sem precisar de Python instalado:
+```bash
+python build_exe.py
+```
+O arquivo gerado em `dist/zabbix-autodiscovery.exe` pode ser copiado para qualquer estação de trabalho ou servidor Windows. Ao dar duplo clique nele, ele abre automaticamente o Menu Interativo!
 
 ## Otimizações nos Dashboards Nativos do Zabbix
 
@@ -278,6 +305,30 @@ Ao rodar `zabbix-autodiscovery setup`, a ferramenta cria dashboards nativos no Z
    - **Zabbix 6.0 LTS:** Tabela completa de disponibilidade de hosts (`hostavail`) com contagem de ativos Up/Down/Unknown por grupo.
 5. **Servidores sem Agente:**
    - Painel de alerta dedicado filtrado por tag `agent:missing`.
+6. **Métricas Especializadas por Fabricante:**
+   - **Firewalls (ex.: Fortinet FortiGate):** Sessões ativas IPv4, túneis IPsec ativos, usuários SSL VPN logados, gráficos dedicados de VPN/sessões e tráfego.
+   - **Access Points (ex.: Ubiquiti UniFi):** Perda de pacotes, CPU Load (1m), consumo de memória e clientes associados.
+
+---
+
+## 🎨 Tema & Estilização dos Dashboards (CSS para Zabbix 8.0)
+
+O repositório inclui um módulo oficial de frontend do Zabbix em [`contrib/modules/modern_noc_theme`](contrib/modules/modern_noc_theme) para transformar os dashboards em um visual moderno para telões de NOC e monitoramento:
+- **Cards Glassmorphism:** Fundo escuro profundo com bordas translúcidas e sombras suaves.
+- **Cabeçalhos Tecnológicos:** Títulos de widgets em azul neon (`#58a6ff`).
+- **Alarmes Pulsantes:** Linhas e badges de severidade crítica (*Disaster* e *High*) com animação pulsante em neon.
+- **Colmeia Relevada:** Sombras dinâmicas e efeito hover nos hexágonos do widget Honeycomb.
+
+### Como Ativar:
+1. Copie a pasta do módulo para o diretório de módulos do Zabbix no servidor:
+   ```bash
+   sudo mkdir -p /usr/share/zabbix/ui/modules
+   sudo cp -r contrib/modules/modern_noc_theme /usr/share/zabbix/ui/modules/
+   sudo chown -R www-data:www-data /usr/share/zabbix/ui/modules
+   ```
+2. No Zabbix Web, vá em **Administração** ➔ **Geral** ➔ **Módulos**.
+3. Clique em **Varrer diretório** (*Scan directory*), localize o **NOC Modern Theme** e clique em **Ativar**.
+4. Pressione `Ctrl + F5` nos dashboards.
 
 ---
 

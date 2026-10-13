@@ -22,34 +22,189 @@ DEFAULT_ICONS = {
 ROW_ORDER = ["firewall", "router", "switch", "ap", "server-windows", "server-linux", "hypervisor",
              "server-hardware", "storage", "ups", "pdu", "printer", "cctv", "voip",
              "network-generic", "other"]
-COLUMNS, CELL_W, CELL_H, MARGIN = 8, 150, 120, 40
+COLUMNS, CELL_W, CELL_H, MARGIN = 6, 180, 220, 60
 
 
 def vendor_of(host):
     return next((t["value"] for t in host.get("tags", []) if t["tag"] == "vendor"), "")
 
 
-__all__ = ["category_of", "layout", "provision"]
+__all__ = ["category_of", "infer_links", "layout", "provision"]
+
+
+def infer_links(placed, selements):
+    """Automatically build visual network links between map elements without crossing.
+
+    Hierarchy:
+      Gateway (firewall, router) ===[uplink, green]===> Switches
+      Switch ---[LAN, blue]---> Tier 2 (server-hardware, APs, peripherals)
+      Server-hardware (iDRAC) ---[virtualization, blue]---> VMs (Windows, Linux, Hypervisors)
+    """
+    coords = {s["selementid"]: (x, y) for (h, cat, x, y), s in zip(placed, selements)}
+    cat_map = {s["selementid"]: cat for (h, cat, x, y), s in zip(placed, selements)}
+
+    gateways = [s["selementid"] for s in selements if cat_map[s["selementid"]] in ("firewall", "router")]
+    switches = [s["selementid"] for s in selements if cat_map[s["selementid"]] == "switch"]
+    
+    hw_nodes = [s["selementid"] for s in selements if cat_map[s["selementid"]] == "server-hardware"]
+    vm_nodes = [s["selementid"] for s in selements if cat_map[s["selementid"]] in ("server-windows", "server-linux", "hypervisor")]
+
+    if hw_nodes:
+        tier2_endpoints = [s["selementid"] for s in selements 
+                           if cat_map[s["selementid"]] not in ("firewall", "router", "switch")
+                           and s["selementid"] not in vm_nodes]
+    else:
+        tier2_endpoints = [s["selementid"] for s in selements 
+                           if cat_map[s["selementid"]] not in ("firewall", "router", "switch")]
+
+    links = []
+    # 1. Gateways -> Switches
+    if gateways and switches:
+        for gw in gateways:
+            for sw in switches:
+                links.append({"selementid1": gw, "selementid2": sw, "drawtype": 2, "color": "00AA00"})
+    elif gateways and not switches:
+        for gw in gateways:
+            for ep in tier2_endpoints:
+                links.append({"selementid1": gw, "selementid2": ep, "drawtype": 0, "color": "2774A4"})
+
+    # 2. Switches -> Tier 2 Endpoints (nearest switch horizontally)
+    if switches:
+        for ep in tier2_endpoints:
+            ep_x, ep_y = coords[ep]
+            best_sw = min(switches, key=lambda sw: abs(coords[sw][0] - ep_x))
+            links.append({"selementid1": best_sw, "selementid2": ep, "drawtype": 0, "color": "2774A4"})
+
+    # 3. Hardware (iDRAC) -> Virtualizations (VMs)
+    # Virtual machines live INSIDE the physical hardware host!
+    for vm in vm_nodes:
+        vm_x, _ = coords[vm]
+        if hw_nodes:
+            parent_hw = min(hw_nodes, key=lambda h: abs(coords[h][0] - vm_x))
+            links.append({"selementid1": parent_hw, "selementid2": vm, "drawtype": 0, "color": "2774A4"})
+        elif switches:
+            best_sw = min(switches, key=lambda sw: abs(coords[sw][0] - vm_x))
+            links.append({"selementid1": best_sw, "selementid2": vm, "drawtype": 0, "color": "2774A4"})
+
+    return links
 
 
 def layout(hosts, hypervisors=frozenset()):
-    """[(host, category, x, y)] in rows by category, wrapping at COLUMNS; returns (placed, width, height)."""
-    placed, y = [], MARGIN
+    """[(host, category, x, y)] structured into 4 logical tiers:
+      Tier 0: Perimeter / Gateways (firewall, router)
+      Tier 1: Distribution (switches)
+      Tier 2: Physical hardware & endpoints (server-hardware/iDRAC, APs, UPS, printers...)
+      Tier 3: Virtualization layer (VMs placed directly below physical hardware)
+    """
     by_cat = {}
     for h in hosts:
         by_cat.setdefault(category_of(h, hypervisors), []).append(h)
-    max_cols = 1
-    for cat in ROW_ORDER:
-        items = sorted(by_cat.get(cat, []), key=lambda h: h["name"].lower())
-        for i, h in enumerate(items):
-            col = i % COLUMNS
-            if i and col == 0:
+
+    tier0 = sorted(by_cat.get("firewall", []) + by_cat.get("router", []), key=lambda h: h["name"].lower())
+    tier1 = sorted(by_cat.get("switch", []), key=lambda h: h["name"].lower())
+    t2_hw = sorted(by_cat.get("server-hardware", []), key=lambda h: h["name"].lower())
+    t2_ap = sorted(by_cat.get("ap", []), key=lambda h: h["name"].lower())
+
+    periph_cats = ["ups", "pdu", "storage", "printer", "cctv", "voip", "network-generic", "other"]
+    t2_periph = []
+    for c in periph_cats:
+        t2_periph.extend(by_cat.get(c, []))
+    t2_periph.sort(key=lambda h: h["name"].lower())
+
+    vm_cats = ["server-windows", "server-linux", "hypervisor"]
+    raw_vms = []
+    for c in vm_cats:
+        raw_vms.extend(by_cat.get(c, []))
+    raw_vms.sort(key=lambda h: h["name"].lower())
+
+    # If physical server-hardware (iDRAC) exists, VMs live in Tier 3 under hardware.
+    # If no server-hardware exists at all, standalone servers become physical Tier 2 servers.
+    if t2_hw:
+        tier3_vms = raw_vms
+    else:
+        t2_hw = raw_vms
+        tier3_vms = []
+
+    # If simple site (e.g. only firewall + printers, or only switches)
+    has_complex_zones = bool((t2_ap and (t2_hw or tier3_vms or t2_periph)) or (t2_hw and t2_periph))
+
+    if not has_complex_zones:
+        placed = []
+        all_groups = [
+            (tier0, "firewall"), (tier1, "switch"), (t2_hw, "server-hardware"),
+            (tier3_vms, "vm"), (t2_ap, "ap"), (t2_periph, "peripheral")
+        ]
+        active_groups = [(items, cat) for items, cat in all_groups if items]
+        max_c = max((min(COLUMNS, len(items)) for items, _ in active_groups), default=1)
+        cols = min(COLUMNS, max_c)
+        total_w = MARGIN * 2 + cols * CELL_W
+
+        y = MARGIN
+        for items, default_cat in active_groups:
+            num_rows = (len(items) - 1) // cols + 1
+            for r in range(num_rows):
+                row_items = items[r * cols: (r + 1) * cols]
+                row_start = MARGIN + ((cols - len(row_items)) * CELL_W) // 2
+                for c, h in enumerate(row_items):
+                    placed.append((h, category_of(h, hypervisors), row_start + c * CELL_W, y))
                 y += CELL_H
-            placed.append((h, cat, MARGIN + col * CELL_W, y))
-            max_cols = max(max_cols, col + 1)
-        if items:
-            y += CELL_H
-    return placed, MARGIN * 2 + max_cols * CELL_W, y + MARGIN
+        return placed, total_w, y + MARGIN
+
+    left_cols = len(t2_ap)
+    center_cols = max(len(t2_hw), (len(tier3_vms) + 1) // 2 if tier3_vms else 0, 1)
+    right_cols = len(t2_periph)
+    total_cols = max(left_cols + center_cols + right_cols, len(tier1), len(tier0), 1)
+    total_width = MARGIN * 2 + total_cols * CELL_W
+
+    placed = []
+
+    # Tier 0: Gateways (centered at top)
+    y0 = MARGIN
+    gw_start_x = MARGIN + ((total_cols - len(tier0)) * CELL_W) // 2
+    for i, h in enumerate(tier0):
+        placed.append((h, category_of(h, hypervisors), gw_start_x + i * CELL_W + CELL_W // 2, y0))
+
+    # Tier 1: Switches (distributed across width)
+    y1 = y0 + (CELL_H if tier0 else 0)
+    sw_spacing = (total_width - MARGIN * 2) // max(len(tier1), 1)
+    for i, h in enumerate(tier1):
+        sx = MARGIN + i * sw_spacing + sw_spacing // 2
+        placed.append((h, "switch", sx, y1))
+
+    # Tier 2:
+    y2 = y1 + (CELL_H if tier1 else (CELL_H if tier0 else 0))
+
+    # Left Zone: APs
+    left_start_x = MARGIN
+    for i, h in enumerate(t2_ap):
+        placed.append((h, "ap", left_start_x + i * CELL_W + CELL_W // 2, y2))
+
+    # Center Zone: Physical Hardware / iDRAC
+    center_start_x = MARGIN + (left_cols * CELL_W)
+    hw_offset = ((center_cols - len(t2_hw)) * CELL_W) // 2 if len(t2_hw) < center_cols else 0
+    for i, h in enumerate(t2_hw):
+        hx = center_start_x + hw_offset + i * CELL_W + CELL_W // 2
+        placed.append((h, category_of(h, hypervisors), hx, y2))
+
+    # Tier 3: VMs (directly below physical hardware in Center Zone!)
+    vm_start_y = y2 + (CELL_H if t2_hw else 0)
+    max_vm_y = y2
+    for i, h in enumerate(tier3_vms):
+        c = i % center_cols
+        r = i // center_cols
+        vx = center_start_x + c * CELL_W + CELL_W // 2
+        vy = vm_start_y + r * CELL_H
+        placed.append((h, category_of(h, hypervisors), vx, vy))
+        if vy > max_vm_y:
+            max_vm_y = vy
+
+    # Right Zone: Peripherals (Printers, UPS, etc.)
+    right_start_x = MARGIN + (left_cols + center_cols) * CELL_W
+    for i, h in enumerate(t2_periph):
+        placed.append((h, category_of(h, hypervisors), right_start_x + i * CELL_W + CELL_W // 2, y2))
+
+    total_height = max(max_vm_y, y2) + CELL_H
+    return placed, total_width, total_height
 
 
 class IconResolver:
@@ -116,10 +271,12 @@ def provision(api, cfg, base_dir, rebuild=False, dry_run=False, log=print):
                 counts[cat] = counts.get(cat, 0) + 1
             log(f"  + map '{name}': {len(placed)} hosts {counts}  (dry-run)")
             continue
-        selements = [{"elementtype": 0, "elements": [{"hostid": h["hostid"]}],
+        selements = [{"selementid": str(i + 1), "elementtype": 0, "elements": [{"hostid": h["hostid"]}],
                       "iconid_off": icons.icon(cat, vendor_of(h)), "x": x, "y": y,
-                      "label": "{HOST.NAME}\n{HOST.CONN}"} for h, cat, x, y in placed]
-        params = {"name": name, "width": width, "height": height, "label_type": 0, "selements": selements}
+                      "label": "{HOST.NAME}\n{HOST.CONN}"} for i, (h, cat, x, y) in enumerate(placed)]
+        links = infer_links(placed, selements)
+        params = {"name": name, "width": width, "height": height, "label_type": 0,
+                  "selements": selements, "links": links}
         if name in existing:
             api.call("map.update", {"sysmapid": existing[name], **params})
             map_ids[site] = existing[name]

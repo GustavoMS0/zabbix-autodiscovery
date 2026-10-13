@@ -1,0 +1,175 @@
+/* ==========================================================================
+   NOC Modern Dark Pro - Zabbix 8.0 Styling
+   Autor: Gustavo Silva (zabbix-autodiscovery)
+   ========================================================================== */
+
+/* 1. Variáveis globais do Zabbix 8 */
+:root {
+    --surface-border-radius: 10px !important;
+    --badge-border-radius: 6px !important;
+    --button-border-radius: 6px !important;
+}
+
+/* 2. Fundo e estrutura geral da página do Dashboard */
+body {
+    background-color: #0b0e14 !important;
+}
+
+.wrapper {
+    background: radial-gradient(circle at 50% 0%, #151b26 0%, #0b0e14 100%) !important;
+}
+
+/* 3. Cards dos Widgets: Estilo Glassmorphism com borda sutil e sombra profunda */
+.dashboard-grid-widget-container {
+    padding: 6px !important;
+}
+
+.dashboard-grid-widget-header {
+    background: linear-gradient(180deg, #18202c 0%, #121720 100%) !important;
+    border: 1px solid #283344 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-top-left-radius: 10px !important;
+    border-top-right-radius: 10px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    padding-left: 14px !important;
+    height: 2.2rem !important;
+}
+
+.dashboard-grid-widget-header h4 {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px !important;
+    color: #58a6ff !important; /* Azul tecnológico moderno */
+    text-transform: uppercase !important;
+}
+
+.dashboard-grid-widget-contents {
+    background: #0d121a !important;
+    border: 1px solid #283344 !important;
+    border-top: none !important;
+    border-bottom-left-radius: 10px !important;
+    border-bottom-right-radius: 10px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+    margin-top: 2.2rem !important;
+}
+
+/* 4. Abas do Dashboard (Tabs de páginas) */
+.dashboard-navigation-tabs .sortable li div {
+    border-radius: 8px 8px 0 0 !important;
+    border: 1px solid #283344 !important;
+    border-bottom: none !important;
+    background: #121720 !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+.dashboard-navigation-tabs .sortable li.selected-tab div {
+    background: #1f6feb !important;
+    color: #ffffff !important;
+    box-shadow: 0 -2px 10px rgba(31, 111, 235, 0.4) !important;
+}
+
+/* 5. Alertas e Severidades com efeito NEON Pulsante */
+.disaster-bg,
+.datatable-cell-data.disaster-bg,
+tr[data-severity="5"] td:first-child {
+    background-color: #e45959 !important;
+    color: #fff !important;
+    font-weight: bold !important;
+    box-shadow: 0 0 12px rgba(228, 89, 89, 0.75) !important;
+    animation: neon-disaster 1.8s infinite alternate !important;
+}
+
+@keyframes neon-disaster {
+    from {
+        box-shadow: 0 0 6px rgba(228, 89, 89, 0.5);
+    }
+    to {
+        box-shadow: 0 0 18px rgba(228, 89, 89, 0.95);
+    }
+}
+
+.high-bg,
+.datatable-cell-data.high-bg,
+tr[data-severity="4"] td:first-child {
+    background-color: #e97659 !important;
+    color: #fff !important;
+    font-weight: bold !important;
+    box-shadow: 0 0 10px rgba(233, 118, 89, 0.65) !important;
+}
+
+.average-bg,
+.datatable-cell-data.average-bg {
+    background-color: #ffa059 !important;
+    color: #1a1a1a !important;
+    font-weight: bold !important;
+}
+
+.warning-bg,
+.datatable-cell-data.warning-bg {
+    background-color: #ffc859 !important;
+    color: #1a1a1a !important;
+    font-weight: bold !important;
+}
+
+/* 6. Tabelas (TopHosts e Problem List) */
+.list-table,
+.datatable {
+    background: transparent !important;
+    border: none !important;
+}
+
+.list-table th,
+.datatable-cell-header {
+    background: #121822 !important;
+    color: #8b949e !important;
+    font-size: 11px !important;
+    letter-spacing: 0.6px !important;
+    text-transform: uppercase !important;
+    border-bottom: 1px solid #283344 !important;
+    padding: 10px 8px !important;
+}
+
+.list-table tbody tr,
+.datatable-row {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+    transition: background-color 0.15s ease;
+}
+
+.list-table tbody tr:hover,
+.datatable-row:hover {
+    background: rgba(88, 166, 255, 0.08) !important;
+}
+
+/* 7. Colmeia (Honeycomb Widget) */
+.svg-honeycomb-cell {
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45));
+    transition: transform 0.2s ease;
+}
+
+.svg-honeycomb-cell:hover {
+    transform: scale(1.05);
+}
+
+/* 8. Navegador de Hosts (Host Navigator) */
+.host-navigator-list .selected,
+.host-card.selected {
+    border-left: 4px solid #58a6ff !important;
+    background: rgba(88, 166, 255, 0.12) !important;
+}
+
+/* 9. Barras de rolagem discretas */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #283344;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #58a6ff;
+}
+

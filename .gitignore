@@ -11,8 +11,11 @@ __pycache__/
 .deps/
 build/
 dist/
+*.spec
+scratch/
 .pytest_cache/
 .ruff_cache/
+uv.lock
 
 # docker deployment secrets
 deploy/.env

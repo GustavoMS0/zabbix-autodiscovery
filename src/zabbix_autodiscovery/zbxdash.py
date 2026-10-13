@@ -29,15 +29,15 @@ MIN_COVERAGE = 0.3         # a table column needs data on at least 30% of the ho
 # Regexes accept English and Portuguese names (some vendor templates are localized).
 ICMP = ("Latency", r"^ICMP response time$", "value")
 LOSS = ("Loss %", r"^ICMP loss$", "value")
-CPU = ("CPU", r"cpu utilization|utiliza[cç][aã]o de cpu", "bar")
-MEM = ("Memory", r"memory utilization|utiliza[cç][aã]o de mem[oó]ria", "bar")
+CPU = ("CPU", r"cpu utilization|cpu usage|utiliza[cç][aã]o de cpu", "bar")
+MEM = ("Memory", r"memory utilization|memory usage|utiliza[cç][aã]o de mem[oó]ria", "bar")
 UPTIME = ("Uptime", r"^(system )?uptime|uptime \((network|hardware)\)", "value")
 
 # Graphs: (title, [(series label, [item patterns with * wildcards, any of them])])
 TRAFFIC = ("Traffic", [("in", ["*Bits received*"]), ("out", ["*Bits sent*"])])
 ERRORS = ("Interface errors", [("in", ["*Inbound packets with errors*"]),
                                ("out", ["*Outbound packets with errors*"])])
-CPU_MEM = ("CPU and memory", [("CPU", ["*CPU utilization*"]), ("memory", ["*Memory utilization*"])])
+CPU_MEM = ("CPU and memory", [("CPU", ["*CPU utilization*", "*CPU usage*"]), ("memory", ["*Memory utilization*", "*Memory usage*"])])
 TEMP = ("Temperature", [("temperature", ["*emperature*", "*Temp*: Value", "*emperatura*"])])
 LATENCY = ("ICMP latency", [("latency", ["ICMP response time"])])
 
@@ -47,10 +47,19 @@ LAYOUTS = {
                            ("Ports in use", r"^switch: ports in use$", "value"), CPU, MEM, UPTIME],
                  "graphs": [TRAFFIC, ERRORS, CPU_MEM, TEMP]},
     "routers": {"table": [ICMP, CPU, MEM, UPTIME], "graphs": [TRAFFIC, CPU_MEM, ERRORS, TEMP]},
-    "firewalls": {"table": [ICMP, CPU, MEM, ("Sessions", r"session", "value"), UPTIME],
-                  "graphs": [TRAFFIC, CPU_MEM, ("Sessions", [("sessions", ["*ession*"])]), ERRORS]},
-    "access-points": {"table": [ICMP, ("Clients", r"client|station|associated", "value"), CPU, MEM, UPTIME],
-                      "graphs": [TRAFFIC, ("Clients", [("clients", ["*lient*", "*tation*"])]), CPU_MEM]},
+    "firewalls": {"table": [ICMP, CPU, MEM,
+                            ("Active sessions", r"active sessions|session|sess[oõ]es", "value"),
+                            ("IPsec VPN", r"active ipsec vpn tunnels|ipsec.*tunnel|t[uú]neis ipsec", "value"),
+                            ("SSL VPN users", r"active ssl vpn users|ssl vpn.*user|usu[aá]rios ssl vpn", "value"),
+                            UPTIME],
+                  "graphs": [TRAFFIC, CPU_MEM,
+                             ("Sessions & VPN", [("sessions", ["*Active sessions*"]),
+                                                 ("tunnels", ["*Active IPsec VPN tunnels*"]),
+                                                 ("users", ["*Active SSL VPN users*"])]),
+                             ERRORS]},
+    "access-points": {"table": [ICMP, LOSS, ("Clients", r"client|station|associated", "value"), CPU,
+                                ("CPU Load (1m)", r"load average \(1m avg\)", "value"), MEM, UPTIME],
+                      "graphs": [TRAFFIC, ("Clients", [("clients", ["*lient*", "*tation*"])]), CPU_MEM, LATENCY]},
     "printers": {"table": [("Pages", r"^printer: total page count$", "value"),
                            ("Status", r"^printer: device status$", "value"), ICMP, UPTIME],
                  "graphs": [("Supply levels", [("level %", ["Supply *: Level %"])]),
@@ -198,9 +207,12 @@ def build(key, title, groupids, version, items, hostnames, agent_missing=False):
             place({"type": "honeycomb", "name": f"Availability ({availability})",
                    "fields": _groups(groupids) + [_f(1, "items.0", availability)] + thresholds},
                   right_x, y, right_w, 4)
-        if columns:
+            if columns:
+                place(_table(f"Summary - {title}", groupids, columns, version),
+                      right_x, y + 4, right_w, 9)
+        elif columns:
             place(_table(f"Summary - {title}", groupids, columns, version),
-                  right_x, y + 4, right_w, 9)
+                  right_x, y, right_w, 13)
         y += 13
         graphs = [(t, [(lbl, cat.patterns(pats)) for lbl, pats in ds if cat.patterns(pats)])
                   for t, ds in layout["graphs"]]
