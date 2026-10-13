@@ -426,9 +426,31 @@ class Wizard:
         exclude = [e.strip() for e in self.ask(self.t["exclude"]).split(",") if e.strip() and valid_target(e)]
         return networks, exclude, int(hosts) > 5
 
+    def banner(self):
+        from . import __version__
+        c_cyan = "\033[1;36m"
+        c_blue = "\033[1;34m"
+        c_gray = "\033[0;90m"
+        c_bold = "\033[1m"
+        c_reset = "\033[0m"
+        sub = "Varredura de rede, classificacao LLD e criacao de mapas" if self.lang == "pt" else "Network scan, LLD classification and topology mapping"
+        author_lbl = "Autor" if self.lang == "pt" else "Author"
+        repo_lbl = "Projeto" if self.lang == "pt" else "Project"
+        lines = [
+            f"{c_cyan}┌─────────────────────────────────────────────────────────────┐{c_reset}",
+            f"{c_cyan}│{c_reset}  {c_bold}Zabbix Auto-Discovery & Onboarding{c_reset}                   {c_gray}v{__version__}{c_reset} {c_cyan}│{c_reset}",
+            f"{c_cyan}│{c_reset}  {c_gray}{sub:<58}{c_reset} {c_cyan}│{c_reset}",
+            f"{c_cyan}├─────────────────────────────────────────────────────────────┤{c_reset}",
+            f"{c_cyan}│{c_reset}  {c_blue}{author_lbl}:{c_reset}    Gustavo Martins da Silva (@GustavoMS0)            {c_cyan}│{c_reset}",
+            f"{c_cyan}│{c_reset}  {c_blue}{repo_lbl}:{c_reset}  https://github.com/GustavoMS0/zabbix-autodiscovery {c_cyan}│{c_reset}",
+            f"{c_cyan}└─────────────────────────────────────────────────────────────┘{c_reset}",
+        ]
+        self.out("\n".join(lines))
+
     def run(self):
         from . import cli
-        self.out(f"\n{self.t['title']}\n{self.t['intro']}")
+        self.banner()
+        self.out(f"\n{self.t['intro']}")
         if self.config.exists() and self.yes(self.t["reuse"], default=True):
             cfg = cli.load_config(self.config)
             api = cli.connect(cfg)

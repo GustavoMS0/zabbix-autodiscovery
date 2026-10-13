@@ -30,6 +30,16 @@ ask() {                                   # questions read from the terminal, ev
 command -v curl >/dev/null 2>&1 || die "curl is required"
 command -v tar >/dev/null 2>&1 || die "tar is required"
 
+printf '\033[1;36m'
+cat << 'EOF'
+┌─────────────────────────────────────────────────────────────┐
+│  Zabbix Auto-Discovery - Instalador Automatizado            │
+│  Autor: Gustavo Martins (@GustavoMS0)                       │
+│  https://github.com/GustavoMS0/zabbix-autodiscovery         │
+└─────────────────────────────────────────────────────────────┘
+EOF
+printf '\033[0m\n'
+
 say "Downloading $REPO ($REF) into $DIR"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
