@@ -31,6 +31,7 @@ from . import (
     classifier,
     dashboards,
     exporter,
+    interactive_map,
     maps,
     noc,
     organize,
@@ -681,6 +682,20 @@ def cmd_clean_unsupported(cfg, args):
     print("\nSummary:", ", ".join(f"{k}={v}" for k, v in sorted(stats.items())))
 
 
+def cmd_interactive_map(cfg, args):
+    api = connect(cfg)
+    out_path = interactive_map.export_interactive_map(
+        api, cfg, output_file=args.output, selected_site=args.site
+    )
+    if args.serve:
+        interactive_map.serve_interactive_map(
+            out_path, port=args.port, open_browser=args.open
+        )
+    elif args.open:
+        import webbrowser
+        webbrowser.open(out_path.resolve().as_uri())
+
+
 # ---------------------------------------------------------------- diff
 
 def cmd_diff(cfg, args):
@@ -824,6 +839,16 @@ def build_parser():
     p.add_argument("--dry-run", action="store_true", help="only show planned services and SLA")
     p = sub.add_parser("clean-unsupported", help="disable inactive internal collector items on Zabbix server")
     p.add_argument("--dry-run", action="store_true", help="only show items that would be disabled")
+    p = sub.add_parser("interactive-map", help="generate interactive HTML5 topology map with zoom and pan")
+    p.add_argument("-o", "--output", default="topology.html",
+                   help="destination HTML file (default: topology.html)")
+    p.add_argument("--site", help="filter topology to a specific branch/site name")
+    p.add_argument("-s", "--serve", action="store_true",
+                   help="start a local HTTP server to view the map")
+    p.add_argument("-p", "--port", type=int, default=8088,
+                   help="port for the local HTTP server (default: 8088)")
+    p.add_argument("--open", action="store_true",
+                   help="automatically open the interactive map in your default web browser")
     return parser
 
 
@@ -850,7 +875,8 @@ def main(argv=None):
                 "agent-sync": cmd_agent_sync, "web": cmd_web, "update-templates": cmd_update_templates,
                 "maps": cmd_maps, "organize": cmd_organize, "audit": cmd_audit, "services": cmd_services,
                 "grafana-dashboards": cmd_grafana_dashboards, "export": cmd_export,
-                "dependencies": cmd_dependencies, "sla": cmd_sla, "clean-unsupported": cmd_clean_unsupported}
+                "dependencies": cmd_dependencies, "sla": cmd_sla, "clean-unsupported": cmd_clean_unsupported,
+                "interactive-map": cmd_interactive_map}
     try:
         commands[args.cmd](cfg, args)
     except ZabbixError as exc:

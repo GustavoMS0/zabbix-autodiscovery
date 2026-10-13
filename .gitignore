@@ -2,6 +2,7 @@
 config.yaml
 .env
 *.csv
+*.html
 grafana-dashboards/
 
 # python

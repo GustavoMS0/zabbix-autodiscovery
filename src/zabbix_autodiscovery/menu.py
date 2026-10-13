@@ -286,6 +286,27 @@ def run_clean_unsupported(cfg, args_base):
         print(f"\nErro ao limpar itens: {exc}")
 
 
+def run_interactive_map(cfg, args_base):
+    from .cli import cmd_interactive_map
+    print("\n--- [15] Mapa Interativo Web (Zoom, Pan, Busca e Status NOC) ---")
+    out_file = prompt_string("Arquivo HTML de saída", "topology.html")
+    site_val = prompt_string("Filtrar por filial específica (ENTER para todas)", "")
+    open_now = prompt_yes_no("Abrir no navegador imediatamente?", default=True)
+
+    args = argparse.Namespace(
+        config=args_base.config,
+        output=out_file,
+        site=site_val if site_val else None,
+        serve=False,
+        port=8088,
+        open=open_now,
+    )
+    try:
+        cmd_interactive_map(cfg, args)
+    except Exception as exc:
+        print(f"\nErro ao gerar mapa interativo: {exc}")
+
+
 def interactive_menu(config_path="config.yaml"):
     args_base = argparse.Namespace(config=config_path)
 
@@ -313,10 +334,11 @@ def interactive_menu(config_path="config.yaml"):
         print(" [12] 🔗 Dependências de Triggers (NOC)   - Evita tempestade de alertas vinculando topologia")
         print(" [13] 📈 Criar Serviços & SLA 99.5%       - Árvore de serviços e metas de disponibilidade")
         print(" [14] 🧹 Limpar Itens Não Suportados      - Desativa coletores inativos e itens órfãos")
+        print(" [15] 🌐 Mapa Interativo Web (NOC)       - Canvas com Zoom, Pan, Busca e Status ao Vivo")
         print(" [0]  ❌ Sair")
         print("=" * 72)
 
-        choice = prompt_choice("Escolha uma opção (0-14)", default="1")
+        choice = prompt_choice("Escolha uma opção (0-15)", default="1")
 
         if choice == "0":
             print("\nEncerrando. Até logo!")
@@ -386,6 +408,11 @@ def interactive_menu(config_path="config.yaml"):
         elif choice == "14":
             if cfg:
                 run_clean_unsupported(cfg, args_base)
+            else:
+                print("Configure o config.yaml primeiro.")
+        elif choice == "15":
+            if cfg:
+                run_interactive_map(cfg, args_base)
             else:
                 print("Configure o config.yaml primeiro.")
         else:
