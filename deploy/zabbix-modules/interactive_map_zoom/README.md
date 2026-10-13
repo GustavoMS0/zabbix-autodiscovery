@@ -26,3 +26,4 @@ ssh usuario@192.168.0.15 "sudo mv /tmp/interactive_map_zoom /usr/share/zabbix/ui
 5. Clique em **Enable** (Ativar).
 
 Pronto! Ao abrir qualquer mapa (`Monitoring -> Maps`), os controles interativos (zoom com scroll, arrastar e focar alarme) estarão ativos instantaneamente sobre o mapa nativo.
+
