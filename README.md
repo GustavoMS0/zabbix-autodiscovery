@@ -266,7 +266,29 @@ Além do tipo de equipamento, o scan identifica os **serviços** que cada host e
 | `zabbix-autodiscovery dependencies [--dry-run]` | **Sim** | Cria dependências de triggers baseadas na topologia (Root Cause Analysis: elimina tempestades de alertas). |
 | `zabbix-autodiscovery sla [--dry-run]` | **Sim** | Provisiona a árvore de Business Services e o SLA Global de 99.5% de disponibilidade no Zabbix 8. |
 | `zabbix-autodiscovery clean-unsupported [--dry-run]` | **Sim** | Desativa coletores internos inativos do Zabbix Server e limpa itens não suportados. |
+| `zabbix-autodiscovery interactive-map [-o ARQ] [--site S] [--open]` | Não | Gera aplicação web interativa (HTML5) da topologia com zoom contínuo, pan, busca e status NOC. |
 | `zabbix-autodiscovery menu` | Só com confirmação | Painel interativo de controle no terminal com atalhos numéricos para todas as operações. |
+
+---
+
+## 🌐 Mapa Interativo de Topologia (Zoom, Pan & Busca em Tempo Real)
+
+Além dos mapas estáticos do Zabbix, a ferramenta gera uma aplicação web HTML5 moderna e autônoma desenvolvida com **Vis-Network**:
+
+* **Zoom Contínuo e Pan Livre**: use a roda do mouse (`scroll`) ou os botões flutuantes para dar zoom e arrastar o mapa livremente.
+* **Busca em Tempo Real com Foco**: digite o nome ou IP do equipamento na barra de busca; o mapa centraliza e aproxima a câmera automaticamente com animação suave.
+* **Filtros Dinâmicos**: alterne entre visualização global ou isole filiais específicas (*Matriz, PR, BA, RJ*) e filtre por categoria (*Switches, Servidores, Firewalls...*).
+* **Painel Lateral NOC (Drawer)**: ao clicar em qualquer nó, exibe IP, fabricante, status operacional e a lista de alarmes/triggers ativas, com botões para abrir a tela de problemas ou gráficos diretamente no Zabbix Web.
+* **Layouts Duplos**: alterne instantaneamente entre o **Layout Hierárquico NOC (4 camadas fixas sem cruzamentos)** e a **Física Dinâmica elástica (Force Atlas)**.
+
+Para gerar e abrir diretamente no navegador:
+```bash
+zabbix-autodiscovery interactive-map --open
+```
+Ou para iniciar um servidor web local na porta 8088:
+```bash
+zabbix-autodiscovery interactive-map --serve --port 8088 --open
+```
 
 ---
 
@@ -279,7 +301,7 @@ Basta executar a ferramenta sem argumentos (ou com o comando `menu`):
 ```bash
 zabbix-autodiscovery
 ```
-Um painel interativo em português é exibido permitindo selecionar operações com atalhos de `0` a `14` com valores padrão seguros (`Enter` = recomendação segura ou simulação *dry-run*).
+Um painel interativo em português é exibido permitindo selecionar operações com atalhos de `0` a `15` com valores padrão seguros (`Enter` = recomendação segura ou simulação *dry-run*).
 
 ### Executável Autônomo para Windows (`.exe`)
 Você pode compilar o projeto em um executável único para Windows que roda diretamente sem precisar de Python instalado:

@@ -45,3 +45,17 @@ def test_interactive_menu_dispatches_check(tmp_path):
             assert ret == 0
             assert mock_check.called
 
+
+def test_interactive_menu_dispatches_interactive_map(tmp_path):
+    cfg_file = tmp_path / "config.yaml"
+    cfg_file.write_text("zabbix:\n  url: http://fake\nscan:\n  networks: [192.168.0.0/24]\n", encoding="utf-8")
+
+    # User selects "15" (interactive map), presses enter on prompts, then "0" (exit)
+    inputs = iter(["15", "", "", "n", "", "0"])
+    with patch("builtins.input", side_effect=lambda *args: next(inputs)):
+        with patch("zabbix_autodiscovery.cli.cmd_interactive_map") as mock_map:
+            ret = interactive_menu(str(cfg_file))
+            assert ret == 0
+            assert mock_map.called
+
+
