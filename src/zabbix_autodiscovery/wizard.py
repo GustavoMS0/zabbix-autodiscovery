@@ -434,16 +434,24 @@ class Wizard:
         c_bold = "\033[1m"
         c_reset = "\033[0m"
         sub = "Varredura de rede, classificacao LLD e criacao de mapas" if self.lang == "pt" else "Network scan, LLD classification and topology mapping"
-        author_lbl = "Autor" if self.lang == "pt" else "Author"
-        repo_lbl = "Projeto" if self.lang == "pt" else "Project"
+        author_lbl = "Autor:   " if self.lang == "pt" else "Author:  "
+        repo_lbl = "Projeto: " if self.lang == "pt" else "Project: "
+        v_str = f"v{__version__}"
+        v_sp = " " * (65 - len("  Zabbix Auto-Discovery & Onboarding") - len(v_str) - 2)
+        sub_sp = " " * (65 - len(sub) - 2)
+        author_val = "Gustavo Martins da Silva (@GustavoMS0)"
+        author_sp = " " * (65 - len(author_lbl) - len(author_val) - 3)
+        repo_val = "https://github.com/GustavoMS0/zabbix-autodiscovery"
+        repo_sp = " " * (65 - len(repo_lbl) - len(repo_val) - 3)
+        border_top = "─" * 65
         lines = [
-            f"{c_cyan}┌─────────────────────────────────────────────────────────────┐{c_reset}",
-            f"{c_cyan}│{c_reset}  {c_bold}Zabbix Auto-Discovery & Onboarding{c_reset}                   {c_gray}v{__version__}{c_reset} {c_cyan}│{c_reset}",
-            f"{c_cyan}│{c_reset}  {c_gray}{sub:<58}{c_reset} {c_cyan}│{c_reset}",
-            f"{c_cyan}├─────────────────────────────────────────────────────────────┤{c_reset}",
-            f"{c_cyan}│{c_reset}  {c_blue}{author_lbl}:{c_reset}    Gustavo Martins da Silva (@GustavoMS0)            {c_cyan}│{c_reset}",
-            f"{c_cyan}│{c_reset}  {c_blue}{repo_lbl}:{c_reset}  https://github.com/GustavoMS0/zabbix-autodiscovery {c_cyan}│{c_reset}",
-            f"{c_cyan}└─────────────────────────────────────────────────────────────┘{c_reset}",
+            f"{c_cyan}┌{border_top}┐{c_reset}",
+            f"{c_cyan}│{c_reset}  {c_bold}Zabbix Auto-Discovery & Onboarding{c_reset}{v_sp}{c_gray}{v_str}{c_reset}  {c_cyan}│{c_reset}",
+            f"{c_cyan}│{c_reset}  {c_gray}{sub}{c_reset}{sub_sp}{c_cyan}│{c_reset}",
+            f"{c_cyan}├{border_top}┤{c_reset}",
+            f"{c_cyan}│{c_reset}  {c_blue}{author_lbl}{c_reset} {author_val}{author_sp}{c_cyan}│{c_reset}",
+            f"{c_cyan}│{c_reset}  {c_blue}{repo_lbl}{c_reset} {repo_val}{repo_sp}{c_cyan}│{c_reset}",
+            f"{c_cyan}└{border_top}┘{c_reset}",
         ]
         self.out("\n".join(lines))
 
