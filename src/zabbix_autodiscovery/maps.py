@@ -40,21 +40,22 @@ def infer_links(placed, selements):
       Switch ---[LAN, blue]---> Tier 2 (server-hardware, APs, peripherals)
       Server-hardware (iDRAC) ---[virtualization, blue]---> VMs (Windows, Linux, Hypervisors)
     """
-    coords = {s["selementid"]: (x, y) for (h, cat, x, y), s in zip(placed, selements)}
-    cat_map = {s["selementid"]: cat for (h, cat, x, y), s in zip(placed, selements)}
+    coords = {s["selementid"]: (x, y) for (h, cat, x, y), s in zip(placed, selements, strict=False)}
+    cat_map = {s["selementid"]: cat for (h, cat, x, y), s in zip(placed, selements, strict=False)}
 
     gateways = [s["selementid"] for s in selements if cat_map[s["selementid"]] in ("firewall", "router")]
     switches = [s["selementid"] for s in selements if cat_map[s["selementid"]] == "switch"]
-    
+
     hw_nodes = [s["selementid"] for s in selements if cat_map[s["selementid"]] == "server-hardware"]
-    vm_nodes = [s["selementid"] for s in selements if cat_map[s["selementid"]] in ("server-windows", "server-linux", "hypervisor")]
+    vm_cats = ("server-windows", "server-linux", "hypervisor")
+    vm_nodes = [s["selementid"] for s in selements if cat_map[s["selementid"]] in vm_cats]
 
     if hw_nodes:
-        tier2_endpoints = [s["selementid"] for s in selements 
+        tier2_endpoints = [s["selementid"] for s in selements
                            if cat_map[s["selementid"]] not in ("firewall", "router", "switch")
                            and s["selementid"] not in vm_nodes]
     else:
-        tier2_endpoints = [s["selementid"] for s in selements 
+        tier2_endpoints = [s["selementid"] for s in selements
                            if cat_map[s["selementid"]] not in ("firewall", "router", "switch")]
 
     links = []
@@ -140,7 +141,7 @@ def layout(hosts, hypervisors=frozenset()):
         total_w = MARGIN * 2 + cols * CELL_W
 
         y = MARGIN
-        for items, default_cat in active_groups:
+        for items, _default_cat in active_groups:
             num_rows = (len(items) - 1) // cols + 1
             for r in range(num_rows):
                 row_items = items[r * cols: (r + 1) * cols]

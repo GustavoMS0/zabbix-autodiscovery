@@ -26,7 +26,20 @@ from collections import Counter
 from importlib import resources
 from pathlib import Path
 
-from . import __version__, classifier, dashboards, exporter, maps, noc, organize, provision, scanner, services, templates, web
+from . import (
+    __version__,
+    classifier,
+    dashboards,
+    exporter,
+    maps,
+    noc,
+    organize,
+    provision,
+    scanner,
+    services,
+    templates,
+    web,
+)
 from .config import ConfigError, credentials_by_name, default_community, in_networks, load_config, site_for
 from .inventory import category_of, network_hosts
 from .zabbix_api import ZabbixAPI, ZabbixError

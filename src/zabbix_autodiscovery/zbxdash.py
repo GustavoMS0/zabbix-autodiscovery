@@ -37,7 +37,8 @@ UPTIME = ("Uptime", r"^(system )?uptime|uptime \((network|hardware)\)", "value")
 TRAFFIC = ("Traffic", [("in", ["*Bits received*"]), ("out", ["*Bits sent*"])])
 ERRORS = ("Interface errors", [("in", ["*Inbound packets with errors*"]),
                                ("out", ["*Outbound packets with errors*"])])
-CPU_MEM = ("CPU and memory", [("CPU", ["*CPU utilization*", "*CPU usage*"]), ("memory", ["*Memory utilization*", "*Memory usage*"])])
+CPU_MEM = ("CPU and memory", [("CPU", ["*CPU utilization*", "*CPU usage*"]),
+                               ("memory", ["*Memory utilization*", "*Memory usage*"])])
 TEMP = ("Temperature", [("temperature", ["*emperature*", "*Temp*: Value", "*emperatura*"])])
 LATENCY = ("ICMP latency", [("latency", ["ICMP response time"])])
 

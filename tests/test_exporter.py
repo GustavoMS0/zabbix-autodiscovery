@@ -1,7 +1,8 @@
 import json
-import yaml
-from zabbix_autodiscovery import exporter
 
+import yaml
+
+from zabbix_autodiscovery import exporter
 
 SAMPLE_ROWS = [
     {
