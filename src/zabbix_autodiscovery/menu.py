@@ -11,18 +11,16 @@ Provides an intuitive console control center for day-to-day operations:
 - Web & SSL certificate monitoring
 """
 import argparse
-import sys
 from pathlib import Path
 
 from . import __version__
 from .config import ConfigError, load_config
 
-
 BANNER = r"""
-  ______     _     _     _             _   _ _____   _____ 
+  ______     _     _     _             _   _ _____   _____
  |___  /    | |   | |   (_)           | \ | |  _  | /  __ \
     / / __ _| |__ | |__  ___  __      |  \| | | | | | /  \/
-   / / / _` | '_ \| '_ \| \ \/ / ____ | . ` | | | | | |    
+   / / / _` | '_ \| '_ \| \ \/ / ____ | . ` | | | | | |
  ./ /_| (_| | |_) | |_) | |>  < |____| | |\ \ \_/ / | \__/\
  \_____/\__,_|_.__/|_.__/|_/_/\_\     \_| \_/\___/   \____/
           A U T O - D I S C O V E R Y   M E N U
@@ -90,7 +88,7 @@ def run_scan(cfg, args_base):
     print("\n--- [1] Varredura de Rede (Scan) ---")
     nets = cfg.get("scan", {}).get("networks", [])
     print(f"Redes no config.yaml: {', '.join(nets) if nets else 'nenhuma'}")
-    
+
     choice = prompt_choice("Escanear (1: Todas as redes do config, 2: Rede específica, 3: Filial específica)", "1")
     net_val = None
     site_val = None
@@ -104,7 +102,7 @@ def run_scan(cfg, args_base):
         if not site_val:
             print("Operação cancelada.")
             return
-            
+
     out_file = prompt_string("Arquivo CSV de saída", "inventory.csv")
     args = argparse.Namespace(config=args_base.config, network=net_val, site=site_val, output=out_file, delimiter=";")
     try:
@@ -142,7 +140,7 @@ def run_apply(cfg, args_base):
     mode = prompt_choice("Modo de execução (1: Simulação / Dry-Run [seguro], 2: Aplicar no Zabbix em produção)", "1")
     dry_run = (mode != "2")
     allow_dup = prompt_yes_no("Permitir nomes duplicados adicionando sufixo de IP?", default=False)
-    
+
     args = argparse.Namespace(config=args_base.config, input=in_file, dry_run=dry_run, allow_duplicate_names=allow_dup)
     try:
         cmd_apply(cfg, args)
@@ -207,7 +205,8 @@ def run_export(cfg, args_base):
     if out_file == "-":
         out_file = None
 
-    args = argparse.Namespace(config=args_base.config, format=fmt, input=in_file, output=out_file, from_zabbix=from_zabbix)
+    args = argparse.Namespace(config=args_base.config, format=fmt, input=in_file,
+                              output=out_file, from_zabbix=from_zabbix)
     try:
         cmd_export(cfg, args)
     except Exception as exc:

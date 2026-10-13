@@ -4,12 +4,10 @@
 - Zombie / Unsupported Item Cleanup (keeps database and pollers healthy)
 - Rogue Device Detection
 """
-import time
-from pathlib import Path
 
-from .inventory import category_of, network_hosts
+from .inventory import network_hosts
 from .maps import infer_links, layout
-from .zabbix_api import ZabbixAPI, ZabbixError
+from .zabbix_api import ZabbixError
 
 
 def primary_down_trigger(api, hostid):

@@ -1,5 +1,10 @@
 from unittest.mock import MagicMock
-from zabbix_autodiscovery.noc import clean_unsupported_items, link_trigger_dependencies, primary_down_trigger, setup_noc_services
+
+from zabbix_autodiscovery.noc import (
+    clean_unsupported_items,
+    primary_down_trigger,
+    setup_noc_services,
+)
 
 
 def test_primary_down_trigger():
