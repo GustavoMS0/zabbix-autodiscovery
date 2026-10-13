@@ -1,0 +1,96 @@
+/* ==========================================================================
+   NOC Modern Theme - Zabbix 8.0 Frontend Style
+   Autor: Gustavo Silva (zabbix-autodiscovery)
+   ========================================================================== */
+
+/* 1. Cards dos Widgets com bordas arredondadas e efeito Glassmorphism */
+.dashboard-grid-widget-contents,
+.dashboard-grid-widget {
+    border-radius: 10px !important;
+    background: rgba(22, 27, 34, 0.94) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(8px);
+}
+
+/* 2. Cabeçalho dos Widgets mais elegante */
+.dashboard-grid-widget-head {
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    letter-spacing: 0.4px !important;
+    color: #e6edf3 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    padding: 8px 12px !important;
+}
+
+/* 3. Alertas Críticos (Disaster / High) com borda neon pulsante */
+.disaster-bg,
+tr[data-severity="5"] {
+    animation: pulse-disaster 2s infinite alternate !important;
+}
+
+@keyframes pulse-disaster {
+    from {
+        box-shadow: inset 0 0 4px rgba(228, 89, 89, 0.4), 0 0 6px rgba(228, 89, 89, 0.4);
+    }
+    to {
+        box-shadow: inset 0 0 10px rgba(228, 89, 89, 0.8), 0 0 18px rgba(228, 89, 89, 0.9);
+    }
+}
+
+.high-bg,
+tr[data-severity="4"] {
+    animation: pulse-high 2.5s infinite alternate !important;
+}
+
+@keyframes pulse-high {
+    from {
+        box-shadow: inset 0 0 3px rgba(255, 160, 89, 0.3), 0 0 5px rgba(255, 160, 89, 0.3);
+    }
+    to {
+        box-shadow: inset 0 0 8px rgba(255, 160, 89, 0.7), 0 0 14px rgba(255, 160, 89, 0.8);
+    }
+}
+
+/* 4. Tabela TopHosts: Linhas limpas e barras de progresso modernas */
+.table-forms-container,
+.list-table {
+    border: none !important;
+}
+
+.list-table tbody tr:hover {
+    background: rgba(56, 139, 253, 0.12) !important;
+    transition: background 0.15s ease-in-out;
+}
+
+.list-table th {
+    background: rgba(13, 17, 23, 0.8) !important;
+    color: #8b949e !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* 5. Colmeia (Honeycomb) e Gráficos SVG com sombras suaves */
+.widget-honeycomb svg,
+.widget-svggraph svg {
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.35));
+}
+
+/* 6. Barras de Rolagem Sutis */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+

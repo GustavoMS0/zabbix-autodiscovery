@@ -163,3 +163,20 @@ def test_printer_guards_and_hex_text():
     assert r"/\u0000/g" in templates.HEX_TEXT_JS
     hex_re = re.compile(r"^([0-9A-Fa-f]{2}[ :])*[0-9A-Fa-f]{2}$")
     assert hex_re.match("50 69 6C 68 61") and not hex_re.match("Ready")
+
+
+def test_infer_links():
+    placed = [
+        ({"hostid": "1"}, "firewall", 40, 40),
+        ({"hostid": "2"}, "switch", 40, 160),
+        ({"hostid": "3"}, "ap", 40, 280),
+        ({"hostid": "4"}, "printer", 190, 280),
+    ]
+    selements = [{"selementid": str(i + 1)} for i in range(len(placed))]
+    links = maps.infer_links(placed, selements)
+    # 1 uplink (fw -> sw) + 2 endpoint links (sw -> ap, sw -> printer) = 3 links
+    assert len(links) == 3
+    assert {"selementid1": "1", "selementid2": "2", "drawtype": 2, "color": "00AA00"} in links
+    assert {"selementid1": "2", "selementid2": "3", "drawtype": 0, "color": "2774A4"} in links
+    assert {"selementid1": "2", "selementid2": "4", "drawtype": 0, "color": "2774A4"} in links
+

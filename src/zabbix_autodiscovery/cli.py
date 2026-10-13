@@ -26,7 +26,7 @@ from collections import Counter
 from importlib import resources
 from pathlib import Path
 
-from . import __version__, classifier, dashboards, maps, organize, provision, scanner, services, templates, web
+from . import __version__, classifier, dashboards, exporter, maps, noc, organize, provision, scanner, services, templates, web
 from .config import ConfigError, credentials_by_name, default_community, in_networks, load_config, site_for
 from .inventory import category_of, network_hosts
 from .zabbix_api import ZabbixAPI, ZabbixError
@@ -622,6 +622,52 @@ def cmd_grafana_dashboards(cfg, args):
         print(f"written {path}")
 
 
+def cmd_export(cfg, args):
+    if args.from_zabbix:
+        api = connect(cfg)
+        devices = exporter.devices_from_zabbix(api)
+        source_desc = f"Zabbix ({len(devices)} active hosts)"
+    else:
+        rows = read_inventory(args.input)
+        devices = exporter.devices_from_inventory(rows)
+        source_desc = f"{args.input} ({len(devices)} devices)"
+
+    if args.format == "ansible":
+        content = exporter.export_ansible(devices)
+    elif args.format == "netbox":
+        content = exporter.export_netbox(devices)
+    else:
+        content = exporter.export_json(devices)
+
+    if args.output:
+        out_path = Path(args.output)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(content, encoding="utf-8")
+        print(f"Exported {len(devices)} devices from {source_desc} to {out_path} ({args.format})")
+    else:
+        print(content)
+
+
+# ---------------------------------------------------------------- noc
+
+def cmd_dependencies(cfg, args):
+    api = connect(cfg)
+    stats = noc.link_trigger_dependencies(api, cfg, dry_run=args.dry_run)
+    print("\nSummary:", ", ".join(f"{k}={v}" for k, v in sorted(stats.items())))
+
+
+def cmd_sla(cfg, args):
+    api = connect(cfg)
+    stats = noc.setup_noc_services(api, cfg, dry_run=args.dry_run)
+    print("\nSummary:", ", ".join(f"{k}={v}" for k, v in sorted(stats.items())))
+
+
+def cmd_clean_unsupported(cfg, args):
+    api = connect(cfg)
+    stats = noc.clean_unsupported_items(api, dry_run=args.dry_run)
+    print("\nSummary:", ", ".join(f"{k}={v}" for k, v in sorted(stats.items())))
+
+
 # ---------------------------------------------------------------- diff
 
 def cmd_diff(cfg, args):
@@ -697,8 +743,9 @@ def build_parser():
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("-V", "--version", action="version", version=f"zabbix-autodiscovery {__version__}")
     parser.add_argument("-c", "--config", default="config.yaml", help="config file (default: config.yaml)")
-    sub = parser.add_subparsers(dest="cmd", required=True)
+    sub = parser.add_subparsers(dest="cmd")
 
+    sub.add_parser("menu", help="painel interativo de controle (NOC Menu)")
     p = sub.add_parser("wizard", help="interactive step-by-step assistant (connection, networks, scan, apply...)")
     p.add_argument("--lang", choices=["pt", "en"], help="language (default: from the system locale)")
     p.add_argument("--force-tty", action="store_true", help=argparse.SUPPRESS)
@@ -750,11 +797,31 @@ def build_parser():
     p.add_argument("-o", "--output", default="grafana-dashboards")
     p.add_argument("--datasource-uid", default="zabbix",
                    help="default Zabbix datasource UID (each dashboard also has a datasource selector)")
+    p = sub.add_parser("export", help="export discovered or monitored hosts to Ansible, NetBox or JSON")
+    p.add_argument("-f", "--format", choices=["ansible", "netbox", "json"], default="ansible",
+                   help="export format (default: ansible)")
+    p.add_argument("-i", "--input", default="inventory.csv",
+                   help="input inventory CSV file (default: inventory.csv)")
+    p.add_argument("-o", "--output", help="destination file path (writes to stdout if omitted)")
+    p.add_argument("--from-zabbix", action="store_true",
+                   help="export live active hosts directly from Zabbix instead of reading a CSV scan")
+    p = sub.add_parser("dependencies", help="link trigger dependencies based on topology to prevent alert storms")
+    p.add_argument("--dry-run", action="store_true", help="only show planned trigger dependencies")
+    p = sub.add_parser("sla", help="create Business Services tree and global 99.5%% SLA in Zabbix 8")
+    p.add_argument("--dry-run", action="store_true", help="only show planned services and SLA")
+    p = sub.add_parser("clean-unsupported", help="disable inactive internal collector items on Zabbix server")
+    p.add_argument("--dry-run", action="store_true", help="only show items that would be disabled")
     return parser
 
 
 def main(argv=None):
     args = build_parser().parse_args(argv)
+    if args.cmd is None or args.cmd == "menu":
+        if args.cmd == "menu" or (hasattr(sys.stdin, "isatty") and sys.stdin.isatty()):
+            from .menu import interactive_menu
+            return interactive_menu(args.config)
+        build_parser().print_help()
+        return 0
     if args.cmd == "init":
         return cmd_init(args)
     if args.cmd == "wizard":
@@ -769,7 +836,8 @@ def main(argv=None):
     commands = {"check": cmd_check, "scan": cmd_scan, "apply": cmd_apply, "setup": cmd_setup,
                 "agent-sync": cmd_agent_sync, "web": cmd_web, "update-templates": cmd_update_templates,
                 "maps": cmd_maps, "organize": cmd_organize, "audit": cmd_audit, "services": cmd_services,
-                "grafana-dashboards": cmd_grafana_dashboards}
+                "grafana-dashboards": cmd_grafana_dashboards, "export": cmd_export,
+                "dependencies": cmd_dependencies, "sla": cmd_sla, "clean-unsupported": cmd_clean_unsupported}
     try:
         commands[args.cmd](cfg, args)
     except ZabbixError as exc:
