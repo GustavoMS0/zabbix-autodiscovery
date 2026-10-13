@@ -1,73 +1,63 @@
 /* NOC Interactive Map Controls for Zabbix Web UI */
 .zbx-map-hud {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(17, 24, 39, 0.92);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(75, 85, 99, 0.6);
-  border-radius: 8px;
-  padding: 6px 10px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
-  pointer-events: auto;
+  position: absolute !important;
+  top: 15px !important;
+  right: 25px !important;
+  z-index: 99999 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: rgba(17, 24, 39, 0.94) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(75, 85, 99, 0.7) !important;
+  border-radius: 8px !important;
+  padding: 6px 10px !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5) !important;
+  pointer-events: auto !important;
 }
 
 .zbx-map-hud .hud-btn {
-  background: #1f2937;
-  color: #f9fafb;
-  border: 1px solid #374151;
-  border-radius: 6px;
-  padding: 5px 10px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  outline: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
+  background: #1f2937 !important;
+  color: #f9fafb !important;
+  border: 1px solid #374151 !important;
+  border-radius: 6px !important;
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  outline: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.15s ease !important;
 }
 
 .zbx-map-hud .hud-btn:hover {
-  background: #374151;
-  border-color: #60a5fa;
-  color: #ffffff;
+  background: #374151 !important;
+  border-color: #60a5fa !important;
+  color: #ffffff !important;
 }
 
 .zbx-map-hud .hud-btn:active {
-  transform: scale(0.96);
+  transform: scale(0.95) !important;
 }
 
 .zbx-map-hud .hud-btn-alert {
-  background: #dc2626;
-  border-color: #b91c1c;
-  color: #fff;
+  background: #dc2626 !important;
+  border-color: #b91c1c !important;
+  color: #fff !important;
 }
 
 .zbx-map-hud .hud-btn-alert:hover {
-  background: #b91c1c;
+  background: #b91c1c !important;
 }
 
 .zbx-map-hud .hud-counter {
-  font-size: 12px;
-  font-weight: 600;
-  margin-right: 6px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #9ca3af;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  margin-right: 6px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  color: #9ca3af !important;
 }
-
-.zbx-map-hud .hud-dot-red {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #ef4444;
-  box-shadow: 0 0 6px rgba(239, 68, 68, 0.8);
-}
-
