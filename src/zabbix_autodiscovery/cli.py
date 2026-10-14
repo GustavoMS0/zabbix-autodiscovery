@@ -710,6 +710,33 @@ def cmd_setup(cfg, args):
 
 
 def cmd_web(cfg, args):
+    if getattr(args, "add_site", None):
+        site = args.add_site.strip()
+        web.parse_site(site)
+        if getattr(args, "save", False):
+            from .menu import add_site_to_config
+            res = add_site_to_config(args.config, site)
+            if res == "added":
+                print(f"- site '{site}' saved to {args.config}")
+            elif res == "already_present":
+                print(f"- site '{site}' already exists in {args.config}")
+            cfg = load_config(args.config)
+        else:
+            cfg.setdefault("web", {}).setdefault("certificates", {}).setdefault("sites", []).append(site)
+
+    if getattr(args, "add_domain", None):
+        domain = web.clean_domain(args.add_domain.strip())
+        if getattr(args, "save", False):
+            from .menu import add_domain_to_config
+            res = add_domain_to_config(args.config, domain)
+            if res == "added":
+                print(f"- domain '{domain}' saved to {args.config}")
+            elif res == "already_present":
+                print(f"- domain '{domain}' already exists in {args.config}")
+            cfg = load_config(args.config)
+        else:
+            cfg.setdefault("web", {}).setdefault("domains", {}).setdefault("list", []).append(domain)
+
     webcfg = cfg.get("web") or {}
     if not (webcfg.get("certificates") or {}).get("sites") and \
             not (webcfg.get("domains") or {}).get("list") and not args.input:
@@ -910,6 +937,9 @@ def build_parser():
     p = sub.add_parser("web", help="monitor SSL certificates and domain expiration (web section of the config)")
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("-i", "--input", help="also add the publicly trusted certificates found in this inventory CSV")
+    p.add_argument("--add-site", metavar="URL", help="add a website / SSL certificate to monitor (e.g. https://site.com)")
+    p.add_argument("--add-domain", metavar="DOMAIN", help="add a domain to monitor expiration (e.g. site.com.br)")
+    p.add_argument("--save", action="store_true", help="save the new site/domain into config.yaml")
     p = sub.add_parser("grafana-dashboards", help="write Grafana dashboard JSON files (one per device type)")
     p.add_argument("-o", "--output", default="grafana-dashboards")
     p.add_argument("--datasource-uid", default="zabbix",
