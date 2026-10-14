@@ -244,7 +244,8 @@ Além do tipo de equipamento, o scan identifica os **serviços** que cada host e
 - O resultado vai para a coluna `services` e vira tags `service=<nome>` no Zabbix, para filtrar hosts e problemas por serviço.
 - Os serviços dos grupos listados em `service_checks` (por padrão bancos de dados, clusters, diretório, e-mail, mensageria, backup e virtualização) recebem um template **AutoDiscovery - Service <nome>**, que gera um problema quando a porta para de responder. A checagem é feita a partir do servidor ou proxy Zabbix e não precisa de credenciais. Para métricas detalhadas (consultas, replicação…), vincule também o template oficial do Zabbix daquele produto.
 - O `apply` cuida dos hosts novos. Para hosts que já estão no Zabbix, o `services -i inventory.csv [--dry-run]` acrescenta as tags e as checagens, casando os hosts pelo IP.
-- As regras também podem usar serviços: `services_any: [mssql]` ou `services_all: [kubernetes-api, etcd]`.
+- As regras também podem usar serviços: `services_any: [mssql]`, `services_all: [kubernetes-api, etcd]` ou grupos do catálogo, `service_groups_any: [database, directory, mail]`. A regra padrão `windows-server-services` usa isso para separar um Windows que roda banco, AD, e-mail ou backup de uma estação, mesmo sem agent e sem WinRM.
+- Um servidor que de fora parece estação (sem agent, sem SNMP e sem serviço de servidor visível) pode ser fixado por endereço com `ips: [192.168.0.47]` numa regra no topo da lista (exemplo comentado no `config.example.yaml`). O melhor caminho continua sendo instalar o agent.
 
 ## Tabela de Comandos
 
