@@ -240,7 +240,8 @@ Besides the device type, the scan identifies the **services** each host runs: da
 - Results go to the `services` column and become `service=<name>` tags in Zabbix, so you can filter hosts and problems by service.
 - Services of the groups in `service_checks` (databases, clusters, directory, mail, messaging, backup and virtualization by default) get a template **AutoDiscovery - Service <name>** that raises a problem when the port stops answering. It checks from the Zabbix server or proxy and needs no credentials. For deep metrics (queries, replication…), link the official Zabbix template of that product as well.
 - `apply` handles new hosts. For hosts already in Zabbix, `services -i inventory.csv [--dry-run]` adds the tags and checks, matching hosts by IP.
-- Rules can use services too: `services_any: [mssql]` or `services_all: [kubernetes-api, etcd]`.
+- Rules can use services too: `services_any: [mssql]`, `services_all: [kubernetes-api, etcd]` or catalog groups, `service_groups_any: [database, directory, mail]`. The default `windows-server-services` rule uses this to tell a Windows host running a database, AD, mail or backup apart from a workstation, even without agent or WinRM.
+- A server that looks like a workstation from outside (no agent, no SNMP, no visible server service) can be pinned by address with `ips: [192.168.0.47]` in a rule at the top of the list (commented example in `config.example.yaml`). Installing the agent is still the best option.
 
 ## Command Reference
 

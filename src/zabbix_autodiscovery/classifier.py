@@ -1,12 +1,14 @@
 """Classify scanned devices with the rules from the config file.
 
-No condition uses the host name: only what the device answers (SNMP, agent, ports).
+No condition uses the host name: only what the device answers (SNMP, agent, ports, services). The
+"ips" condition pins specific addresses by hand when nothing visible from the network tells them apart.
 """
 import ipaddress
 import re
 import unicodedata
 
 from .config import rule_action, site_for
+from .services import BY_NAME as SERVICES_BY_NAME
 
 # IANA enterprise number from the sysObjectID -> vendor (tag and report only)
 VENDORS = {
@@ -23,7 +25,7 @@ VENDORS = {
 }
 
 CONDITIONS = {"sysobjectid_prefix", "sysdescr_regex", "agent_uname_regex", "web_server_regex",
-              "services_any", "services_all",
+              "services_any", "services_all", "service_groups_any", "ips",
               "ports_any", "ports_all", "ports_none", "snmp", "agent", "alive"}
 
 # Factory-default sysName values that do not identify the device
@@ -50,6 +52,26 @@ def vendor(oid):
     return ""
 
 
+def service_groups(dev):
+    """Catalog groups (database, directory, mail...) of the services detected on the device."""
+    return {SERVICES_BY_NAME[s][2] for s in dev.services if s in SERVICES_BY_NAME}
+
+
+def ip_in(ip, items):
+    """True if ip equals one of the addresses or falls in one of the networks (CIDR) listed."""
+    try:
+        addr = ipaddress.ip_address(ip)
+    except ValueError:
+        return False
+    for item in items:
+        try:
+            if addr in ipaddress.ip_network(str(item).strip(), strict=False):
+                return True
+        except ValueError:
+            continue
+    return False
+
+
 def _condition_matches(cond, dev):
     unknown = set(cond) - CONDITIONS
     if unknown:
@@ -65,6 +87,10 @@ def _condition_matches(cond, dev):
     if "services_any" in cond and not set(dev.services) & set(as_list(cond["services_any"])):
         return False
     if "services_all" in cond and not set(as_list(cond["services_all"])) <= set(dev.services):
+        return False
+    if "service_groups_any" in cond and not service_groups(dev) & set(as_list(cond["service_groups_any"])):
+        return False
+    if "ips" in cond and not ip_in(dev.ip, as_list(cond["ips"])):
         return False
     if "web_server_regex" in cond and not re.search(cond["web_server_regex"], web_servers(dev), re.I):
         return False

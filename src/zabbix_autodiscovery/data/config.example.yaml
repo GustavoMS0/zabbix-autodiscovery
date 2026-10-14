@@ -118,10 +118,14 @@ web:
 # ---------------------------------------------------------------------------
 # Classification rules: evaluated in order, the first match wins.
 # No rule uses host names: classification depends only on what the device answers
-# (SNMP, Zabbix agent and open ports), so it works with any naming convention.
+# (SNMP, Zabbix agent, open ports and detected services), so it works with any naming convention.
 #   match:     a mapping (all conditions must match) or a list of mappings (any of them)
 #   conditions: sysobjectid_prefix, sysdescr_regex, agent_uname_regex, web_server_regex,
-#               ports_any, ports_all, ports_none, snmp, agent, alive
+#               ports_any, ports_all, ports_none, snmp, agent, alive,
+#               services_any, services_all (service names, e.g. [mssql, postgresql]),
+#               service_groups_any (catalog groups: database, cluster, directory, file, mail,
+#                                   messaging, backup, virtualization, monitoring...),
+#               ips (addresses or CIDRs, to pin hosts that look like something else from outside)
 #   templates: list; each item may hold alternatives separated by "|" (first existing one is used)
 #   interface: snmp | agent | icmp
 #   tags:      extra host tags (e.g. {agent: missing})
@@ -129,6 +133,18 @@ web:
 # The group names below are free text: rename them to your own convention.
 # ---------------------------------------------------------------------------
 rules:
+  # --- Hosts pinned by address (first match wins, so keep these at the top) ---
+  # A Windows server with no agent, no SNMP and no server service visible looks like a workstation.
+  # Install the Zabbix agent on it (best), or pin it here until then:
+  # - name: pinned-windows-servers
+  #   category: server-windows
+  #   group: Servers/Windows
+  #   match: {agent: false, ips: [192.168.0.47]}
+  #   templates: ["ICMP Ping", "AutoDiscovery - Zabbix agent missing"]
+  #   interface: agent
+  #   tags: {agent: missing}
+  #   action: review
+
   # --- Firewalls ---
   - name: fortigate
     category: firewall
@@ -502,6 +518,19 @@ rules:
     category: server-linux
     group: Servers/Linux
     match: {snmp: false, agent: false, ports_all: [22], ports_none: [135, 139, 445, 3389, 9100, 515]}
+    templates: ["ICMP Ping", "AutoDiscovery - Zabbix agent missing"]
+    interface: agent
+    tags: {agent: missing}
+    action: review
+
+  - name: windows-server-services     # Windows running server software (database, AD, mail, backup...)
+    category: server-windows
+    group: Servers/Windows
+    match:
+      snmp: false
+      agent: false
+      ports_any: [135, 445, 3389]
+      service_groups_any: [database, cluster, directory, mail, messaging, backup, virtualization, monitoring]
     templates: ["ICMP Ping", "AutoDiscovery - Zabbix agent missing"]
     interface: agent
     tags: {agent: missing}

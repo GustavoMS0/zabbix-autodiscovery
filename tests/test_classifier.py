@@ -39,6 +39,11 @@ WIN_BUILD_26100 = "Hardware: x86 - Software: Windows Version 6.3 (Build 26100 Mu
     (Device("10.0.0.54", True, ports=[5060]), "voip", "review"),
     (Device("10.0.0.55", True, sysdescr="Linux pve 6.2.16-3-pve", ports=[8006, 22]), "hypervisor", "add"),
     (Device("10.0.0.56", True, sysobjectid="1.3.6.1.4.1.318.1.1.12.1"), "pdu", "add"),
+    # Windows without agent/WinRM is a server when it runs server software (database, AD, mail...)
+    (Device("10.0.0.37", True, ports=[135, 445, 3389, 5432], services=["postgresql", "smb", "rdp"]),
+     "server-windows", "review"),
+    # ...but file sharing and RDP alone are what every workstation has
+    (Device("10.0.0.38", True, ports=[135, 445, 3389], services=["smb", "rdp"]), "workstation", "ignore"),
 ])
 def test_rules(example_config, dev, category, action):
     row = classify(dev, example_config)
@@ -94,3 +99,20 @@ def test_snmp_rule_without_snmp_answer_goes_to_review(example_config):
     assert with_snmp["action"] == "add" and with_snmp["note"] == ""
     icmp_rule = classify(Device("10.0.0.62", True, ports=[9100]), example_config)       # rule already ICMP
     assert icmp_rule["action"] == "add" and icmp_rule["note"] == ""
+
+
+def test_ips_condition_pins_hosts(example_config):
+    rule = {"name": "pinned", "category": "server-windows", "group": "Servers/Windows",
+            "match": {"agent": False, "ips": ["192.168.0.47", "10.9.0.0/24"]},
+            "templates": ["ICMP Ping"], "interface": "agent", "action": "review"}
+    cfg = dict(example_config, rules=[rule] + example_config["rules"])
+    workstation_like = dict(ports=[135, 445, 3389], services=["smb"])
+    assert classify(Device("192.168.0.47", True, **workstation_like), cfg)["rule"] == "pinned"
+    assert classify(Device("10.9.0.20", True, **workstation_like), cfg)["rule"] == "pinned"
+    assert classify(Device("192.168.0.48", True, **workstation_like), cfg)["rule"] == "windows-workstation"
+
+
+def test_service_groups_condition():
+    from zabbix_autodiscovery.classifier import service_groups
+    dev = Device("10.0.0.1", True, services=["mssql", "smb", "kerberos", "nope"])
+    assert service_groups(dev) == {"database", "file", "directory"}
