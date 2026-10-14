@@ -44,11 +44,11 @@ LATENCY = ("ICMP latency", [("latency", ["ICMP response time"])])
 
 WAN_TRAFFIC = ("Internet & WAN Traffic", [
     ("in", ["Interface wan*: Bits received", "Interface *wan*: Bits received",
-            "Interface *internet*: Bits received", "Interface *link*: Bits received",
-            "Interface a(*wan*): Bits received"]),
+            "Interface *internet*: Bits received", "Interface *net fiber*: Bits received",
+            "Interface a(*): Bits received"]),
     ("out", ["Interface wan*: Bits sent", "Interface *wan*: Bits sent",
-             "Interface *internet*: Bits sent", "Interface *link*: Bits sent",
-             "Interface a(*wan*): Bits sent"]),
+             "Interface *internet*: Bits sent", "Interface *net fiber*: Bits sent",
+             "Interface a(*): Bits sent"]),
 ])
 SDWAN_QUALITY = ("SD-WAN Latency & Jitter", [
     ("latency", ["SD-WAN *: Latency", "*SLA*: Latency"]),
@@ -75,11 +75,6 @@ LAYOUTS = {
                                                  ("tunnels", ["*Active IPsec VPN tunnels*"]),
                                                  ("users", ["*Active SSL VPN users*"])]),
                               ERRORS]},
-    "links": {"table": [ICMP,
-                        ("SD-WAN Status", r"sd-wan.*(health check state|state)", "value"),
-                        ("Active sessions", r"active sessions|session|sess[oõ]es", "value"),
-                        UPTIME],
-              "graphs": [WAN_TRAFFIC, SDWAN_QUALITY, SDWAN_LOSS, LATENCY]},
     "access-points": {"table": [ICMP, LOSS, ("Clients", r"client|station|associated", "value"), CPU,
                                 ("CPU Load (1m)", r"load average \(1m avg\)", "value"), MEM, UPTIME],
                       "graphs": [TRAFFIC, ("Clients", [("clients", ["*lient*", "*tation*"])]), CPU_MEM, LATENCY]},

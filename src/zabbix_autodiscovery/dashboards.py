@@ -21,15 +21,36 @@ TRAFFIC_OUT = {"re": r"/Bits sent/"}
 ERRORS = {"re": r"/packets with errors/i"}
 UPTIME = {"re": r"/uptime/i"}
 SUPPLIES = {"zbx": "*oner*", "re": r"/(toner|cartridge|supply|ink|drum|marker)/i"}
-WAN_IN = {"re": r"/interface.*(wan|internet|link|uplink|sd-?wan).*: bits received/i"}
-WAN_OUT = {"re": r"/interface.*(wan|internet|link|uplink|sd-?wan).*: bits sent/i"}
-WAN_STATUS = {"re": r"/interface.*(wan|internet|link|uplink).*: operational status/i"}
+WAN_RE = r"interface\s+(?!fortilink|loopback)(wan\d*|uplink\d*|internet\d*|a\([^)]*(wan|internet|net\s*fiber|mbps|ligga|its|easy|america|mega)[^)]*\))"
+WAN_IN = {"re": f"/{WAN_RE}.*: bits received/i"}
+WAN_OUT = {"re": f"/{WAN_RE}.*: bits sent/i"}
+WAN_STATUS = {"re": f"/{WAN_RE}.*: operational status/i"}
 SDWAN_LATENCY = {"re": r"/(sd-wan|sla).*(latency|jitter)/i"}
 SDWAN_LOSS = {"re": r"/(sd-wan|sla).*(loss|packet)/i"}
 
 UP_DOWN = [{"type": "value", "options": {"0": {"text": "DOWN", "color": "red"},
                                          "1": {"text": "UP", "color": "green"}}}]
 RED_GREEN = [{"color": "red", "value": None}, {"color": "green", "value": 1}]
+
+OPER_STATUS_MAP = [
+    {
+        "type": "value",
+        "options": {
+            "1": {"text": "UP", "color": "green", "index": 0},
+            "2": {"text": "DOWN", "color": "red", "index": 1},
+            "3": {"text": "TESTING", "color": "yellow", "index": 2},
+            "4": {"text": "UNKNOWN", "color": "orange", "index": 3},
+            "5": {"text": "DORMANT", "color": "blue", "index": 4},
+            "6": {"text": "NOT PRESENT", "color": "dark-grey", "index": 5},
+            "7": {"text": "DOWN", "color": "red", "index": 6},
+        },
+    }
+]
+OPER_STATUS_STEPS = [
+    {"color": "red", "value": None},
+    {"color": "green", "value": 1},
+    {"color": "red", "value": 2},
+]
 
 
 def network_panels(extra=()):
@@ -63,26 +84,23 @@ SPECS = [
     {"key": "routers", "title": "Routers", "categories": ["router"], "panels": network_panels([
         {"kind": "series", "title": "Temperature", "unit": "celsius", **TEMP},
     ])},
-    {"key": "firewalls", "title": "Firewalls", "categories": ["firewall"], "panels": network_panels([
-        {"kind": "series", "title": "Internet Links / WAN Inbound Traffic", "unit": "bps", "top": 10, **WAN_IN},
-        {"kind": "series", "title": "Internet Links / WAN Outbound Traffic", "unit": "bps", "top": 10, **WAN_OUT},
-        {"kind": "stat", "title": "WAN Links Operational Status", "per_item": True, "w": 24, "mappings": UP_DOWN,
-         "steps": RED_GREEN, **WAN_STATUS},
+    {"key": "firewalls", "title": "Firewalls", "categories": ["firewall"], "panels": [
+        {"kind": "problems"},
+        {"kind": "availability"},
+        {"kind": "wan_status", "title": "WAN Links Operational Status", **WAN_STATUS},
+        {"kind": "wan_traffic", "title": "Internet Links / WAN Inbound Traffic", "unit": "bps", "top": 10, **WAN_IN},
+        {"kind": "wan_traffic", "title": "Internet Links / WAN Outbound Traffic", "unit": "bps", "top": 10, **WAN_OUT},
         {"kind": "series", "title": "SD-WAN Links Latency & Jitter", "unit": "s", **SDWAN_LATENCY},
         {"kind": "series", "title": "SD-WAN Links Packet Loss", "unit": "percent", **SDWAN_LOSS},
+        {"kind": "gauge", "title": "CPU", **CPU},
+        {"kind": "gauge", "title": "Memory", **MEM},
         {"kind": "series", "title": "Active sessions", "re": r"/session/i"},
         {"kind": "series", "title": "VPN / tunnels", "re": r"/(vpn|tunnel)/i"},
-    ])},
-    {"key": "links", "title": "Internet links & SD-WAN", "categories": ["firewall", "router"], "panels": [
-        {"kind": "problems"},
-        {"kind": "stat", "title": "WAN Links Operational Status", "per_item": True, "w": 24, "mappings": UP_DOWN,
-         "steps": RED_GREEN, **WAN_STATUS},
-        {"kind": "series", "title": "Internet Links / WAN Inbound Traffic", "unit": "bps", "top": 10, **WAN_IN},
-        {"kind": "series", "title": "Internet Links / WAN Outbound Traffic", "unit": "bps", "top": 10, **WAN_OUT},
-        {"kind": "series", "title": "SD-WAN Links Latency & Jitter", "unit": "s", **SDWAN_LATENCY},
-        {"kind": "series", "title": "SD-WAN Links Packet Loss", "unit": "percent", **SDWAN_LOSS},
+        {"kind": "series", "title": "Inbound traffic (all interfaces)", "unit": "bps", "top": 10, **TRAFFIC_IN},
+        {"kind": "series", "title": "Outbound traffic (all interfaces)", "unit": "bps", "top": 10, **TRAFFIC_OUT},
+        {"kind": "series", "title": "Interface errors (top 10)", "top": 10, **ERRORS},
         {"kind": "latency"},
-        {"kind": "series", "title": "VPN / tunnels", "re": r"/(vpn|tunnel)/i"},
+        {"kind": "stat", "title": "Uptime", "unit": "s", **UPTIME},
     ]},
     {"key": "access-points", "title": "Access points", "categories": ["ap"], "panels": network_panels([
         {"kind": "series", "title": "CPU Load average", "re": r"/load average/i"},
@@ -231,6 +249,22 @@ def _top(n):
     }
 
 
+def _replace_alias(regexp, new_alias):
+    return {
+        "def": {
+            "name": "replaceAlias",
+            "category": "Alias",
+            "params": [
+                {"name": "regexp", "type": "string"},
+                {"name": "newAlias", "type": "string"},
+            ],
+            "defaultParams": ["/(.*)/", "$1"],
+        },
+        "params": [regexp, new_alias],
+        "text": f"replaceAlias({regexp}, {new_alias})",
+    }
+
+
 def _problems(title, tags="", min_severity=1):
     return {"type": "alexanderzobnin-zabbix-triggers-panel", "title": title, "datasource": DS,
             "targets": [{"refId": "A", "queryType": "5", "datasource": DS,
@@ -245,18 +279,20 @@ def _problems(title, tags="", min_severity=1):
                         "showTags": True, "pageSize": 10}}
 
 
-def _stat(title, item, unit=None, mappings=None, steps=None, per_item=False):
-    label = "$__zbx_host_name: $__zbx_item" if per_item else "$__zbx_host_name"
+def _stat(title, item, unit=None, mappings=None, steps=None, per_item=False, wide=True, functions=None):
+    if functions is None:
+        label = "$__zbx_host_name: $__zbx_item" if per_item else "$__zbx_host_name"
+        functions = [_alias(label)]
     defaults = {"mappings": mappings or []}
     if unit:
         defaults["unit"] = unit
     if steps:
         defaults["thresholds"] = {"mode": "absolute", "steps": steps}
     return {"type": "stat", "title": title, "datasource": DS,
-            "targets": [_target(item, [_alias(label)])],
+            "targets": [_target(item, functions)],
             "options": {"reduceOptions": {"calcs": ["lastNotNull"], "values": False, "fields": ""},
                         "colorMode": "background", "graphMode": "none", "textMode": "value_and_name",
-                        "orientation": "auto", "wideLayout": True},
+                        "orientation": "auto", "wideLayout": wide},
             "fieldConfig": {"defaults": defaults, "overrides": []}}
 
 
@@ -284,6 +320,28 @@ def _grafana_panel(p, spec_title):
         return _problems(f"Problems - {spec_title}", min_severity=p.get("min_severity", 1)), 24, 8
     if kind == "availability":
         return _stat("Availability (ICMP)", "ICMP ping", mappings=UP_DOWN, steps=RED_GREEN), 24, 6
+    if kind == "wan_status":
+        fns = [
+            _alias("$__zbx_host_name: $__zbx_item"),
+            _replace_alias(r"/^(?:Interface\s+)?([^:]+):\s+Operational status$/i", "$__zbx_host_name - $1"),
+        ]
+        return _stat(p["title"], p["re"], mappings=OPER_STATUS_MAP, steps=OPER_STATUS_STEPS,
+                     per_item=True, wide=False, functions=fns), p.get("w", 24), p.get("h", 6)
+    if kind == "wan_traffic":
+        fns = [
+            _alias("$__zbx_host_name: $__zbx_item"),
+            _replace_alias(r"/^(?:Interface\s+)?([^:]+):\s+Bits (?:received|sent)$/i", "$__zbx_host_name - $1"),
+        ]
+        if p.get("top"):
+            fns.append(_top(p["top"]))
+        defaults = {"unit": p.get("unit", "bps")}
+        return {
+            "type": "timeseries", "title": p["title"], "datasource": DS,
+            "targets": [_target(p["re"], fns)],
+            "fieldConfig": {"defaults": defaults, "overrides": []},
+            "options": {"legend": {"displayMode": "table", "placement": "right", "calcs": ["mean", "max"]},
+                        "tooltip": {"mode": "multi", "sort": "desc"}},
+        }, p.get("w", 12), p.get("h", 8)
     if kind == "agent_missing":
         return _problems("Servers without Zabbix agent", tags="agent:missing"), p.get("w", 24), 7
     if kind == "agent_status":
