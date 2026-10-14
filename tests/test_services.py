@@ -93,10 +93,10 @@ def test_checked_services_and_template_names(example_config):
     assert services.checked_services(found, {"service_checks": ["file"]}) == ["smb"]
     assert services.checked_services(found, {"service_checks": False}) == []
     assert services.template_name("smtp", 25) == "AutoDiscovery - Service SMTP"
-    assert services.template_name("smtp", 587) == "AutoDiscovery - Service SMTP (TCP 587)"
+    assert services.template_name("smtp", 587) == "AutoDiscovery - Service SMTP - TCP 587"
     assert services.check_port("smtp", [587, 443]) == 587
     row = {"services": "smtp,ssh", "ports": "22,587"}
-    assert service_template_names(example_config, row) == ["AutoDiscovery - Service SMTP (TCP 587)"]
+    assert service_template_names(example_config, row) == ["AutoDiscovery - Service SMTP - TCP 587"]
 
 
 def test_service_template_checks_the_right_port():
@@ -107,5 +107,14 @@ def test_service_template_checks_the_right_port():
     item = api.created("item.create")[0]
     trigger = api.created("trigger.create")[0]
     assert item["key_"] == "net.tcp.service.perf[tcp,,587]"
-    assert re.search(r"/AutoDiscovery - Service SMTP \(TCP 587\)/net\.tcp\.service\.perf\[tcp,,587\]",
+    assert re.search(r"/AutoDiscovery - Service SMTP - TCP 587/net\.tcp\.service\.perf\[tcp,,587\]",
                      trigger["expression"])
+
+
+def test_all_catalog_template_names_are_valid_zabbix_hosts():
+    for name, _, _, ports, _ in services.CATALOG:
+        for port in [None] + ports:
+            tname = services.template_name(name, port)
+            assert re.fullmatch(r"[0-9A-Za-z ._-]+", tname), f"Invalid Zabbix template host: {tname}"
+            assert "(" not in tname and ")" not in tname
+            assert "/" not in tname and "\\" not in tname

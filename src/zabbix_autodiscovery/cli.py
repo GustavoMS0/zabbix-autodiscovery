@@ -232,16 +232,19 @@ def cmd_apply(cfg, args):
         raise SystemExit("No rows with action=add in the CSV.")
 
     api = connect(cfg)
-    if not args.dry_run and any(provision.AGENT_TEMPLATE in r.get("templates", "") for r in rows):
-        provision.ensure_agent_template(api)
-    if not args.dry_run:
-        templates.ensure_addons(api, all_addons(cfg))
-        ensure_service_templates(api, cfg, rows)
-    tmpl_map = api.template_ids()
-    tmpl_names = {v: k for k, v in tmpl_map.items()}
     interfaces = api.call("hostinterface.get", {"output": ["ip", "dns"]})
     existing_ips = {i["ip"] for i in interfaces if i["ip"]}
     existing_dns = {i["dns"].lower() for i in interfaces if i["dns"]}
+    to_add = [r for r in rows if r["ip"].strip() not in existing_ips
+              and (not r.get("dns") or r["dns"].strip().lower() not in existing_dns)]
+
+    if not args.dry_run and any(provision.AGENT_TEMPLATE in r.get("templates", "") for r in to_add):
+        provision.ensure_agent_template(api)
+    if not args.dry_run:
+        templates.ensure_addons(api, all_addons(cfg))
+        ensure_service_templates(api, cfg, to_add)
+    tmpl_map = api.template_ids()
+    tmpl_names = {v: k for k, v in tmpl_map.items()}
     all_hosts = api.call("host.get", {"output": ["host", "name"]})
     existing_names = {h["host"].lower() for h in all_hosts}
     existing_visible = {h["name"].lower() for h in all_hosts}
@@ -634,10 +637,14 @@ def service_template_names(cfg, row):
 
 
 def ensure_service_templates(api, cfg, rows):
+    ensured = set()
     for row in rows:
         open_ports = [int(p) for p in (row.get("ports") or "").split(",") if p.strip().isdigit()]
         for s in services.checked_services(services.parse(row.get("services")), cfg):
-            services.ensure_service_template(api, s, services.check_port(s, open_ports))
+            port = services.check_port(s, open_ports)
+            if (s, port) not in ensured:
+                services.ensure_service_template(api, s, port)
+                ensured.add((s, port))
 
 
 def cmd_services(cfg, args):
