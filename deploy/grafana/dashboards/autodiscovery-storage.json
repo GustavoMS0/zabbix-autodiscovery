@@ -375,7 +375,7 @@
             "filter": ""
           },
           "item": {
-            "filter": "/CPU utilization/i"
+            "filter": "/((cpu|processor).*(utilization|usage)|utiliza[cç][aã]o.*cpu|load average)/i"
           },
           "functions": [
             {
@@ -561,7 +561,7 @@
             "filter": ""
           },
           "item": {
-            "filter": "/temperature/i"
+            "filter": "/temp(erature)?|temperatura/i"
           },
           "functions": [
             {
