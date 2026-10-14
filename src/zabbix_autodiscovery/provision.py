@@ -8,14 +8,17 @@ from itertools import product
 
 from . import dashboards, scanner, zbxdash
 from .classifier import as_list
-from .config import category_groups, default_community, in_networks
-from .zabbix_api import ZabbixError
+from .config import category_groups, default_community, in_networks, rule_action
+from .zabbix_api import SECRET, ZabbixError
 
 PREFIX = "AutoDiscovery - "
 AGENT_TEMPLATE = f"{PREFIX}Zabbix agent missing"
 AGENT_PORT_KEY = "net.tcp.service[tcp,,10050]"
 AGENT_PING_KEY = "icmpping[,2]"      # differs from "icmpping" so it never clashes with other templates
 TEMPLATE_GROUP = "Templates/AutoDiscovery"
+# API methods the Grafana Zabbix data source needs (read-only). Everything else is denied (api.mode 1 = allow list).
+GRAFANA_API_METHODS = ["*.get", "apiinfo.version", "user.login", "user.logout", "user.checkAuthentication",
+                       "sla.getsli"]
 
 
 def resolve_templates(spec, tmpl_map):
@@ -127,9 +130,10 @@ def setup_grafana_user(api, cfg, log=print):
     if not g.get("username") or not g.get("password"):
         log("- grafana_user not configured, skipped")
         return
-    # Own role with API access: on Zabbix 8.0 new roles have API access disabled by default
+    # Own role with API access: on Zabbix 8.0 new roles have API access disabled by default.
+    # Only the read methods Grafana uses are allowed (api.mode 1 = allow list), so the account cannot write.
     role_name = f"{PREFIX}Grafana read-only"
-    rules = {"api.access": 1, "api.mode": 0, "api": []}
+    rules = {"api.access": 1, "api.mode": 1, "api": list(GRAFANA_API_METHODS)}
     role = api.call("role.get", {"output": ["roleid"], "filter": {"name": role_name}})
     if role:
         roleid = role[0]["roleid"]
@@ -208,17 +212,19 @@ def setup_native_discovery(api, cfg, force=False, log=print):
     dcheckid = next(d["dcheckid"] for d in rule["dchecks"] if d["key_"] == scanner.SYS_OBJECTID)
     log(f"- discovery rule '{name}' ({iprange}) ready")
 
-    old = api.call("action.get", {"output": ["actionid"], "filter": {"eventsource": 1},
-                                  "search": {"name": PREFIX}, "startSearch": True})
-    if old:
-        api.call("action.delete", [a["actionid"] for a in old])
+    # Existing actions are updated in place and only the stale ones are deleted at the end, so a failure
+    # halfway never leaves the discovery rule without its actions.
+    old = {a["name"]: a["actionid"] for a in api.call(
+        "action.get", {"output": ["actionid", "name"], "filter": {"eventsource": 1},
+                       "search": {"name": PREFIX}, "startSearch": True})}
+    kept = set()
 
     excludes = [zabbix_iprange(e) for e in cfg["scan"].get("exclude", [])]
     tmpl_map = api.template_ids()
-    created = 0
+    created = updated = 0
     for r in cfg.get("rules", []):
         prefixes = [p for c in as_list(r["match"]) for p in as_list(c.get("sysobjectid_prefix"))]
-        if not prefixes or r.get("action") != "add":
+        if not prefixes or rule_action(r) != "add":
             continue
         ids = _formula_ids()
         conds, fixed, alts = [], [], []
@@ -246,13 +252,20 @@ def setup_native_discovery(api, cfg, force=False, log=print):
                {"operationtype": 10, "opinventory": {"inventory_mode": 1}}]
         if template_ids:
             ops.append({"operationtype": 6, "optemplate": [{"templateid": t} for t in template_ids]})
-        api.call("action.create", {
-            "name": PREFIX + r["name"], "eventsource": 1, "status": 0,
-            "filter": {"evaltype": 3, "formula": formula, "conditions": conds},
-            "operations": ops,
-        })
-        created += 1
-    log(f"- {created} discovery actions created (prefix '{PREFIX}')")
+        action_name = PREFIX + r["name"]
+        params = {"status": 0, "filter": {"evaltype": 3, "formula": formula, "conditions": conds},
+                  "operations": ops}
+        if action_name in old:
+            api.call("action.update", {"actionid": old[action_name], **params})
+            kept.add(old[action_name])
+            updated += 1
+        else:
+            api.call("action.create", {"name": action_name, "eventsource": 1, **params})
+            created += 1
+    stale = [aid for aid in old.values() if aid not in kept]
+    if stale:
+        api.call("action.delete", stale)
+    log(f"- discovery actions (prefix '{PREFIX}'): {created} created, {updated} updated, {len(stale)} removed")
 
 
 def setup(api, cfg, native_discovery=False, force=False, zabbix_dashboards=True, rebuild_dashboards=False,
@@ -262,9 +275,12 @@ def setup(api, cfg, native_discovery=False, force=False, zabbix_dashboards=True,
 
     community = default_community(cfg)
     if community:
-        current = api.ensure_global_macro("{$SNMP_COMMUNITY}", community)
+        current = api.ensure_global_macro("{$SNMP_COMMUNITY}", community, secret=True)
         if current == community:
-            log("- global macro {$SNMP_COMMUNITY} ok")
+            log("- global macro {$SNMP_COMMUNITY} ok (secret)")
+        elif current == SECRET:
+            log("- global macro {$SNMP_COMMUNITY} already exists as a secret macro: kept "
+                "(its value cannot be read; it is assumed to be the config's community)")
         else:
             log("- global macro {$SNMP_COMMUNITY} already exists with another value: kept; "
                 "new hosts get the community as a host macro")

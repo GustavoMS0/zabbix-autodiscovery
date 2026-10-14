@@ -8,6 +8,15 @@ class ZabbixError(Exception):
     pass
 
 
+SECRET = "\0secret"             # global_macro() value of a secret macro (the API never returns it)
+MACRO_TEXT, MACRO_SECRET = 0, 1  # usermacro "type"; secret macros exist since Zabbix 5.0
+
+
+def _snippet(resp, size=200):
+    """Start of a response body for error messages (e.g. an HTML error page from a proxy)."""
+    return " ".join(str(getattr(resp, "text", "") or "")[:size].split())
+
+
 class ZabbixAPI:
     MAX_ATTEMPTS = 3
     BACKOFF = 1.0          # seconds, doubled at each retry
@@ -71,8 +80,15 @@ class ZabbixAPI:
             if resp.status_code in retry_status and not last:
                 time.sleep(self.BACKOFF * (2 ** attempt))
                 continue
-            resp.raise_for_status()
-            body = resp.json()
+            if resp.status_code >= 400:
+                raise ZabbixError(f"{method}: HTTP {resp.status_code} from {self.url}: {_snippet(resp)!r}")
+            try:
+                body = resp.json()
+            except ValueError as exc:
+                raise ZabbixError(f"{method}: invalid (non-JSON) response from {self.url} "
+                                  f"(HTTP {resp.status_code}): {_snippet(resp)!r}") from exc
+            if not isinstance(body, dict):
+                raise ZabbixError(f"{method}: unexpected response from {self.url} (HTTP {resp.status_code})")
             if "error" in body:
                 err = body["error"]
                 raise ZabbixError(f"{method}: {err.get('message')} {err.get('data', '')}".strip())
@@ -106,17 +122,35 @@ class ZabbixAPI:
             result[t["name"]] = t["templateid"]
         return result
 
-    def global_macro(self, macro):
+    def _global_macro(self, macro):
         found = self.call("usermacro.get", {"globalmacro": True, "filter": {"macro": macro},
-                                            "output": ["globalmacroid", "value"]})
+                                            "output": ["globalmacroid", "value", "type"]})
+        return found[0] if found else None
+
+    @staticmethod
+    def _is_secret(found):
+        return str(found.get("type", MACRO_TEXT)) == str(MACRO_SECRET) or "value" not in found
+
+    def global_macro(self, macro):
+        """Current value, None when missing, SECRET for a secret macro (the API does not return its value)."""
+        found = self._global_macro(macro)
         if not found:
             return None
-        return found[0].get("value", "\0secret")   # secret macro: the API does not return the value
+        return SECRET if self._is_secret(found) else found["value"]
 
-    def ensure_global_macro(self, macro, value):
-        """Create the global macro if missing. Never changes an existing one. Returns the current value."""
-        current = self.global_macro(macro)
-        if current is None:
-            self.call("usermacro.createglobal", {"macro": macro, "value": value})
+    def ensure_global_macro(self, macro, value, secret=False):
+        """Create the global macro if missing (as a secret macro when secret=True). Returns the current value.
+
+        An existing macro is never changed, except that a plain-text macro holding exactly this value is
+        turned into a secret one when secret=True (same value, only hidden)."""
+        found = self._global_macro(macro)
+        if found is None:
+            self.call("usermacro.createglobal", {"macro": macro, "value": value,
+                                                 "type": MACRO_SECRET if secret else MACRO_TEXT})
             return value
-        return current
+        if self._is_secret(found):
+            return SECRET
+        if secret and found["value"] == value:
+            self.call("usermacro.updateglobal", {"globalmacroid": found["globalmacroid"],
+                                                 "type": MACRO_SECRET, "value": value})
+        return found["value"]

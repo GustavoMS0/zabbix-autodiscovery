@@ -14,12 +14,13 @@ Typical flow:
   zabbix-autodiscovery update-templates [--dry-run] [--all] # link category add-on templates to existing hosts
   zabbix-autodiscovery organize [--dry-run]                # put pre-existing hosts in their type/site groups
   zabbix-autodiscovery audit                               # read-only report: organization, duplicates, errors
-  zabbix-autodiscovery maps [--rebuild]                    # one Zabbix map per site, icon per device type
+  zabbix-autodiscovery maps [--rebuild]                    # one Zabbix map per site (interactive in the Zabbix UI)
   zabbix-autodiscovery grafana-dashboards -o ./dashboards  # optional: Grafana JSON per device type
 """
 import argparse
 import asyncio
 import csv
+import ipaddress
 import json
 import sys
 from collections import Counter
@@ -31,7 +32,6 @@ from . import (
     classifier,
     dashboards,
     exporter,
-    interactive_map,
     maps,
     noc,
     organize,
@@ -41,9 +41,18 @@ from . import (
     templates,
     web,
 )
-from .config import ConfigError, credentials_by_name, default_community, in_networks, load_config, site_for
+from .config import (
+    ConfigError,
+    credentials_by_name,
+    default_community,
+    in_networks,
+    load_config,
+    rule_action,
+    site_for,
+    write_private,
+)
 from .inventory import category_of, network_hosts
-from .zabbix_api import ZabbixAPI, ZabbixError
+from .zabbix_api import SECRET, ZabbixAPI, ZabbixError
 
 CSV_FIELDS = ["action", "note", "site", "category", "hostname", "visible_name", "name_source", "ip", "group",
               "templates", "interface", "tags", "rule", "vendor", "sysname", "netbios", "dns",
@@ -52,6 +61,7 @@ CSV_FIELDS = ["action", "note", "site", "category", "hostname", "visible_name", 
               "cert_self_signed", "ping", "agent_uname"]
 SNMP_AUTH = {"MD5": 0, "SHA": 1, "SHA256": 3, "SHA512": 5}
 SNMP_PRIV = {"DES": 0, "AES": 1, "AES256": 3}
+AGENT_SYNC_CONCURRENCY = 20
 ENV_TEMPLATE = """# Local secrets for zabbix-autodiscovery (never commit this file)
 ZABBIX_TOKEN=
 SNMP_COMMUNITY=
@@ -89,7 +99,7 @@ def cmd_init(args):
     target.write_text(example.read_text(encoding="utf-8"), encoding="utf-8")
     env = target.resolve().parent / ".env"
     if not env.exists():
-        env.write_text(ENV_TEMPLATE, encoding="utf-8")
+        write_private(env, ENV_TEMPLATE)
     print(f"Created {target} and {env.name}. Edit zabbix.url and scan.networks, put secrets in {env.name},"
           " then run: zabbix-autodiscovery check")
 
@@ -110,8 +120,13 @@ def cmd_scan(cfg, args):
             raise SystemExit(f"No networks found for site '{args.site}'")
         scan_cfg["networks"] = matching
 
-    print("Scanning:", ", ".join(scan_cfg["networks"]))
-    devices = asyncio.run(scanner.scan(scan_cfg, cfg.get("snmp_credentials", []), progress))
+    force = bool(getattr(args, "force", False))
+    try:
+        total = scanner.check_scan_size(scan_cfg, force)
+        print("Scanning:", ", ".join(scan_cfg["networks"]), f"({total} addresses)")
+        devices = asyncio.run(scanner.scan(scan_cfg, cfg.get("snmp_credentials", []), progress, force=force))
+    except ValueError as exc:
+        raise SystemExit(f"Scan not started: {exc}")
     rows = [classifier.classify(d, cfg) for d in devices]
 
     with open(args.output, "w", newline="", encoding="utf-8-sig") as f:
@@ -161,16 +176,16 @@ def build_interface(row, cfg, global_community):
     if version in ("1", "2", "2c"):
         details = {"version": 1 if version == "1" else 2, "bulk": 1, "community": "{$SNMP_COMMUNITY}"}
         if cred["community"] != global_community:
-            macros.append({"macro": "{$SNMP_COMMUNITY}", "value": cred["community"]})
+            macros.append({"macro": "{$SNMP_COMMUNITY}", "value": cred["community"], "type": 1})   # secret
     else:
         level = 2 if cred.get("priv_pass") else 1 if cred.get("auth_pass") else 0
         details = {"version": 3, "bulk": 1, "contextname": "", "securityname": cred["user"],
                    "securitylevel": level}
         if level >= 1:
-            details["authprotocol"] = SNMP_AUTH[cred.get("auth_protocol", "SHA").upper()]
+            details["authprotocol"] = SNMP_AUTH[scanner.snmp_protocol(cred, "auth")]
             details["authpassphrase"] = cred["auth_pass"]
         if level == 2:
-            details["privprotocol"] = SNMP_PRIV[cred.get("priv_protocol", "AES").upper()]
+            details["privprotocol"] = SNMP_PRIV[scanner.snmp_protocol(cred, "priv")]
             details["privpassphrase"] = cred["priv_pass"]
     return {**base, "type": 2, "port": "161", "details": details}, macros
 
@@ -231,6 +246,10 @@ def cmd_apply(cfg, args):
     existing_names = {h["host"].lower() for h in all_hosts}
     existing_visible = {h["name"].lower() for h in all_hosts}
     global_community = api.global_macro("{$SNMP_COMMUNITY}")
+    if global_community == SECRET:
+        # Secret macro (created by setup): its value cannot be read back; assume it holds the config's
+        # default community, so only hosts using another community get a (secret) host macro.
+        global_community = default_community(cfg)
     site_group = cfg.get("site_group", "Sites/{site}")
     proxies = ProxyResolver(api)
     stats = Counter()
@@ -325,11 +344,29 @@ def cmd_apply(cfg, args):
 
 # ---------------------------------------------------------------- agent-sync
 
+async def probe_agents(ips, timeout, limit=AGENT_SYNC_CONCURRENCY):
+    """ip -> (system.uname, agent.hostname) for every IP, at most `limit` hosts probed at a time."""
+    sem = asyncio.Semaphore(max(1, limit))
+
+    async def one(ip):
+        async with sem:
+            uname = await scanner.agent_get(ip, "system.uname", timeout)
+            return ip, (uname, await scanner.agent_get(ip, "agent.hostname", timeout) if uname else "")
+
+    return dict(await asyncio.gather(*(one(ip) for ip in ips)))
+
+
+def is_duplicate_key_error(exc):
+    """host.update failed because an item key would be inherited twice (e.g. ICMP from two templates)."""
+    msg = str(exc).lower()
+    return "key" in msg and any(w in msg for w in ("already exists", "cannot inherit", "duplicate", "is used"))
+
+
 def cmd_agent_sync(cfg, args):
     """Hosts tagged agent=missing: when the agent now answers, link the agent templates."""
     api = connect(cfg)
     hosts = api.call("host.get", {
-        "output": ["hostid", "host"],
+        "output": ["hostid", "host", "name"],
         "tags": [{"tag": "agent", "value": "missing", "operator": 1}],
         "selectInterfaces": ["interfaceid", "type", "ip", "main", "available"],
         "selectParentTemplates": ["templateid", "host"],
@@ -341,13 +378,15 @@ def cmd_agent_sync(cfg, args):
         return
     tmpl_map = api.template_ids()
     timeout = float(cfg["scan"].get("timeout", 2))
+    host_ip = {h["hostid"]: next((i["ip"] for i in h["interfaces"] if i["ip"]), None) for h in hosts}
+    answers = asyncio.run(probe_agents(sorted({ip for ip in host_ip.values() if ip}), timeout))
     pending = []
+    stats = Counter()
     for h in hosts:
-        ip = next((i["ip"] for i in h["interfaces"] if i["ip"]), None)
+        ip = host_ip[h["hostid"]]
         if not ip:
             continue
-        uname = asyncio.run(scanner.agent_get(ip, "system.uname", timeout))
-        agent_hostname = asyncio.run(scanner.agent_get(ip, "agent.hostname", timeout)) if uname else ""
+        uname, agent_hostname = answers.get(ip, ("", ""))
         if not uname:
             # the agent may only allow the Zabbix server (Server=): use what Zabbix already collected
             zitems = {i["key_"]: i["lastvalue"] for i in h.get("items", [])}
@@ -370,32 +409,82 @@ def cmd_agent_sync(cfg, args):
 
         if args.dry_run:
             print(f"  + {h['host']} ({ip}): would link {row['templates']} (dry-run)")
+            stats["planned"] += 1
             continue
-        if not any(i["type"] == "1" for i in h["interfaces"]):
-            api.call("hostinterface.create", {"hostid": h["hostid"], "type": 1, "main": 1, "useip": 1,
-                                              "ip": ip, "dns": "", "port": "10050"})
-        update = {"hostid": h["hostid"], "tags": tags,
-                  "templates_clear": [{"templateid": agent_tid}] if agent_tid else []}
-        # Active checks require the technical host name to equal the agent's Hostname=
-        if dev.agent_hostname and dev.agent_hostname != h["host"]:
-            if api.call("host.get", {"output": ["hostid"], "filter": {"host": dev.agent_hostname}}):
-                print(f"  ! {h['host']}: agent Hostname= ('{dev.agent_hostname}') is used by another host")
-            else:
-                update["host"] = dev.agent_hostname
-                update["name"] = h["host"]
         try:
-            linked = dict.fromkeys(current + new_ids)          # keep order, no duplicates
-            api.call("host.update", {**update, "templates": [{"templateid": t} for t in linked]})
-        except ZabbixError:
-            # duplicate item key (e.g. ICMP already comes from an SNMP template): retry without it
-            ids = [t for t in new_ids if t != tmpl_map.get("ICMP Ping")]
-            api.call("host.update", {**update, "templates": [{"templateid": t} for t in dict.fromkeys(current + ids)]})
+            sync_agent_host(api, h, ip, dev, current, new_ids, tags, agent_tid, tmpl_map.get("ICMP Ping"))
+        except ZabbixError as exc:          # one failing host never aborts the others
+            print(f"  x {h['host']} ({ip}): {exc}")
+            stats["error"] += 1
+            continue
         print(f"  + {h['host']} ({ip}): agent detected, agent templates linked")
+        stats["linked"] += 1
     if pending:
         print(f"\nStill without agent ({len(pending)}): " + ", ".join(pending))
+    if stats:
+        print("\nSummary:", ", ".join(f"{k}={v}" for k, v in sorted(stats.items())))
+
+
+def sync_agent_host(api, h, ip, dev, current, new_ids, tags, agent_tid, icmp_tid):
+    if not any(i["type"] == "1" for i in h["interfaces"]):
+        api.call("hostinterface.create", {"hostid": h["hostid"], "type": 1, "main": 1, "useip": 1,
+                                          "ip": ip, "dns": "", "port": "10050"})
+    update = {"hostid": h["hostid"], "tags": tags,
+              "templates_clear": [{"templateid": agent_tid}] if agent_tid else []}
+    # Active checks require the technical host name to equal the agent's Hostname=
+    if dev.agent_hostname and dev.agent_hostname != h["host"]:
+        if api.call("host.get", {"output": ["hostid"], "filter": {"host": dev.agent_hostname}}):
+            print(f"  ! {h['host']}: agent Hostname= ('{dev.agent_hostname}') is used by another host")
+        else:
+            update["host"] = dev.agent_hostname
+            update["name"] = h.get("name") or h["host"]      # keep the visible name the users know
+    linked = dict.fromkeys(current + new_ids)                # keep order, no duplicates
+    try:
+        api.call("host.update", {**update, "templates": [{"templateid": t} for t in linked]})
+    except ZabbixError as exc:
+        if not (icmp_tid in new_ids and is_duplicate_key_error(exc)):
+            raise
+        # duplicate item key (e.g. ICMP already comes from an SNMP template): retry without ICMP Ping
+        ids = [t for t in new_ids if t != icmp_tid]
+        api.call("host.update", {**update, "templates": [{"templateid": t} for t in dict.fromkeys(current + ids)]})
 
 
 # ---------------------------------------------------------------- check (read-only)
+
+def address_span(text):
+    """(first, last) integer address of a config network or of one Zabbix iprange entry, None if unparsable.
+
+    Accepts CIDR, a single IP, 'a.b.c.d-a.b.c.e', and Zabbix's octet ranges ('192.168.1-10.1-254',
+    taken as their bounding interval)."""
+    text = str(text).strip()
+    try:
+        if "/" in text:
+            net = ipaddress.ip_network(text, strict=False)
+            return int(net.network_address), int(net.broadcast_address)
+        if "-" not in text:
+            addr = int(ipaddress.ip_address(text))
+            return addr, addr
+        start, end = (p.strip() for p in text.split("-", 1))
+        if ":" not in text and end.count(".") == 3:              # full 'a.b.c.d-a.b.c.e' range
+            return int(ipaddress.ip_address(start)), int(ipaddress.ip_address(end))
+        if ":" in text:
+            return None
+        octets = text.split(".")
+        if len(octets) != 4:
+            return None
+        low = ".".join(o.split("-")[0] for o in octets)
+        high = ".".join(o.split("-")[-1] for o in octets)
+        return int(ipaddress.ip_address(low)), int(ipaddress.ip_address(high))
+    except ValueError:
+        return None
+
+
+def ranges_overlap(networks, iprange):
+    """True if any config network overlaps any entry of a Zabbix discovery rule iprange."""
+    ours = [s for s in (address_span(n) for n in networks) if s]
+    theirs = [s for s in (address_span(r) for r in str(iprange or "").split(",") if r.strip()) if s]
+    return any(a[0] <= b[1] and b[0] <= a[1] for a in ours for b in theirs)
+
 
 def cmd_check(cfg, args):
     """Validate connection, permissions and what setup/apply would do, without changing anything."""
@@ -423,7 +512,7 @@ def cmd_check(cfg, args):
 
     existing = {g["name"] for g in groups}
     wanted = sorted({r["group"] for r in cfg.get("rules", [])
-                     if r.get("group") and r.get("action") in ("add", "review")})
+                     if r.get("group") and rule_action(r) in ("add", "review")})
     new_groups = [g for g in wanted if g not in existing]
     print(f"- host groups: {len(wanted) - len(new_groups)} exist, {len(new_groups)} would be created"
           + (f": {', '.join(new_groups)}" if new_groups else ""))
@@ -431,7 +520,7 @@ def cmd_check(cfg, args):
     tmpl_map = api.template_ids()
     missing = set()
     for r in cfg.get("rules", []):
-        if r.get("action") != "ignore":
+        if rule_action(r) != "ignore":
             _, miss = provision.resolve_templates(",".join(classifier.as_list(r.get("templates"))), tmpl_map)
             missing.update(m for m in miss if m != provision.AGENT_TEMPLATE)
     if missing:
@@ -445,7 +534,9 @@ def cmd_check(cfg, args):
 
     macro = api.global_macro("{$SNMP_COMMUNITY}")
     if macro is None:
-        print("- macro {$SNMP_COMMUNITY}: missing, setup would create it")
+        print("- macro {$SNMP_COMMUNITY}: missing, setup would create it (as a secret macro)")
+    elif macro == SECRET:
+        print("- macro {$SNMP_COMMUNITY}: exists as a secret macro (value not readable, assumed to match)")
     elif macro == default_community(cfg):
         print("- macro {$SNMP_COMMUNITY}: exists with the same value as the config")
     else:
@@ -456,8 +547,7 @@ def cmd_check(cfg, args):
                 if i["ip"] and in_networks(networks, i["ip"])}
     print(f"- {len(in_range)} IPs in these networks are already monitored (apply will skip them)")
     drules = api.call("drule.get", {"output": ["name", "iprange"]})
-    overlapping = [d["name"] for d in drules if any(n.split("/")[0].rsplit(".", 1)[0] in d["iprange"]
-                                                    for n in networks)]
+    overlapping = [d["name"] for d in drules if ranges_overlap(networks, d["iprange"])]
     if overlapping:
         print(f"- existing discovery rules covering these networks: {', '.join(overlapping)} "
               "(avoid also enabling --native-discovery on the same ranges)")
@@ -613,8 +703,9 @@ def cmd_setup(cfg, args):
 
 
 def cmd_web(cfg, args):
-    if not (cfg.get("web") or {}).get("certificates", {}).get("sites") and \
-            not (cfg.get("web") or {}).get("domains", {}).get("list") and not args.input:
+    webcfg = cfg.get("web") or {}
+    if not (webcfg.get("certificates") or {}).get("sites") and \
+            not (webcfg.get("domains") or {}).get("list") and not args.input:
         raise SystemExit("Nothing to do: add web.certificates.sites and/or web.domains.list to the config")
     extra = web.sites_from_inventory(read_inventory(args.input)) if args.input else []
     api = connect(cfg)
@@ -665,6 +756,9 @@ def cmd_export(cfg, args):
 # ---------------------------------------------------------------- noc
 
 def cmd_dependencies(cfg, args):
+    print(noc.DEPENDENCIES_WARNING + "\n")
+    if not args.dry_run and not getattr(args, "yes", False):
+        raise SystemExit("Nothing changed. Review the plan with --dry-run, then confirm with --yes.")
     api = connect(cfg)
     stats = noc.link_trigger_dependencies(api, cfg, dry_run=args.dry_run)
     print("\nSummary:", ", ".join(f"{k}={v}" for k, v in sorted(stats.items())))
@@ -680,20 +774,6 @@ def cmd_clean_unsupported(cfg, args):
     api = connect(cfg)
     stats = noc.clean_unsupported_items(api, dry_run=args.dry_run)
     print("\nSummary:", ", ".join(f"{k}={v}" for k, v in sorted(stats.items())))
-
-
-def cmd_interactive_map(cfg, args):
-    api = connect(cfg)
-    out_path = interactive_map.export_interactive_map(
-        api, cfg, output_file=args.output, selected_site=args.site
-    )
-    if args.serve:
-        interactive_map.serve_interactive_map(
-            out_path, port=args.port, open_browser=args.open
-        )
-    elif args.open:
-        import webbrowser
-        webbrowser.open(out_path.resolve().as_uri())
 
 
 # ---------------------------------------------------------------- diff
@@ -785,6 +865,8 @@ def build_parser():
     p.add_argument("--delimiter", default=";", help="CSV delimiter (default ';', Excel-friendly in most locales)")
     p.add_argument("--network", help="scan only this specific network (e.g. 192.168.0.0/24)")
     p.add_argument("--site", help="scan only networks belonging to this site name")
+    p.add_argument("--force", action="store_true",
+                   help=f"scan even more than scan.max_targets addresses (default {scanner.MAX_TARGETS}, a /16)")
     p = sub.add_parser("diff", help="compare two inventory CSV scans to detect new, removed or changed devices")
     p.add_argument("-old", "--old-file", required=True, help="previous inventory CSV file")
     p.add_argument("-new", "--new-file", required=True, help="new inventory CSV file")
@@ -833,22 +915,15 @@ def build_parser():
     p.add_argument("-o", "--output", help="destination file path (writes to stdout if omitted)")
     p.add_argument("--from-zabbix", action="store_true",
                    help="export live active hosts directly from Zabbix instead of reading a CSV scan")
-    p = sub.add_parser("dependencies", help="link trigger dependencies based on topology to prevent alert storms")
+    p = sub.add_parser("dependencies",
+                       help="trigger dependencies (switch -> single gateway, plus noc.dependencies); "
+                            "they hide child alerts, so --yes is required")
     p.add_argument("--dry-run", action="store_true", help="only show planned trigger dependencies")
+    p.add_argument("--yes", action="store_true", help="confirm: create the dependencies in Zabbix")
     p = sub.add_parser("sla", help="create Business Services tree and global 99.5%% SLA in Zabbix 8")
     p.add_argument("--dry-run", action="store_true", help="only show planned services and SLA")
     p = sub.add_parser("clean-unsupported", help="disable inactive internal collector items on Zabbix server")
     p.add_argument("--dry-run", action="store_true", help="only show items that would be disabled")
-    p = sub.add_parser("interactive-map", help="generate interactive HTML5 topology map with zoom and pan")
-    p.add_argument("-o", "--output", default="topology.html",
-                   help="destination HTML file (default: topology.html)")
-    p.add_argument("--site", help="filter topology to a specific branch/site name")
-    p.add_argument("-s", "--serve", action="store_true",
-                   help="start a local HTTP server to view the map")
-    p.add_argument("-p", "--port", type=int, default=8088,
-                   help="port for the local HTTP server (default: 8088)")
-    p.add_argument("--open", action="store_true",
-                   help="automatically open the interactive map in your default web browser")
     return parser
 
 
@@ -875,8 +950,7 @@ def main(argv=None):
                 "agent-sync": cmd_agent_sync, "web": cmd_web, "update-templates": cmd_update_templates,
                 "maps": cmd_maps, "organize": cmd_organize, "audit": cmd_audit, "services": cmd_services,
                 "grafana-dashboards": cmd_grafana_dashboards, "export": cmd_export,
-                "dependencies": cmd_dependencies, "sla": cmd_sla, "clean-unsupported": cmd_clean_unsupported,
-                "interactive-map": cmd_interactive_map}
+                "dependencies": cmd_dependencies, "sla": cmd_sla, "clean-unsupported": cmd_clean_unsupported}
     try:
         commands[args.cmd](cfg, args)
     except ZabbixError as exc:

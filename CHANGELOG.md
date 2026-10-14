@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased
+
+- Removed the standalone HTML map (`interactive-map` command, menu option 15, `--serve/--port/--open`): the tool no longer writes files outside Zabbix/Grafana. The interactive map is the native Zabbix map (`maps`) plus the frontend module `deploy/zabbix-modules/interactive_map_zoom`, now mounted read-only into the `zabbix-web` container and enabled by `maps` on Zabbix 7.0+ (failure-tolerant; `maps.enable_module: false` to skip). The module's HUD is built with `textContent` (no `innerHTML`) and no longer logs to the console.
+- Config: `${VAR}` is expanded after YAML parsing, so secrets containing `#`, starting with `&*!{` or looking like numbers are kept verbatim; invalid YAML is a clear config error.
+- `.env` files (`init`, `wizard`, `deploy/.env`) are created with mode 600 from the start.
+- `{$SNMP_COMMUNITY}` is created as a secret macro (an existing plain macro with the same value is converted); per-host community macros are secret too.
+- The Grafana read-only role only allows read API methods (`*.get`, `apiinfo.version`, `user.login/logout/checkAuthentication`, `sla.getsli`).
+- `install.sh` and the wizard's Docker install download scripts to temporary files before running them; the uv installer is pinned (`ZAD_UV_VERSION`); `ZAD_REF` documented for release tags.
+- `dependencies`: only switch → gateway for sites with a single gateway (HA pairs are skipped with a warning), no more endpoint/VM links inferred from map positions, never adds a second parent to a trigger, explicit `noc.dependencies`, prints a warning and requires `--yes` (or `--dry-run`).
+- `sla`: timezone configurable (`noc.sla_timezone`, default `America/Sao_Paulo`).
+- Rules without `action` default to `review` everywhere (`check`, host groups, dashboards, native discovery), matching the classifier.
+- Unknown SNMPv3 `auth_protocol`/`priv_protocol` is reported as a config error instead of a crash.
+- `agent-sync`: agents probed concurrently (bounded), one failing host no longer aborts the run, the ICMP retry only happens on duplicate-key errors, and the host's visible name is preserved when the technical name follows the agent's `Hostname=`.
+- `check`: discovery-rule overlap uses real address ranges (no substring false positives).
+- Non-JSON / HTTP error responses from the API become a clear `ZabbixError` with the status and the start of the body.
+- `setup --native-discovery` updates existing actions and removes stale ones only after the new ones exist.
+- `web` no longer crashes when `certificates:` or `domains:` is empty.
+- `scan` refuses more than `scan.max_targets` addresses (default 65536, a /16) unless `--force`; concurrency is capped at 256.
+- Docker deploy: Grafana Zabbix plugin pinned (`GRAFANA_ZABBIX_PLUGIN_VERSION=6.9.1`), required passwords enforced with `${VAR:?}`.
+- PyInstaller is an optional extra (`pip install -e ".[build]"`) for `build_exe.py`.
+- `contrib/modules/modern_noc_theme`: removed the duplicated root `style.css` (the manifest uses `assets/css/style.css`).
+- README.en.md synced with README.md (export, dependencies, sla, clean-unsupported, menu, interactive map inside Zabbix).
+
 ## 0.1.0 (unreleased)
 
 First public version.

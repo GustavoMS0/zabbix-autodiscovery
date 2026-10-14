@@ -6,7 +6,7 @@ import ipaddress
 import re
 import unicodedata
 
-from .config import site_for
+from .config import rule_action, site_for
 
 # IANA enterprise number from the sysObjectID -> vendor (tag and report only)
 VENDORS = {
@@ -196,7 +196,7 @@ def classify(dev, cfg):
         row.update(category=rule["category"], rule=rule["name"], group=rule.get("group", ""),
                    templates=",".join(as_list(rule.get("templates"))),
                    interface=rule.get("interface", "snmp"), tags=format_tags(rule.get("tags")),
-                   action=rule.get("action", "review"))
+                   action=rule_action(rule))
         # The rule wants SNMP but the device did not answer it (matched by ports or web banner):
         # never guess, leave the decision to the administrator.
         if row["interface"] == "snmp" and not dev.snmp and row["action"] != "ignore":

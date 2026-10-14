@@ -19,7 +19,9 @@ Passo a passo para usar o zabbix-autodiscovery em três situações. Escolha a s
 Se preferir não editar arquivos à mão, um comando instala a ferramenta e abre um assistente que cobre os cenários A, B e C:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/install.sh | bash        # Linux, por exemplo no servidor do Zabbix
+# Linux, por exemplo no servidor do Zabbix: baixe, revise (opcional) e rode
+curl -fsSL https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/install.sh -o install.sh
+bash install.sh
 ```
 
 ```powershell
@@ -28,7 +30,7 @@ irm https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/insta
 
 O assistente detecta o Zabbix local, valida o token, sugere as redes a partir dos IPs já cadastrados e dos IPs da máquina, grava `config.yaml` e `.env` e conduz `check`, `setup`, `scan` e `apply`. Num Zabbix que já tem hosts, oferece também `audit`, `organize`, templates extras e serviços. Toda alteração pede confirmação e o padrão é "não". O resto deste guia explica as mesmas etapas, para quem quer fazer manualmente.
 
-**Servidor novo (Linux):** se nenhum Zabbix responder na máquina, o assistente oferece instalar um. Ele instala o Docker pelo script oficial (get.docker.com, pede a senha do sudo) se faltar, grava `deploy/.env` com senhas aleatórias, sobe o Zabbix 8 (e o Grafana, se você quiser) com o `deploy/docker-compose.yml`, cria o token de API do Admin e troca a senha padrão do Admin. Depois segue direto para as redes e o scan, sem você precisar abrir a interface do Zabbix.
+**Servidor novo (Linux):** se nenhum Zabbix responder na máquina, o assistente oferece instalar um. Ele instala o Docker pelo script oficial (get.docker.com, baixado para um arquivo temporário antes de rodar; pede a senha do sudo) se faltar, grava `deploy/.env` com senhas aleatórias (modo 600), sobe o Zabbix (imagem fixada em `ZABBIX_TAG`, padrão `ubuntu-trunk`, build de desenvolvimento do Zabbix 8.0, já com o módulo de mapa interativo montado) e o Grafana, se você quiser, com o `deploy/docker-compose.yml`, cria o token de API do Admin e troca a senha padrão do Admin. Depois segue direto para as redes e o scan, sem você precisar abrir a interface do Zabbix.
 
 ---
 
@@ -114,7 +116,7 @@ zabbix-autodiscovery scan -o inventario.csv        # só lê a rede
 zabbix-autodiscovery apply -i inventario.csv --dry-run
 zabbix-autodiscovery apply -i inventario.csv
 zabbix-autodiscovery setup --rebuild-dashboards    # dashboards com os hosts recém-cadastrados
-zabbix-autodiscovery maps                          # um mapa por filial
+zabbix-autodiscovery maps                          # um mapa nativo por filial (+ módulo de zoom/pan no 7.0+)
 ```
 
 **5. Dashboards do Grafana.** Os dashboards que já vêm na pasta `deploy/grafana/dashboards` usam os nomes de grupo do exemplo. Se você trocou os nomes de grupo no `config.yaml`, gere-os de novo e reinicie o Grafana:

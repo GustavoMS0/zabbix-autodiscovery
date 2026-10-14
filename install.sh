@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 # zabbix-autodiscovery installer / updater for Linux and macOS (e.g. on the Zabbix server itself).
 #
-#   curl -fsSL https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/install.sh -o install.sh
+#   less install.sh        # review it
+#   bash install.sh
+#
+# (Piping it straight into bash also works, but downloading and reading it first is safer.)
 #
 # What it does: downloads the project into ~/zabbix-autodiscovery, creates a Python virtual environment,
 # installs the package and starts the interactive wizard. Running it again updates the code and keeps
@@ -10,12 +14,15 @@
 #
 # Options (environment variables):
 #   ZAD_DIR=/opt/zabbix-autodiscovery   install folder (default: ~/zabbix-autodiscovery)
-#   ZAD_REF=v0.2.0                      branch or tag (default: main)
+#   ZAD_REF=v0.2.0                      branch or tag to install (default: main). Prefer a release tag for a
+#                                       reproducible install; the archive comes from github.com over HTTPS.
+#   ZAD_UV_VERSION=0.8.0                uv version installed only if Python 3.10+ with venv is missing
 #   ZAD_NO_WIZARD=1                     install/update only, do not start the wizard
 set -euo pipefail
 
 REPO="GustavoMS0/zabbix-autodiscovery"
 REF="${ZAD_REF:-main}"
+UV_VERSION="${ZAD_UV_VERSION:-0.8.0}"
 DIR="${ZAD_DIR:-$HOME/zabbix-autodiscovery}"
 
 say() { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
@@ -43,11 +50,16 @@ printf '\033[0m\n'
 say "Downloading $REPO ($REF) into $DIR"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
-curl -fsSL "https://github.com/$REPO/archive/$REF.tar.gz" | tar -xz -C "$tmp" --strip-components=1 \
-    || die "download failed (check the internet access of this machine)"
+# Download to a file first: a truncated download is detected (curl -f / tar) before anything is extracted
+mkdir -p "$tmp/src"
+curl -fsSL --proto '=https' --tlsv1.2 -o "$tmp/source.tar.gz" "https://github.com/$REPO/archive/$REF.tar.gz" \
+    || die "download failed (check the internet access of this machine and ZAD_REF=$REF)"
+tar -tzf "$tmp/source.tar.gz" >/dev/null 2>&1 || die "the downloaded archive is invalid"
+tar -xzf "$tmp/source.tar.gz" -C "$tmp/src" --strip-components=1
+rm -f "$tmp/source.tar.gz"
 mkdir -p "$DIR"
 # config.yaml, .env, *.csv and .venv are not part of the repository, so an update never overwrites them
-(cd "$tmp" && tar -cf - .) | (cd "$DIR" && tar -xf -)
+(cd "$tmp/src" && tar -cf - .) | (cd "$DIR" && tar -xf -)
 chmod +x "$DIR/zabbix-autodiscovery.sh" 2>/dev/null || true
 cd "$DIR"
 
@@ -69,7 +81,10 @@ if [ ! -x .venv/bin/python ]; then
         if ! command -v uv >/dev/null 2>&1; then
             ask "Python 3.10+ with venv was not found. Install uv (https://astral.sh/uv, no sudo) to provide it?" \
                 || die "install python3 (3.10+) and python3-venv (e.g. apt install python3-venv), then run again"
-            curl -LsSf https://astral.sh/uv/install.sh | sh
+            # pinned uv version, downloaded to a file before running it
+            curl -LsSf --proto '=https' --tlsv1.2 -o "$tmp/uv-install.sh" \
+                "https://astral.sh/uv/$UV_VERSION/install.sh" || die "could not download the uv installer"
+            sh "$tmp/uv-install.sh"
             export PATH="$HOME/.local/bin:$PATH"
         fi
         uv venv -q --python 3.12 .venv

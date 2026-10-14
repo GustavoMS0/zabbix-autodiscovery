@@ -21,6 +21,34 @@ def test_env_file_is_loaded(tmp_path, monkeypatch):
     assert load_config(tmp_path / "config.yaml")["zabbix"]["token"] == "abc"
 
 
+@pytest.mark.parametrize("secret", ["abc#def", "&anchor", "*alias", "!tag", "{x: 1}", "0123", "a: b", "'q"])
+def test_env_values_are_not_reparsed_as_yaml(tmp_path, monkeypatch, secret):
+    monkeypatch.setenv("AUTODISCOVERY_TEST_SECRET", secret)
+    (tmp_path / "config.yaml").write_text(
+        "zabbix:\n  url: http://z\n  token: ${AUTODISCOVERY_TEST_SECRET}\n"
+        "scan:\n  networks: [10.0.0.0/30]\n"
+        "snmp_credentials:\n  - {name: c, version: 2c, community: 'pre-${AUTODISCOVERY_TEST_SECRET}'}\n")
+    cfg = load_config(tmp_path / "config.yaml")
+    assert cfg["zabbix"]["token"] == secret
+    assert cfg["snmp_credentials"][0]["community"] == f"pre-{secret}"
+
+
+def test_unset_env_value_is_empty(tmp_path, monkeypatch):
+    monkeypatch.delenv("AUTODISCOVERY_TEST_UNSET", raising=False)
+    (tmp_path / "config.yaml").write_text(
+        "zabbix:\n  url: http://z\n  token: ${AUTODISCOVERY_TEST_UNSET}\n  user: u${AUTODISCOVERY_TEST_UNSET}\n"
+        "scan:\n  networks: [10.0.0.0/30]\n")
+    cfg = load_config(tmp_path / "config.yaml")
+    assert cfg["zabbix"]["token"] is None and cfg["zabbix"]["user"] == "u"
+
+
+def test_rule_without_action_defaults_to_review(tmp_path):
+    (tmp_path / "config.yaml").write_text(
+        "zabbix: {url: http://z}\nscan: {networks: [10.0.0.0/30]}\n"
+        "rules: [{name: r, category: cam, group: Cameras, match: {snmp: true}}]\n")
+    assert category_groups(load_config(tmp_path / "config.yaml")) == {"cam": "Cameras"}
+
+
 def test_invalid_action_is_rejected(tmp_path):
     (tmp_path / "config.yaml").write_text(
         "zabbix: {url: http://z}\nscan: {networks: [10.0.0.0/30]}\n"

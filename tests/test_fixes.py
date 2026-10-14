@@ -52,9 +52,18 @@ def test_504_retried_for_reads_only():
     api, calls = _api([FakeResponse(504), FakeResponse(result=[])])
     assert api.call("host.get", {}) == [] and len(calls) == 2
     api, calls = _api([FakeResponse(504), FakeResponse()])
-    with pytest.raises(requests.HTTPError):
+    with pytest.raises(ZabbixError, match="HTTP 504"):
         api.call("item.create", {})
     assert len(calls) == 1
+
+
+def test_non_json_response_is_a_zabbix_error():
+    resp = FakeResponse()
+    resp.text = "<html>Bad gateway page</html>"
+    resp.json = lambda: (_ for _ in ()).throw(ValueError("no json"))
+    api, _ = _api([resp])
+    with pytest.raises(ZabbixError, match="non-JSON.*Bad gateway"):
+        api.call("host.get", {})
 
 
 def test_read_timeout_retried_for_reads():

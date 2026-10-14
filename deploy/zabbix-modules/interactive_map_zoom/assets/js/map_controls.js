@@ -1,11 +1,10 @@
 /**
  * NOC Interactive Map Controls for Zabbix Web UI.
  * Enables smooth mouse-wheel zoom, drag-to-pan, fit-to-screen and alert focusing on all native Zabbix SVG maps.
+ * The HUD is built with DOM APIs and textContent only (no innerHTML), so no map data is ever parsed as HTML.
  */
 (function () {
   'use strict';
-
-  console.log('✅ [AutoDiscovery NOC] Módulo de Zoom e Interatividade de Mapas Inicializado!');
 
   function findMapSvgs() {
     const svgs = Array.from(document.querySelectorAll('svg'));
@@ -158,38 +157,36 @@
     if (!hud) {
       hud = document.createElement('div');
       hud.className = 'zbx-map-hud';
-      hud.innerHTML = `
-        <button class="hud-btn" id="hud-zoom-in" title="Aproximar (+)">+</button>
-        <button class="hud-btn" id="hud-zoom-out" title="Afastar (−)">−</button>
-        <button class="hud-btn" id="hud-fit" title="Ajustar Mapa à Tela">🎯 Ajustar</button>
-        <button class="hud-btn hud-btn-alert" id="hud-alert" title="Focar Próximo Alerta Ativo">🚨 Focar Alarme</button>
-      `;
 
-      wrapper.appendChild(hud);
+      // Buttons are created with textContent; classes instead of ids so several maps on one
+      // dashboard never share element ids.
+      function addButton(label, title, extraClass, onClick) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = extraClass ? `hud-btn ${extraClass}` : 'hud-btn';
+        btn.title = title;
+        btn.textContent = label;
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          onClick();
+        });
+        hud.appendChild(btn);
+      }
 
-      hud.querySelector('#hud-zoom-in').addEventListener('click', (e) => {
-        e.stopPropagation();
+      addButton('+', 'Aproximar (+)', 'hud-zoom-in', () => {
         scale = Math.min(scale * 1.3, 4.5);
         svg.style.transition = 'transform 0.2s ease';
         updateTransform();
       });
-
-      hud.querySelector('#hud-zoom-out').addEventListener('click', (e) => {
-        e.stopPropagation();
+      addButton('−', 'Afastar (−)', 'hud-zoom-out', () => {
         scale = Math.max(scale / 1.3, 0.15);
         svg.style.transition = 'transform 0.2s ease';
         updateTransform();
       });
+      addButton('🎯 Ajustar', 'Ajustar Mapa à Tela', 'hud-fit', fitToScreen);
+      addButton('🚨 Focar Alarme', 'Focar Próximo Alerta Ativo', 'hud-btn-alert', focusNextProblem);
 
-      hud.querySelector('#hud-fit').addEventListener('click', (e) => {
-        e.stopPropagation();
-        fitToScreen();
-      });
-
-      hud.querySelector('#hud-alert').addEventListener('click', (e) => {
-        e.stopPropagation();
-        focusNextProblem();
-      });
+      wrapper.appendChild(hud);
     }
 
     // Initial fit

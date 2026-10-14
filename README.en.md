@@ -52,7 +52,7 @@ $ zabbix-autodiscovery apply -i inventory.csv --dry-run
   - **Switches:** Percentage of physical ports in use calculated from an SNMP IF-MIB walk (Zabbix 7.0+).
 - **Optimized Native Zabbix Dashboards:** Pre-configured dashboards per device category with vector SVG graphs (network traffic, errors, temperature), Top Hosts latency/CPU/Memory rankings, and Honeycomb matrix views (7.0+) or complete `hostavail` tables (6.0 LTS). No Grafana required.
 - **SSL Certificate and Domain Expiration Monitoring:** Checks TLS certificates via Zabbix Agent 2 and domain expiration via RDAP (RFC 7480/9082) without external scripts.
-- **Site Topology Maps:** Automated Zabbix network maps per site with category rows and icon status indicators.
+- **Site Topology Maps:** Automated native Zabbix network maps per site with category rows and icon status indicators; zoom, pan and problem focus right inside the Zabbix UI through the bundled frontend module.
 - **Compatibility:** Zabbix **6.0 LTS to 8.0**. Runs on Linux, Windows, and macOS (Python 3.10+).
 
 ---
@@ -66,9 +66,11 @@ $ zabbix-autodiscovery apply -i inventory.csv --dry-run
 
 One command downloads the tool and opens a wizard that walks you through the deployment: Zabbix URL, API token, networks and sites, SNMP, Grafana, then `check` → `setup` → `scan` → `apply` → organize → dashboards and maps. Nothing is changed in Zabbix unless you answer "yes", and every change defaults to "no".
 
-**Linux** (on the Zabbix server, or on a fresh server: if no Zabbix answers, the wizard offers to install Zabbix 8, optionally with Grafana, using Docker, and installs Docker itself if it is missing):
+**Linux** (on the Zabbix server, or on a fresh server: if no Zabbix answers, the wizard offers to install Zabbix (official images, version pinned by `ZABBIX_TAG` in `deploy/.env`), optionally with Grafana, using Docker, and installs Docker itself if it is missing):
 ```bash
-curl -fsSL https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/install.sh -o install.sh
+less install.sh      # optional: review the script before running it
+bash install.sh
 ```
 
 **Windows** (PowerShell, from any machine on the network, with just the URL and an API token):
@@ -76,7 +78,7 @@ curl -fsSL https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/mai
 irm https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/install.ps1 | iex
 ```
 
-The tool goes to `~/zabbix-autodiscovery` (Windows: `%USERPROFILE%\zabbix-autodiscovery`). Running the command again updates the code and keeps `config.yaml`, `.env` and your CSVs. To open the wizard later: `./zabbix-autodiscovery.sh wizard` or `.\zabbix-autodiscovery.ps1 wizard`. Optional variables: `ZAD_DIR` (folder), `ZAD_REF` (branch or tag) and `ZAD_NO_WIZARD=1` (install only).
+The tool goes to `~/zabbix-autodiscovery` (Windows: `%USERPROFILE%\zabbix-autodiscovery`). Running the command again updates the code and keeps `config.yaml`, `.env` and your CSVs. To open the wizard later: `./zabbix-autodiscovery.sh wizard` or `.\zabbix-autodiscovery.ps1 wizard`. Optional variables: `ZAD_DIR` (folder), `ZAD_REF` (branch or tag; prefer a release tag for a reproducible install), `ZAD_UV_VERSION` (uv version, installed only when Python 3.10+ is missing) and `ZAD_NO_WIZARD=1` (install only). The installer downloads the source archive and the uv installer to temporary files before extracting/running them; the wizard does the same with Docker's official script (get.docker.com).
 
 ### Manual installation:
 ```bash
@@ -122,9 +124,10 @@ Ideal when setting up a fresh Zabbix installation and you want to onboard dozens
    You can use the bundled Docker Compose stack in `deploy/`:
    ```bash
    cd deploy
-   cp .env.example .env     # Set secure passwords in .env
+   cp .env.example .env     # Set secure passwords in .env (compose refuses to start without them)
    docker compose --profile zabbix --profile grafana up -d
    ```
+   The Zabbix images are pinned by `ZABBIX_TAG` (default `ubuntu-trunk`, the Zabbix 8.0 development build; switch to `ubuntu-8.0-latest` once 8.0 is published — do not go back to 7.x on an 8.0 database) and the Grafana Zabbix plugin by `GRAFANA_ZABBIX_PLUGIN_VERSION`. The `zabbix-web` container already mounts the interactive map module (see [Interactive map inside Zabbix](#interactive-map-inside-zabbix-zoom-pan-and-problem-focus)).
 2. **Generate an API Token:**
    In Zabbix frontend, go to *Users → API tokens* and create a token for a user with **Super admin** role. (On Zabbix 8.0, ensure API access is enabled on the user's role).
 3. **Initialize Configuration:**
@@ -161,7 +164,7 @@ Ideal when setting up a fresh Zabbix installation and you want to onboard dozens
    ```bash
    zabbix-autodiscovery maps
    ```
-   Generates site maps with icons reflecting host problem states.
+   Generates native site maps with icons reflecting host problem states and, on Zabbix 7.0+, enables the zoom/pan frontend module (when it is installed in the frontend).
 
 ---
 
@@ -247,17 +250,81 @@ Besides the device type, the scan identifies the **services** each host runs: da
 | `zabbix-autodiscovery init [--force]` | No | Creates starter `config.yaml` and `.env` files. |
 | `zabbix-autodiscovery check` | No | Validates API connectivity, token role, templates, and network overlap. |
 | `zabbix-autodiscovery audit` | No | Non-intrusive health audit: duplicate IPs, cloned machines, item errors, agent issues. |
-| `zabbix-autodiscovery scan [-o CSV] [--network CIDR] [--site NAME]` | No | Probes networks, classifies discovered devices, and writes inventory CSV. |
+| `zabbix-autodiscovery scan [-o CSV] [--network CIDR] [--site NAME] [--force]` | No | Probes networks, classifies discovered devices, and writes inventory CSV. Refuses more than `scan.max_targets` addresses (default 65536, a /16) without `--force`. |
 | `zabbix-autodiscovery diff -old CSV1 -new CSV2` | No | Compares two scan inventories to detect new devices, removals, and changes. |
 | `zabbix-autodiscovery apply -i CSV [--dry-run]` | **Yes** | Onboards CSV rows with `action=add`. Skips already monitored IPs/names. |
-| `zabbix-autodiscovery setup [--no-dashboards] [--rebuild-dashboards]` | **Yes** | Provisions host groups, SNMP macro, agent missing template, and dashboards. |
+| `zabbix-autodiscovery setup [--no-dashboards] [--rebuild-dashboards] [--native-discovery]` | **Yes** | Provisions host groups, SNMP macro (secret), agent missing template, dashboards and the Grafana read-only user (role whose API access is limited to read methods). `--rebuild-dashboards` refreshes existing dashboards (e.g. after `apply`, so graphs include the new hosts). |
 | `zabbix-autodiscovery agent-sync [--dry-run]` | **Yes** | Promotes `agent=missing` servers to OS agent templates once their agent answers. |
 | `zabbix-autodiscovery organize [--dry-run] [--remove-groups G1,G2]` | **Yes** | Assigns pre-existing hosts into standardized type/site groups with tags. |
 | `zabbix-autodiscovery update-templates [--all] [--dry-run]` | **Yes** | Links category add-on templates (switch ports, printer MIB) to existing hosts. |
 | `zabbix-autodiscovery services -i CSV [--dry-run]` | **Yes** | Adds service tags and service checks to hosts already in Zabbix (matched by IP). |
-| `zabbix-autodiscovery maps [--dry-run] [--rebuild]` | **Yes** | Generates per-site topology maps with status icons and a map dashboard. |
+| `zabbix-autodiscovery maps [--dry-run] [--rebuild]` | **Yes** | Generates native per-site topology maps with status icons and a map dashboard; enables the zoom/pan module on Zabbix 7.0+. |
 | `zabbix-autodiscovery web [-i CSV] [--dry-run]` | **Yes** | Sets up SSL certificate tracking (Zabbix Agent 2) and domain expiration (RDAP). |
 | `zabbix-autodiscovery grafana-dashboards -o DIR` | No | Exports Grafana dashboard JSON files matching your configured host groups. |
+| `zabbix-autodiscovery export [-f ansible\|netbox\|json] [-i CSV] [-o FILE] [--from-zabbix]` | No | Exports discovered devices (or active Zabbix hosts) to an Ansible inventory, NetBox or JSON. |
+| `zabbix-autodiscovery dependencies [--dry-run] [--yes]` | **Yes** | Creates trigger dependencies (switch → gateway only when the site has a single firewall/router, plus those declared in `noc.dependencies`). Dependencies **hide** alerts: `--yes` is required. |
+| `zabbix-autodiscovery sla [--dry-run]` | **Yes** | Creates the Business Services tree and a global 99.5% availability SLA (timezone in `noc.sla_timezone`, default `America/Sao_Paulo`). |
+| `zabbix-autodiscovery clean-unsupported [--dry-run]` | **Yes** | Disables inactive internal collector items (unsupported items) on the Zabbix server host. |
+| `zabbix-autodiscovery menu` | Only when confirmed | Interactive terminal control panel (Portuguese) with numbered shortcuts for every operation. |
+
+---
+
+## Interactive map inside Zabbix (zoom, pan and problem focus)
+
+The interactive map lives **only inside Zabbix**: the tool does not write HTML files or start web servers. It has two parts:
+
+1. **Native maps** created by `zabbix-autodiscovery maps` (one per site, icons per device type, host status, and the *AutoDiscovery - Maps* dashboard).
+2. **Frontend module** [`deploy/zabbix-modules/interactive_map_zoom`](deploy/zabbix-modules/interactive_map_zoom), which adds to every native map (*Monitoring → Maps* and map widgets):
+   * mouse-wheel zoom and `+`/`−` buttons;
+   * free panning by dragging the map;
+   * **Fit** (fits the map to the screen) and **Focus alarm** (centers the next host with a problem).
+
+### Installing the module
+
+* **Docker (`deploy/docker-compose.yml`):** the `zabbix-web` container already mounts it, read-only, at `/usr/share/zabbix/modules/interactive_map_zoom`.
+* **Packages (Zabbix 7.0+):** copy the folder to `/usr/share/zabbix/ui/modules/` (6.0/6.4: `/usr/share/zabbix/modules/`):
+  ```bash
+  sudo cp -r deploy/zabbix-modules/interactive_map_zoom /usr/share/zabbix/ui/modules/
+  ```
+
+### Enabling it
+
+* **Zabbix 7.0+:** `zabbix-autodiscovery maps` enables the module through the API (needs Super admin). If it cannot (module missing in the frontend, permissions) it only prints a hint; turn it off with `maps.enable_module: false`.
+* **Manually (any version):** *Administration → General → Modules* → **Scan directory** → enable **NOC Interactive Map Controls**.
+
+---
+
+## Terminal menu and standalone executable
+
+### Interactive menu
+Run the tool without arguments (or with `menu`):
+```bash
+zabbix-autodiscovery
+```
+A Portuguese control panel lets you pick operations with shortcuts `0` to `14`, with safe defaults (`Enter` = the safe choice or a *dry-run*).
+
+### Standalone Windows executable (`.exe`)
+Build a single Windows executable that runs without Python installed:
+```bash
+pip install -e ".[build]"     # installs PyInstaller (optional extra)
+python build_exe.py
+```
+`dist/zabbix-autodiscovery.exe` can be copied to any Windows machine; double-clicking it opens the interactive menu.
+
+---
+
+## NOC commands: dependencies, SLA and unsupported items
+
+```yaml
+noc:
+  sla_timezone: America/Sao_Paulo     # timezone of the SLA created by "sla"
+  dependencies:                       # explicit trigger dependencies, one parent per host
+    - {host: sw-core-01, depends_on: fw-branch-01}
+```
+
+* `dependencies` makes each child's availability trigger depend on its parent's. A dependency **suppresses** the child's alerts while the parent is in problem, so the tool is conservative: it only infers switch → gateway when a site has exactly **one** firewall/router (with an HA pair, one firewall down would hide every switch alert), never stacks a second parent on a trigger that already has dependencies, and never infers servers, VMs or endpoints from map positions. Declare anything else in `noc.dependencies`. Run `--dry-run` first, then `--yes`.
+* `sla` creates the *AutoDiscovery - NOC Services* tree (per site and per role) and a monthly 99.5% SLA.
+* `clean-unsupported` disables unsupported internal items on the "Zabbix server" host.
 
 ---
 

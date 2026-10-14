@@ -16,6 +16,21 @@ AGENT_PORT = 10050
 WINDOWS = platform.system() == "Windows"
 # port -> uses TLS. Only ports that are also in scan.ports get probed.
 WEB_PORTS = {80: False, 443: True, 8080: False, 8443: True}
+# Safety limits: a typo such as 10.0.0.0/8 would otherwise probe millions of addresses.
+MAX_TARGETS = 65536            # a /16; raise with scan.max_targets or `scan --force`
+MAX_CONCURRENCY = 256          # upper bound for scan.concurrency
+SNMP_AUTH_PROTOCOLS = ("MD5", "SHA", "SHA256", "SHA512")
+SNMP_PRIV_PROTOCOLS = ("DES", "AES", "AES256")
+
+
+def snmp_protocol(cred, kind):
+    """Validated SNMPv3 auth/priv protocol name of a credential (kind = 'auth' or 'priv')."""
+    allowed, default = (SNMP_AUTH_PROTOCOLS, "SHA") if kind == "auth" else (SNMP_PRIV_PROTOCOLS, "AES")
+    name = str(cred.get(f"{kind}_protocol") or default).upper()
+    if name not in allowed:
+        raise ValueError(f"SNMP credential '{cred.get('name', '?')}': unknown {kind}_protocol '{name}' "
+                         f"(use one of {', '.join(allowed)})")
+    return name
 
 
 @dataclass
@@ -47,6 +62,33 @@ class Device:
     @property
     def responded(self):
         return self.alive or self.snmp or bool(self.ports)
+
+
+def count_targets(items):
+    """Number of addresses expand_targets() would produce, without building the list."""
+    total = 0
+    for item in items or []:
+        item = str(item).strip()
+        if "-" in item:
+            start, end = (ipaddress.ip_address(p.strip()) for p in item.split("-", 1))
+            total += max(0, int(end) - int(start) + 1)
+        elif "/" in item:
+            net = ipaddress.ip_network(item, strict=False)
+            total += net.num_addresses - 2 if net.num_addresses > 2 else net.num_addresses
+        else:
+            total += 1
+    return total
+
+
+def check_scan_size(scan_cfg, force=False):
+    """Refuse networks larger than scan.max_targets (default MAX_TARGETS) unless forced."""
+    limit = int(scan_cfg.get("max_targets") or MAX_TARGETS)
+    total = count_targets(scan_cfg["networks"])
+    if total > limit and not (force or scan_cfg.get("force")):
+        raise ValueError(f"{total} addresses to scan, more than the limit of {limit} (scan.max_targets). "
+                         "Check scan.networks for a typo, split the scan by --network/--site, "
+                         "or use --force / raise scan.max_targets")
+    return total
 
 
 def expand_targets(items):
@@ -170,10 +212,10 @@ class SnmpProber:
         kwargs = {}
         if cred.get("auth_pass"):
             kwargs["authKey"] = cred["auth_pass"]
-            kwargs["authProtocol"] = auth_protocols[cred.get("auth_protocol", "SHA").upper()]
+            kwargs["authProtocol"] = auth_protocols[snmp_protocol(cred, "auth")]
         if cred.get("priv_pass"):
             kwargs["privKey"] = cred["priv_pass"]
-            kwargs["privProtocol"] = priv_protocols[cred.get("priv_protocol", "AES").upper()]
+            kwargs["privProtocol"] = priv_protocols[snmp_protocol(cred, "priv")]
         return hl.UsmUserData(cred["user"], **kwargs)
 
     async def _get_community(self, ip, cred):
@@ -427,7 +469,9 @@ async def scan_host(ip, ctx):
         return dev
 
 
-async def scan(scan_cfg, credentials, progress=None):
+async def scan(scan_cfg, credentials, progress=None, force=False):
+    check_scan_size(scan_cfg, force)
+    concurrency = max(1, min(int(scan_cfg.get("concurrency", 50)), MAX_CONCURRENCY))
     excluded = set(expand_targets(scan_cfg.get("exclude")))
     targets = [str(ip) for ip in expand_targets(scan_cfg["networks"]) if ip not in excluded]
     ports = set(int(p) for p in scan_cfg.get("ports", [])) | {AGENT_PORT}
@@ -436,7 +480,7 @@ async def scan(scan_cfg, credentials, progress=None):
         ports |= set(service_ports())
     ports = sorted(ports)
     ctx = {
-        "sem": asyncio.Semaphore(int(scan_cfg.get("concurrency", 50))),
+        "sem": asyncio.Semaphore(concurrency),
         "timeout": float(scan_cfg.get("timeout", 1.5)),
         "ports": ports,
         "ping": scan_cfg.get("ping", True),
@@ -459,7 +503,7 @@ async def scan(scan_cfg, credentials, progress=None):
     # Re-probe only responsive hosts, with less parallelism and twice the timeout, and merge.
     if found and scan_cfg.get("second_pass", True):
         timeout2 = ctx["timeout"] * 2
-        ctx2 = dict(ctx, sem=asyncio.Semaphore(max(5, int(scan_cfg.get("concurrency", 50)) // 3)),
+        ctx2 = dict(ctx, sem=asyncio.Semaphore(max(5, concurrency // 3)),
                     timeout=timeout2, ping=False, reverse_dns=False, netbios=False,
                     snmp=SnmpProber(credentials, timeout2, int(scan_cfg.get("snmp_retries", 1))))
         tasks = [scan_host(d.ip, ctx2) for d in found]
