@@ -199,11 +199,36 @@ def _target(item, functions=(), ref="A"):
 
 
 def _alias(text):
-    return {"def": {"name": "setAlias", "category": "Alias"}, "params": [text]}
+    return {
+        "def": {
+            "name": "setAlias",
+            "category": "Alias",
+            "params": [{"name": "alias", "type": "string"}],
+            "defaultParams": [],
+        },
+        "params": [text],
+        "text": f"setAlias({text})",
+    }
 
 
 def _top(n):
-    return {"def": {"name": "top", "category": "Filter"}, "params": [str(n), "avg"]}
+    return {
+        "def": {
+            "name": "top",
+            "category": "Filter",
+            "params": [
+                {"name": "number", "type": "int"},
+                {
+                    "name": "value",
+                    "type": "string",
+                    "options": ["avg", "min", "max", "sum", "count", "median", "first", "last"],
+                },
+            ],
+            "defaultParams": [5, "avg"],
+        },
+        "params": [int(n), "avg"],
+        "text": f"top({n}, avg)",
+    }
 
 
 def _problems(title, tags="", min_severity=1):

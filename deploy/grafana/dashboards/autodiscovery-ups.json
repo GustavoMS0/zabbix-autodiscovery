@@ -186,11 +186,19 @@
             {
               "def": {
                 "name": "setAlias",
-                "category": "Alias"
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
               },
               "params": [
                 "$__zbx_host_name"
-              ]
+              ],
+              "text": "setAlias($__zbx_host_name)"
             }
           ],
           "options": {
@@ -288,11 +296,19 @@
             {
               "def": {
                 "name": "setAlias",
-                "category": "Alias"
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
               },
               "params": [
                 "$__zbx_host_name"
-              ]
+              ],
+              "text": "setAlias($__zbx_host_name)"
             }
           ],
           "options": {
@@ -381,11 +397,19 @@
             {
               "def": {
                 "name": "setAlias",
-                "category": "Alias"
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
               },
               "params": [
                 "$__zbx_host_name"
-              ]
+              ],
+              "text": "setAlias($__zbx_host_name)"
             }
           ],
           "options": {
@@ -474,11 +498,19 @@
             {
               "def": {
                 "name": "setAlias",
-                "category": "Alias"
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
               },
               "params": [
                 "$__zbx_host_name: $__zbx_item"
-              ]
+              ],
+              "text": "setAlias($__zbx_host_name: $__zbx_item)"
             }
           ],
           "options": {
@@ -549,11 +581,19 @@
             {
               "def": {
                 "name": "setAlias",
-                "category": "Alias"
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
               },
               "params": [
                 "$__zbx_host_name: $__zbx_item"
-              ]
+              ],
+              "text": "setAlias($__zbx_host_name: $__zbx_item)"
             }
           ],
           "options": {
@@ -624,11 +664,19 @@
             {
               "def": {
                 "name": "setAlias",
-                "category": "Alias"
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
               },
               "params": [
                 "$__zbx_host_name: $__zbx_item"
-              ]
+              ],
+              "text": "setAlias($__zbx_host_name: $__zbx_item)"
             }
           ],
           "options": {
@@ -699,11 +747,19 @@
             {
               "def": {
                 "name": "setAlias",
-                "category": "Alias"
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
               },
               "params": [
                 "$__zbx_host_name: $__zbx_item"
-              ]
+              ],
+              "text": "setAlias($__zbx_host_name: $__zbx_item)"
             }
           ],
           "options": {

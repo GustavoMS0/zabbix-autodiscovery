@@ -186,11 +186,19 @@
             {
               "def": {
                 "name": "setAlias",
-                "category": "Alias"
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
               },
               "params": [
                 "$__zbx_host_name"
-              ]
+              ],
+              "text": "setAlias($__zbx_host_name)"
             }
           ],
           "options": {
@@ -288,11 +296,19 @@
             {
               "def": {
                 "name": "setAlias",
-                "category": "Alias"
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
               },
               "params": [
                 "$__zbx_host_name"
-              ]
+              ],
+              "text": "setAlias($__zbx_host_name)"
             }
           ],
           "options": {
@@ -363,21 +379,54 @@
             {
               "def": {
                 "name": "setAlias",
-                "category": "Alias"
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
               },
               "params": [
                 "$__zbx_host_name: $__zbx_item"
-              ]
+              ],
+              "text": "setAlias($__zbx_host_name: $__zbx_item)"
             },
             {
               "def": {
                 "name": "top",
-                "category": "Filter"
+                "category": "Filter",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "int"
+                  },
+                  {
+                    "name": "value",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  5,
+                  "avg"
+                ]
               },
               "params": [
-                "10",
+                10,
                 "avg"
-              ]
+              ],
+              "text": "top(10, avg)"
             }
           ],
           "options": {
@@ -448,11 +497,19 @@
             {
               "def": {
                 "name": "setAlias",
-                "category": "Alias"
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
               },
               "params": [
                 "$__zbx_host_name"
-              ]
+              ],
+              "text": "setAlias($__zbx_host_name)"
             }
           ],
           "options": {
