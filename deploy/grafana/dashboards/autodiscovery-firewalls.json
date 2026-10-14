@@ -48,7 +48,7 @@
         },
         "query": {
           "queryType": "group",
-          "group": "/^(Network\\/Firewalls)$/",
+          "group": "/^(Rede\\/Firewalls)$/",
           "host": "",
           "application": "",
           "itemTag": "",
@@ -56,7 +56,7 @@
         },
         "multi": true,
         "includeAll": true,
-        "allValue": "/^(Network\\/Firewalls)$/",
+        "allValue": "/^(Rede\\/Firewalls)$/",
         "refresh": 1,
         "sort": 1,
         "current": {
@@ -770,6 +770,428 @@
     },
     {
       "type": "timeseries",
+      "title": "Internet Links / WAN Inbound Traffic",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/interface.*(wan|internet|link|uplink|sd-?wan).*: bits received/i"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias"
+              },
+              "params": [
+                "$__zbx_host_name: $__zbx_item"
+              ]
+            },
+            {
+              "def": {
+                "name": "top",
+                "category": "Filter"
+              },
+              "params": [
+                "10",
+                "avg"
+              ]
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 9,
+      "gridPos": {
+        "x": 0,
+        "y": 37,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Internet Links / WAN Outbound Traffic",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/interface.*(wan|internet|link|uplink|sd-?wan).*: bits sent/i"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias"
+              },
+              "params": [
+                "$__zbx_host_name: $__zbx_item"
+              ]
+            },
+            {
+              "def": {
+                "name": "top",
+                "category": "Filter"
+              },
+              "params": [
+                "10",
+                "avg"
+              ]
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 10,
+      "gridPos": {
+        "x": 12,
+        "y": 37,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "stat",
+      "title": "WAN Links Operational Status",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/interface.*(wan|internet|link|uplink).*: operational status/i"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias"
+              },
+              "params": [
+                "$__zbx_host_name: $__zbx_item"
+              ]
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true
+          }
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false,
+          "fields": ""
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "orientation": "auto",
+        "wideLayout": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "DOWN",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "UP",
+                  "color": "green"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "id": 11,
+      "gridPos": {
+        "x": 0,
+        "y": 45,
+        "w": 24,
+        "h": 5
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "SD-WAN Links Latency & Jitter",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/(sd-wan|sla).*(latency|jitter)/i"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias"
+              },
+              "params": [
+                "$__zbx_host_name: $__zbx_item"
+              ]
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 12,
+      "gridPos": {
+        "x": 0,
+        "y": 50,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "SD-WAN Links Packet Loss",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/(sd-wan|sla).*(loss|packet)/i"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias"
+              },
+              "params": [
+                "$__zbx_host_name: $__zbx_item"
+              ]
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 13,
+      "gridPos": {
+        "x": 12,
+        "y": 50,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "timeseries",
       "title": "Active sessions",
       "datasource": {
         "type": "alexanderzobnin-zabbix-datasource",
@@ -833,10 +1255,10 @@
           "sort": "desc"
         }
       },
-      "id": 9,
+      "id": 14,
       "gridPos": {
         "x": 0,
-        "y": 37,
+        "y": 58,
         "w": 12,
         "h": 8
       }
@@ -906,10 +1328,10 @@
           "sort": "desc"
         }
       },
-      "id": 10,
+      "id": 15,
       "gridPos": {
         "x": 12,
-        "y": 37,
+        "y": 58,
         "w": 12,
         "h": 8
       }
@@ -982,10 +1404,10 @@
         },
         "overrides": []
       },
-      "id": 11,
+      "id": 16,
       "gridPos": {
         "x": 0,
-        "y": 45,
+        "y": 66,
         "w": 24,
         "h": 5
       }

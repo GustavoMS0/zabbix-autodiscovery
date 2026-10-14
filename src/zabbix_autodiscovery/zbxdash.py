@@ -42,6 +42,22 @@ CPU_MEM = ("CPU and memory", [("CPU", ["*CPU utilization*", "*CPU usage*"]),
 TEMP = ("Temperature", [("temperature", ["*emperature*", "*Temp*: Value", "*emperatura*"])])
 LATENCY = ("ICMP latency", [("latency", ["ICMP response time"])])
 
+WAN_TRAFFIC = ("Internet & WAN Traffic", [
+    ("in", ["Interface wan*: Bits received", "Interface *wan*: Bits received",
+            "Interface *internet*: Bits received", "Interface *link*: Bits received",
+            "Interface a(*wan*): Bits received"]),
+    ("out", ["Interface wan*: Bits sent", "Interface *wan*: Bits sent",
+             "Interface *internet*: Bits sent", "Interface *link*: Bits sent",
+             "Interface a(*wan*): Bits sent"]),
+])
+SDWAN_QUALITY = ("SD-WAN Latency & Jitter", [
+    ("latency", ["SD-WAN *: Latency", "*SLA*: Latency"]),
+    ("jitter", ["SD-WAN *: Jitter", "*SLA*: Jitter"]),
+])
+SDWAN_LOSS = ("SD-WAN Packet Loss", [
+    ("loss %", ["SD-WAN *: Packets loss", "*SLA*: Packets loss", "*SD-WAN*loss*"]),
+])
+
 LAYOUTS = {
     "overview": {"table": [ICMP, LOSS], "graphs": [LATENCY]},
     "switches": {"table": [ICMP, ("Port usage", r"^switch: port usage$", "bar"),
@@ -52,12 +68,18 @@ LAYOUTS = {
                             ("Active sessions", r"active sessions|session|sess[oõ]es", "value"),
                             ("IPsec VPN", r"active ipsec vpn tunnels|ipsec.*tunnel|t[uú]neis ipsec", "value"),
                             ("SSL VPN users", r"active ssl vpn users|ssl vpn.*user|usu[aá]rios ssl vpn", "value"),
+                            ("SD-WAN Status", r"sd-wan.*(health check state|state)", "value"),
                             UPTIME],
-                  "graphs": [TRAFFIC, CPU_MEM,
+                  "graphs": [WAN_TRAFFIC, SDWAN_QUALITY, SDWAN_LOSS, TRAFFIC, CPU_MEM,
                              ("Sessions & VPN", [("sessions", ["*Active sessions*"]),
                                                  ("tunnels", ["*Active IPsec VPN tunnels*"]),
                                                  ("users", ["*Active SSL VPN users*"])]),
-                             ERRORS]},
+                              ERRORS]},
+    "links": {"table": [ICMP,
+                        ("SD-WAN Status", r"sd-wan.*(health check state|state)", "value"),
+                        ("Active sessions", r"active sessions|session|sess[oõ]es", "value"),
+                        UPTIME],
+              "graphs": [WAN_TRAFFIC, SDWAN_QUALITY, SDWAN_LOSS, LATENCY]},
     "access-points": {"table": [ICMP, LOSS, ("Clients", r"client|station|associated", "value"), CPU,
                                 ("CPU Load (1m)", r"load average \(1m avg\)", "value"), MEM, UPTIME],
                       "graphs": [TRAFFIC, ("Clients", [("clients", ["*lient*", "*tation*"])]), CPU_MEM, LATENCY]},
@@ -217,7 +239,7 @@ def build(key, title, groupids, version, items, hostnames, agent_missing=False):
         y += 13
         graphs = [(t, [(lbl, cat.patterns(pats)) for lbl, pats in ds if cat.patterns(pats)])
                   for t, ds in layout["graphs"]]
-        graphs = [(t, ds) for t, ds in graphs if ds][:4]
+        graphs = [(t, ds) for t, ds in graphs if ds][:6]
         default_host = sorted(hostnames)[0]
         for n, (gtitle, datasets) in enumerate(graphs):
             place(_graph(f"{gtitle} (selected host)", datasets, default_host, ref),

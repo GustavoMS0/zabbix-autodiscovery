@@ -21,6 +21,15 @@ TRAFFIC_OUT = {"re": r"/Bits sent/"}
 ERRORS = {"re": r"/packets with errors/i"}
 UPTIME = {"re": r"/uptime/i"}
 SUPPLIES = {"zbx": "*oner*", "re": r"/(toner|cartridge|supply|ink|drum|marker)/i"}
+WAN_IN = {"re": r"/interface.*(wan|internet|link|uplink|sd-?wan).*: bits received/i"}
+WAN_OUT = {"re": r"/interface.*(wan|internet|link|uplink|sd-?wan).*: bits sent/i"}
+WAN_STATUS = {"re": r"/interface.*(wan|internet|link|uplink).*: operational status/i"}
+SDWAN_LATENCY = {"re": r"/(sd-wan|sla).*(latency|jitter)/i"}
+SDWAN_LOSS = {"re": r"/(sd-wan|sla).*(loss|packet)/i"}
+
+UP_DOWN = [{"type": "value", "options": {"0": {"text": "DOWN", "color": "red"},
+                                         "1": {"text": "UP", "color": "green"}}}]
+RED_GREEN = [{"color": "red", "value": None}, {"color": "green", "value": 1}]
 
 
 def network_panels(extra=()):
@@ -55,9 +64,26 @@ SPECS = [
         {"kind": "series", "title": "Temperature", "unit": "celsius", **TEMP},
     ])},
     {"key": "firewalls", "title": "Firewalls", "categories": ["firewall"], "panels": network_panels([
+        {"kind": "series", "title": "Internet Links / WAN Inbound Traffic", "unit": "bps", "top": 10, **WAN_IN},
+        {"kind": "series", "title": "Internet Links / WAN Outbound Traffic", "unit": "bps", "top": 10, **WAN_OUT},
+        {"kind": "stat", "title": "WAN Links Operational Status", "per_item": True, "w": 24, "mappings": UP_DOWN,
+         "steps": RED_GREEN, **WAN_STATUS},
+        {"kind": "series", "title": "SD-WAN Links Latency & Jitter", "unit": "s", **SDWAN_LATENCY},
+        {"kind": "series", "title": "SD-WAN Links Packet Loss", "unit": "percent", **SDWAN_LOSS},
         {"kind": "series", "title": "Active sessions", "re": r"/session/i"},
         {"kind": "series", "title": "VPN / tunnels", "re": r"/(vpn|tunnel)/i"},
     ])},
+    {"key": "links", "title": "Internet links & SD-WAN", "categories": ["firewall", "router"], "panels": [
+        {"kind": "problems"},
+        {"kind": "stat", "title": "WAN Links Operational Status", "per_item": True, "w": 24, "mappings": UP_DOWN,
+         "steps": RED_GREEN, **WAN_STATUS},
+        {"kind": "series", "title": "Internet Links / WAN Inbound Traffic", "unit": "bps", "top": 10, **WAN_IN},
+        {"kind": "series", "title": "Internet Links / WAN Outbound Traffic", "unit": "bps", "top": 10, **WAN_OUT},
+        {"kind": "series", "title": "SD-WAN Links Latency & Jitter", "unit": "s", **SDWAN_LATENCY},
+        {"kind": "series", "title": "SD-WAN Links Packet Loss", "unit": "percent", **SDWAN_LOSS},
+        {"kind": "latency"},
+        {"kind": "series", "title": "VPN / tunnels", "re": r"/(vpn|tunnel)/i"},
+    ]},
     {"key": "access-points", "title": "Access points", "categories": ["ap"], "panels": network_panels([
         {"kind": "series", "title": "Connected clients", "re": r"/(client|station|associated)/i"},
         {"kind": "series", "title": "Signal / noise", "re": r"/(signal|noise|ccq)/i"},
@@ -146,11 +172,8 @@ def groups_for(spec, cfg):
 # ======================================================================= Grafana
 
 DS = {"type": "alexanderzobnin-zabbix-datasource", "uid": "zabbix"}
-UP_DOWN = [{"type": "value", "options": {"0": {"text": "DOWN", "color": "red"},
-                                         "1": {"text": "UP", "color": "green"}}}]
 AGENT_MAP = [{"type": "value", "options": {"0": {"text": "NO AGENT", "color": "red"},
                                            "1": {"text": "OK", "color": "green"}}}]
-RED_GREEN = [{"color": "red", "value": None}, {"color": "green", "value": 1}]
 PCT = [{"color": "green", "value": None}, {"color": "orange", "value": 80}, {"color": "red", "value": 90}]
 PCT_LOW = [{"color": "red", "value": None}, {"color": "orange", "value": 20}, {"color": "green", "value": 50}]
 
@@ -244,7 +267,8 @@ def _grafana_panel(p, spec_title):
     if kind == "series":
         return _series(p["title"], p["re"], p.get("unit"), p.get("top")), p.get("w", 12), p.get("h", 8)
     if kind == "stat":
-        return _stat(p["title"], p["re"], unit=p.get("unit"), per_item=p.get("per_item")), 24, p.get("h", 5)
+        return _stat(p["title"], p["re"], unit=p.get("unit"), mappings=p.get("mappings"),
+                     steps=p.get("steps"), per_item=p.get("per_item", False)), p.get("w", 24), p.get("h", 5)
     raise ValueError(f"unknown panel kind {kind}")
 
 

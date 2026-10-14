@@ -48,7 +48,7 @@
         },
         "query": {
           "queryType": "group",
-          "group": "/^(Network\\/Access\\ Points)$/",
+          "group": "/^(Rede\\/Access\\ Points)$/",
           "host": "",
           "application": "",
           "itemTag": "",
@@ -56,7 +56,7 @@
         },
         "multi": true,
         "includeAll": true,
-        "allValue": "/^(Network\\/Access\\ Points)$/",
+        "allValue": "/^(Rede\\/Access\\ Points)$/",
         "refresh": 1,
         "sort": 1,
         "current": {

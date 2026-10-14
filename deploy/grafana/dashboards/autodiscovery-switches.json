@@ -48,7 +48,7 @@
         },
         "query": {
           "queryType": "group",
-          "group": "/^(Network\\/Switches)$/",
+          "group": "/^(Rede\\/Switches)$/",
           "host": "",
           "application": "",
           "itemTag": "",
@@ -56,7 +56,7 @@
         },
         "multi": true,
         "includeAll": true,
-        "allValue": "/^(Network\\/Switches)$/",
+        "allValue": "/^(Rede\\/Switches)$/",
         "refresh": 1,
         "sort": 1,
         "current": {

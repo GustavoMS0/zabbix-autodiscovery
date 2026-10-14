@@ -48,7 +48,7 @@
         },
         "query": {
           "queryType": "group",
-          "group": "/^(Infrastructure\\/UPS)$/",
+          "group": "/^(Infra\\/Nobreaks)$/",
           "host": "",
           "application": "",
           "itemTag": "",
@@ -56,7 +56,7 @@
         },
         "multi": true,
         "includeAll": true,
-        "allValue": "/^(Infrastructure\\/UPS)$/",
+        "allValue": "/^(Infra\\/Nobreaks)$/",
         "refresh": 1,
         "sort": 1,
         "current": {

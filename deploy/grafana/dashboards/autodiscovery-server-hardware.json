@@ -48,7 +48,7 @@
         },
         "query": {
           "queryType": "group",
-          "group": "/^(Infrastructure\\/Server\\ Hardware)$/",
+          "group": "/^(Infra\\/Hardware\\ Servidores)$/",
           "host": "",
           "application": "",
           "itemTag": "",
@@ -56,7 +56,7 @@
         },
         "multi": true,
         "includeAll": true,
-        "allValue": "/^(Infrastructure\\/Server\\ Hardware)$/",
+        "allValue": "/^(Infra\\/Hardware\\ Servidores)$/",
         "refresh": 1,
         "sort": 1,
         "current": {

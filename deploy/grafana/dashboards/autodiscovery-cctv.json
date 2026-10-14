@@ -48,7 +48,7 @@
         },
         "query": {
           "queryType": "group",
-          "group": "/^(Security\\/CCTV)$/",
+          "group": "/^(Seguranca\\/CFTV)$/",
           "host": "",
           "application": "",
           "itemTag": "",
@@ -56,7 +56,7 @@
         },
         "multi": true,
         "includeAll": true,
-        "allValue": "/^(Security\\/CCTV)$/",
+        "allValue": "/^(Seguranca\\/CFTV)$/",
         "refresh": 1,
         "sort": 1,
         "current": {
