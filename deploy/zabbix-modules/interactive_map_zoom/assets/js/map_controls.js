@@ -1,209 +1,404 @@
 /**
  * NOC Interactive Map Controls for Zabbix Web UI.
- * Enables smooth mouse-wheel zoom, drag-to-pan, fit-to-screen and alert focusing on all native Zabbix SVG maps.
- * The HUD is built with DOM APIs and textContent only (no innerHTML), so no map data is ever parsed as HTML.
+ *
+ * Adds mouse-wheel zoom, drag-to-pan, fit-to-view and "next problem" focus to native Zabbix maps
+ * (map widget on dashboards and Monitoring -> Maps). Only SVGs rendered by Zabbix's SVGMap
+ * (a direct <g class="map-container"> child) are touched: graphs, honeycomb and other widgets are
+ * left alone.
+ *
+ * The map SVG is scaled by Zabbix through its viewBox (preserveAspectRatio xMinYMin meet), so all
+ * math converts between three spaces: map units (viewBox), SVG layout pixels and wrapper pixels.
+ * The HUD is built with DOM APIs and textContent only (no innerHTML).
  */
 (function () {
   'use strict';
 
-  function findMapSvgs() {
-    const svgs = Array.from(document.querySelectorAll('svg'));
-    return svgs.filter((svg) => {
-      // Must not be an inline icon or small symbol
-      const w = parseFloat(svg.getAttribute('width')) || svg.clientWidth || 0;
-      const h = parseFloat(svg.getAttribute('height')) || svg.clientHeight || 0;
-      if (w > 0 && w < 200 && h > 0 && h < 200) return false;
+  const MIN_SCALE = 0.2;
+  const MAX_SCALE = 8;
+  const DRAG_THRESHOLD = 4;
+  const FOCUS_SCALE = 2;
+  // Default Zabbix severity colours -> rank (higher = more severe).
+  const SEVERITY_RANK = {
+    '#E45959': 5, '#E97659': 4, '#FFA059': 3, '#FFC859': 2, '#7499FF': 1, '#97AAB3': 0
+  };
+  const OK_COLOURS = ['#009900', '#00AA00', '#59DB8F'];
 
-      // Identify by Zabbix map structure
-      const hasMapGroup = svg.querySelector('.map-container, .map-element, g[class*="map"], image, [data-selementid]');
-      const isInMapContainer = svg.closest('.flickerfreescreen, [id*="sysmap"], .dashboard-widget-map, [class*="widget-map"]');
+  const states = new WeakMap(); // wrapper element -> state
+  let activeDrag = null;
 
-      return hasMapGroup || isInMapContainer || w >= 400;
-    });
+  function isZabbixMap(svg) {
+    return svg instanceof SVGSVGElement && svg.querySelector(':scope > g.map-container') !== null;
   }
 
-  function setupSvgInteractivity(svg) {
-    if (svg.dataset.nocInteractiveMapActive === 'true') return;
-    svg.dataset.nocInteractiveMapActive = 'true';
+  // Size of the drawn map inside the SVG box, in SVG layout pixels, plus px per map unit.
+  function contentBox(st) {
+    const svg = st.svg;
+    const vb = svg.viewBox && svg.viewBox.baseVal;
+    const w = svg.clientWidth;
+    const h = svg.clientHeight;
+    if (!vb || !vb.width || !vb.height) {
+      return { k: 1, w: w, h: h };
+    }
+    const k = Math.min(w / vb.width, h / vb.height);
+    return { k: k, w: vb.width * k, h: vb.height * k };
+  }
 
-    // The wrapper that holds the SVG
-    const wrapper = svg.closest('.flickerfreescreen') || svg.parentElement;
-    if (!wrapper) return;
+  // Untransformed top-left of the transformed element relative to the wrapper (transform-origin
+  // is 0 0, so the scale does not move the top-left corner; only the translation does).
+  function svgOrigin(st) {
+    const wr = st.wrapper.getBoundingClientRect();
+    const tr = st.target.getBoundingClientRect();
+    return { x: tr.left - wr.left - st.panX, y: tr.top - wr.top - st.panY };
+  }
 
-    wrapper.style.position = 'relative';
-    wrapper.style.overflow = 'hidden';
-    wrapper.style.cursor = 'grab';
-    if (!wrapper.style.minHeight) {
-      wrapper.style.minHeight = '500px';
+  // Offset of the SVG inside the transformed element, in unscaled pixels (0 when they are the same).
+  function svgOffset(st) {
+    if (st.target === st.svg) return { x: 0, y: 0 };
+    const tr = st.target.getBoundingClientRect();
+    const sr = st.svg.getBoundingClientRect();
+    return { x: (sr.left - tr.left) / st.scale, y: (sr.top - tr.top) / st.scale };
+  }
+
+  function transformValue(st) {
+    return `translate(${st.panX}px, ${st.panY}px) scale(${st.scale})`;
+  }
+
+  function apply(st, duration) {
+    const el = st.target;
+    el.style.transformOrigin = '0 0';
+    el.style.transition = duration ? `transform ${duration}ms cubic-bezier(0.16, 1, 0.3, 1)` : 'none';
+    st.expected = transformValue(st);
+    el.style.transform = st.expected;
+    updateZoomLabel(st);
+  }
+
+  // Monitoring -> Maps shows the map at full size inside a scrolling box that grows with the map:
+  // limit that box to the visible part of the window so panning replaces the scrollbars.
+  function sizePageWrapper(st) {
+    if (!st.pageMode) return;
+    const top = st.wrapper.getBoundingClientRect().top;
+    st.wrapper.style.height = `${Math.max(300, window.innerHeight - top - 16)}px`;
+  }
+
+  function zoomAt(st, mx, my, newScale, duration) {
+    newScale = Math.min(Math.max(newScale, MIN_SCALE), MAX_SCALE);
+    const o = svgOrigin(st);
+    const px = (mx - o.x - st.panX) / st.scale;
+    const py = (my - o.y - st.panY) / st.scale;
+    st.panX = mx - o.x - px * newScale;
+    st.panY = my - o.y - py * newScale;
+    st.scale = newScale;
+    apply(st, duration);
+  }
+
+  function zoomCenter(st, factor) {
+    st.userMoved = true;
+    zoomAt(st, st.wrapper.clientWidth / 2, st.wrapper.clientHeight / 2, st.scale * factor, 200);
+  }
+
+  // Fit the whole map in the wrapper and centre it. Small maps are not enlarged past 100 %.
+  function fit(st, duration) {
+    const W = st.wrapper.clientWidth;
+    const H = st.wrapper.clientHeight;
+    const c = contentBox(st);
+    if (!W || !H || !c.w || !c.h) return;
+    const o = svgOrigin(st);
+    const off = svgOffset(st);
+    st.scale = Math.min(W / c.w, H / c.h, 1);
+    st.panX = (W - c.w * st.scale) / 2 - o.x - off.x * st.scale;
+    st.panY = (H - c.h * st.scale) / 2 - o.y - off.y * st.scale;
+    st.userMoved = false;
+    apply(st, duration);
+  }
+
+  function problemElements(st) {
+    const svg = st.svg;
+    const items = [];
+    // Problem highlight: an unclassed ellipse filled with the severity colour behind the icon.
+    svg.querySelectorAll('.map-elements ellipse:not(.selection)').forEach((el) => {
+      const fill = (el.getAttribute('fill') || '').toUpperCase();
+      if (!fill || fill === 'NONE') return;
+      items.push({ el: el, rank: fill in SEVERITY_RANK ? SEVERITY_RANK[fill] : 0 });
+    });
+    // Maps without highlight: fall back to trigger status lines that are not "OK" green.
+    if (items.length === 0) {
+      svg.querySelectorAll('tspan[data-type="trigger"]').forEach((t) => {
+        const fill = (t.getAttribute('fill') || '').toUpperCase();
+        if (fill && OK_COLOURS.indexOf(fill) === -1) {
+          items.push({ el: t.closest('text') || t, rank: 0 });
+        }
+      });
+    }
+    // Most severe first, then left-to-right / top-to-bottom for a stable order.
+    items.forEach((it) => { it.box = it.el.getBoundingClientRect(); });
+    items.sort((a, b) => (b.rank - a.rank) || (a.box.top - b.box.top) || (a.box.left - b.box.left));
+    return items;
+  }
+
+  function pulse(st, el) {
+    const r = el.getBoundingClientRect();
+    const wr = st.wrapper.getBoundingClientRect();
+    const ring = document.createElement('div');
+    ring.className = 'zbx-map-pulse';
+    const size = Math.max(r.width, r.height, 24) + 24;
+    ring.style.width = ring.style.height = `${size}px`;
+    ring.style.left = `${r.left - wr.left + r.width / 2 - size / 2}px`;
+    ring.style.top = `${r.top - wr.top + r.height / 2 - size / 2}px`;
+    st.wrapper.appendChild(ring);
+    setTimeout(() => ring.remove(), 1600);
+  }
+
+  function focusNextProblem(st) {
+    const items = problemElements(st);
+    if (items.length === 0) {
+      flash(st, 'Nenhum alerta neste mapa');
+      return;
+    }
+    st.problemIdx = (st.problemIdx + 1) % items.length;
+    const el = items[st.problemIdx].el;
+    const r = el.getBoundingClientRect();
+    const wr = st.wrapper.getBoundingClientRect();
+    // Element centre in wrapper pixels, then zoom so that point ends up in the middle.
+    const cx = r.left - wr.left + r.width / 2;
+    const cy = r.top - wr.top + r.height / 2;
+    const o = svgOrigin(st);
+    const px = (cx - o.x - st.panX) / st.scale;
+    const py = (cy - o.y - st.panY) / st.scale;
+    const c = contentBox(st);
+    // FOCUS_SCALE is relative to the map's natural size (1 map unit = 1 px).
+    st.scale = Math.min(Math.max(FOCUS_SCALE / (c.k || 1), st.scale, MIN_SCALE), MAX_SCALE);
+    st.panX = st.wrapper.clientWidth / 2 - o.x - px * st.scale;
+    st.panY = st.wrapper.clientHeight / 2 - o.y - py * st.scale;
+    st.userMoved = true;
+    apply(st, 400);
+    setTimeout(() => pulse(st, el), 420);
+    flash(st, `Alerta ${st.problemIdx + 1} de ${items.length}`);
+  }
+
+  function updateZoomLabel(st) {
+    if (!st.zoomLabel) return;
+    const c = contentBox(st);
+    st.zoomLabel.textContent = `${Math.round(st.scale * (c.k || 1) * 100)}%`;
+  }
+
+  function flash(st, text) {
+    if (!st.message) return;
+    st.message.textContent = text;
+    st.message.classList.add('visible');
+    clearTimeout(st.messageTimer);
+    st.messageTimer = setTimeout(() => st.message.classList.remove('visible'), 2200);
+  }
+
+  function buildHud(st) {
+    const hud = document.createElement('div');
+    hud.className = 'zbx-map-hud';
+
+    function addButton(label, title, extraClass, onClick) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = extraClass ? `hud-btn ${extraClass}` : 'hud-btn';
+      btn.title = title;
+      btn.setAttribute('aria-label', title);
+      btn.textContent = label;
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        onClick();
+      });
+      hud.appendChild(btn);
+      return btn;
     }
 
-    let scale = 1;
-    let panX = 0;
-    let panY = 0;
-    let isDragging = false;
-    let startX = 0;
-    let startY = 0;
+    addButton('−', 'Afastar', 'hud-zoom-out', () => zoomCenter(st, 1 / 1.3));
+    st.zoomLabel = document.createElement('span');
+    st.zoomLabel.className = 'hud-zoom-label';
+    hud.appendChild(st.zoomLabel);
+    addButton('+', 'Aproximar', 'hud-zoom-in', () => zoomCenter(st, 1.3));
+    addButton('Ajustar', 'Ajustar o mapa à área visível', 'hud-fit', () => fit(st, 300));
+    addButton('Próximo alerta', 'Centralizar o próximo elemento com problema (mais grave primeiro)',
+      'hud-btn-alert', () => focusNextProblem(st));
 
-    svg.style.transformOrigin = '0 0';
-    svg.style.transition = 'transform 0.05s ease-out';
+    st.message = document.createElement('div');
+    st.message.className = 'zbx-map-hud-message';
+    st.message.setAttribute('role', 'status');
 
-    function updateTransform() {
-      svg.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
-    }
+    // Keep pointer/wheel events on the HUD from reaching the map.
+    ['pointerdown', 'wheel', 'dblclick'].forEach((type) => {
+      hud.addEventListener(type, (e) => e.stopPropagation());
+    });
 
-    function fitToScreen() {
-      const cWidth = wrapper.clientWidth || window.innerWidth;
-      const cHeight = wrapper.clientHeight || (window.innerHeight - 180);
-      const tWidth = parseFloat(svg.getAttribute('width')) || svg.getBoundingClientRect().width / scale || 2000;
-      const tHeight = parseFloat(svg.getAttribute('height')) || svg.getBoundingClientRect().height / scale || 1000;
+    st.wrapper.appendChild(hud);
+    st.wrapper.appendChild(st.message);
+    st.hud = hud;
+  }
 
-      const scaleX = (cWidth - 60) / tWidth;
-      const scaleY = (cHeight - 60) / tHeight;
-      scale = Math.min(scaleX, scaleY, 1.0);
-      panX = Math.max((cWidth - tWidth * scale) / 2, 20);
-      panY = 20;
+  function attachWrapperEvents(st) {
+    const wrapper = st.wrapper;
 
-      svg.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
-      updateTransform();
-      setTimeout(() => { svg.style.transition = 'transform 0.05s ease-out'; }, 300);
-    }
-
-    // Mouse Wheel Zoom
     wrapper.addEventListener('wheel', (e) => {
+      if (!st.svg.isConnected) return;
       e.preventDefault();
-      const rect = wrapper.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
-
-      const factor = e.deltaY < 0 ? 1.15 : 0.87;
-      const newScale = Math.min(Math.max(scale * factor, 0.15), 4.5);
-
-      panX = mouseX - (mouseX - panX) * (newScale / scale);
-      panY = mouseY - (mouseY - panY) * (newScale / scale);
-      scale = newScale;
-
-      svg.style.transition = 'none';
-      updateTransform();
+      const wr = wrapper.getBoundingClientRect();
+      const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+      st.userMoved = true;
+      zoomAt(st, e.clientX - wr.left, e.clientY - wr.top, st.scale * factor, 0);
     }, { passive: false });
 
-    // Drag to Pan
-    wrapper.addEventListener('mousedown', (e) => {
-      if (e.target.closest('.zbx-map-hud') || e.button !== 0) return;
-      isDragging = true;
-      startX = e.clientX - panX;
-      startY = e.clientY - panY;
-      wrapper.style.cursor = 'grabbing';
+    wrapper.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 || e.target.closest('.zbx-map-hud')) return;
+      activeDrag = { st: st, id: e.pointerId, x: e.clientX, y: e.clientY, panX: st.panX, panY: st.panY, moved: false };
     });
 
-    window.addEventListener('mousemove', (e) => {
-      if (!isDragging) return;
-      panX = e.clientX - startX;
-      panY = e.clientY - startY;
-      svg.style.transition = 'none';
-      updateTransform();
+    // A drag that ends on a map element must not open the element's context menu.
+    wrapper.addEventListener('click', (e) => {
+      if (st.suppressClick) {
+        st.suppressClick = false;
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+
+    wrapper.addEventListener('dblclick', (e) => {
+      if (e.target.closest('.zbx-map-hud')) return;
+      fit(st, 300);
     });
 
-    window.addEventListener('mouseup', () => {
-      if (isDragging) {
-        isDragging = false;
-        wrapper.style.cursor = 'grab';
-      }
-    });
-
-    // Problem Focus
-    function findProblemElements() {
-      return Array.from(svg.querySelectorAll(
-        '.map-element-problem, [class*="problem"], [stroke="#E45959"], [stroke="#E97659"], [stroke="#FFA059"], [fill="#E45959"]'
-      ));
+    if (window.ResizeObserver) {
+      new ResizeObserver(() => {
+        if (!st.userMoved) fit(st, 0);
+        else updateZoomLabel(st);
+      }).observe(wrapper);
     }
-
-    let currentProblemIdx = -1;
-    function focusNextProblem() {
-      const probs = findProblemElements();
-      if (probs.length === 0) {
-        // Fallback search in label text
-        const labels = Array.from(svg.querySelectorAll('text')).filter((t) => {
-          return t.textContent && /DOWN|DISASTER|HIGH|CRÍTICO|PROBLEM|WARN/i.test(t.textContent);
-        });
-        if (labels.length > 0) probs.push(...labels);
-      }
-
-      if (probs.length === 0) {
-        alert('Nenhum equipamento em alerta detectado neste mapa no momento.');
-        return;
-      }
-
-      currentProblemIdx = (currentProblemIdx + 1) % probs.length;
-      const el = probs[currentProblemIdx];
-      const bbox = el.getBBox ? el.getBBox() : el.getBoundingClientRect();
-
-      const cWidth = wrapper.clientWidth || window.innerWidth;
-      const cHeight = wrapper.clientHeight || window.innerHeight;
-
-      scale = 1.35;
-      const posX = bbox.x !== undefined ? bbox.x + bbox.width / 2 : (bbox.left + bbox.width / 2);
-      const posY = bbox.y !== undefined ? bbox.y + bbox.height / 2 : (bbox.top + bbox.height / 2);
-
-      panX = cWidth / 2 - posX * scale;
-      panY = cHeight / 2 - posY * scale;
-
-      svg.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
-      updateTransform();
-      setTimeout(() => { svg.style.transition = 'transform 0.05s ease-out'; }, 400);
-    }
-
-    // Avoid duplicate HUD
-    let hud = wrapper.querySelector('.zbx-map-hud');
-    if (!hud) {
-      hud = document.createElement('div');
-      hud.className = 'zbx-map-hud';
-
-      // Buttons are created with textContent; classes instead of ids so several maps on one
-      // dashboard never share element ids.
-      function addButton(label, title, extraClass, onClick) {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = extraClass ? `hud-btn ${extraClass}` : 'hud-btn';
-        btn.title = title;
-        btn.textContent = label;
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          onClick();
-        });
-        hud.appendChild(btn);
-      }
-
-      addButton('+', 'Aproximar (+)', 'hud-zoom-in', () => {
-        scale = Math.min(scale * 1.3, 4.5);
-        svg.style.transition = 'transform 0.2s ease';
-        updateTransform();
-      });
-      addButton('−', 'Afastar (−)', 'hud-zoom-out', () => {
-        scale = Math.max(scale / 1.3, 0.15);
-        svg.style.transition = 'transform 0.2s ease';
-        updateTransform();
-      });
-      addButton('🎯 Ajustar', 'Ajustar Mapa à Tela', 'hud-fit', fitToScreen);
-      addButton('🚨 Focar Alarme', 'Focar Próximo Alerta Ativo', 'hud-btn-alert', focusNextProblem);
-
-      wrapper.appendChild(hud);
-    }
-
-    // Initial fit
-    setTimeout(fitToScreen, 200);
   }
 
-  function scanAndInit() {
-    const svgs = findMapSvgs();
-    svgs.forEach(setupSvgInteractivity);
+  // One set of window listeners for every map (no per-map leaks).
+  window.addEventListener('pointermove', (e) => {
+    const d = activeDrag;
+    if (!d || e.pointerId !== d.id) return;
+    const dx = e.clientX - d.x;
+    const dy = e.clientY - d.y;
+    if (!d.moved) {
+      if (Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
+      d.moved = true;
+      d.st.wrapper.classList.add('zbx-map-dragging');
+    }
+    d.st.panX = d.panX + dx;
+    d.st.panY = d.panY + dy;
+    d.st.userMoved = true;
+    apply(d.st, 0);
+  });
+
+  function endDrag(e) {
+    const d = activeDrag;
+    if (!d || (e && e.pointerId !== d.id)) return;
+    if (d.moved) {
+      d.st.suppressClick = true;
+      // If no click follows (pointer released outside an element), clear the flag.
+      setTimeout(() => { d.st.suppressClick = false; }, 0);
+      d.st.wrapper.classList.remove('zbx-map-dragging');
+    }
+    activeDrag = null;
+  }
+  window.addEventListener('pointerup', endDrag);
+  window.addEventListener('pointercancel', endDrag);
+
+  // Zabbix may rewrite the style attribute when it refreshes the map: keep the user's view.
+  function watchTarget(st) {
+    if (st.styleObserver) st.styleObserver.disconnect();
+    st.styleObserver = new MutationObserver(() => {
+      if (st.expected && st.target.style.transform !== st.expected) {
+        st.target.style.transformOrigin = '0 0';
+        st.target.style.transform = st.expected;
+      }
+    });
+    st.styleObserver.observe(st.target, { attributes: true, attributeFilter: ['style'] });
   }
 
-  // Run on load and poll every 800ms for AJAX map loads
+  // Dashboard map widget: the SVG fills its container and is scaled through its viewBox.
+  // Monitoring -> Maps: the SVG is full size inside .flickerfreescreen (which clips its children)
+  // inside .sysmap-scroll-container, so the flickerfreescreen is moved and the scroll box clips.
+  function resolve(svg) {
+    const scroll = svg.closest('.sysmap-scroll-container');
+    if (scroll) {
+      return { wrapper: scroll, target: svg.closest('.flickerfreescreen') || svg, pageMode: true };
+    }
+    return { wrapper: svg.parentElement, target: svg, pageMode: false };
+  }
+
+  function setup(svg) {
+    if (svg.dataset.nocInteractiveMapActive === 'true') return;
+    const r = resolve(svg);
+    if (!r.wrapper) return;
+    svg.dataset.nocInteractiveMapActive = 'true';
+
+    let st = states.get(r.wrapper);
+    if (st) {
+      // Same container, new SVG (map refresh): keep zoom/pan and re-apply it.
+      st.svg = svg;
+      st.target = r.target;
+      st.problemIdx = -1;
+      watchTarget(st);
+      if (st.userMoved) apply(st, 0);
+      else requestAnimationFrame(() => fit(st, 0));
+      return;
+    }
+
+    st = {
+      svg: svg, target: r.target, wrapper: r.wrapper, pageMode: r.pageMode,
+      scale: 1, panX: 0, panY: 0, problemIdx: -1, userMoved: false
+    };
+    states.set(r.wrapper, st);
+    r.wrapper.classList.add('zbx-map-interactive');
+    if (getComputedStyle(r.wrapper).position === 'static') r.wrapper.style.position = 'relative';
+    if (st.pageMode) {
+      sizePageWrapper(st);
+      window.addEventListener('resize', () => sizePageWrapper(st));
+    }
+
+    buildHud(st);
+    attachWrapperEvents(st);
+    watchTarget(st);
+    requestAnimationFrame(() => fit(st, 0));
+  }
+
+  function scan(root) {
+    const scope = root && root.querySelectorAll ? root : document;
+    if (scope instanceof SVGSVGElement) {
+      if (isZabbixMap(scope)) setup(scope);
+      return;
+    }
+    scope.querySelectorAll('svg').forEach((svg) => {
+      if (isZabbixMap(svg)) setup(svg);
+    });
+  }
+
+  let scheduled = false;
+  const pending = new Set();
+  const observer = new MutationObserver((mutations) => {
+    for (const m of mutations) {
+      for (const node of m.addedNodes) {
+        if (node.nodeType === 1) pending.add(node);
+      }
+    }
+    if (scheduled || pending.size === 0) return;
+    scheduled = true;
+    requestAnimationFrame(() => {
+      scheduled = false;
+      const nodes = Array.from(pending);
+      pending.clear();
+      nodes.forEach((n) => {
+        if (n.isConnected) scan(n.closest('svg') || n);
+      });
+    });
+  });
+
+  function start() {
+    scan(document);
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', scanAndInit);
+    document.addEventListener('DOMContentLoaded', start);
   } else {
-    scanAndInit();
+    start();
   }
-
-  setInterval(scanAndInit, 800);
 })();
