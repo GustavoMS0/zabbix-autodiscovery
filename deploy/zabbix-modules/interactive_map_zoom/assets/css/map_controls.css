@@ -1,63 +1,113 @@
-/* NOC Interactive Map Controls for Zabbix Web UI */
+/* NOC Interactive Map Controls for Zabbix Web UI (only native map SVGs, see map_controls.js) */
+.zbx-map-interactive {
+  overflow: hidden !important;
+  cursor: grab;
+  touch-action: none;
+}
+
+.zbx-map-interactive.zbx-map-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
 .zbx-map-hud {
-  position: absolute !important;
-  top: 15px !important;
-  right: 25px !important;
-  z-index: 99999 !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  background: rgba(17, 24, 39, 0.94) !important;
-  backdrop-filter: blur(10px) !important;
-  border: 1px solid rgba(75, 85, 99, 0.7) !important;
-  border-radius: 8px !important;
-  padding: 6px 10px !important;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5) !important;
-  pointer-events: auto !important;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(17, 24, 39, 0.88);
+  border: 1px solid rgba(75, 85, 99, 0.7);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  cursor: default;
+  opacity: 0.75;
+  transition: opacity 0.15s ease;
+}
+
+.zbx-map-hud:hover,
+.zbx-map-hud:focus-within {
+  opacity: 1;
 }
 
 .zbx-map-hud .hud-btn {
-  background: #1f2937 !important;
-  color: #f9fafb !important;
-  border: 1px solid #374151 !important;
-  border-radius: 6px !important;
-  padding: 6px 12px !important;
-  font-size: 13px !important;
-  font-weight: 600 !important;
-  cursor: pointer !important;
-  outline: none !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  transition: all 0.15s ease !important;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 8px;
+  background: #1f2937;
+  color: #f9fafb;
+  border: 1px solid #374151;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 24px;
+  cursor: pointer;
 }
 
 .zbx-map-hud .hud-btn:hover {
-  background: #374151 !important;
-  border-color: #60a5fa !important;
-  color: #ffffff !important;
+  background: #374151;
+  border-color: #60a5fa;
 }
 
-.zbx-map-hud .hud-btn:active {
-  transform: scale(0.95) !important;
+.zbx-map-hud .hud-btn:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 1px;
 }
 
 .zbx-map-hud .hud-btn-alert {
-  background: #dc2626 !important;
-  border-color: #b91c1c !important;
-  color: #fff !important;
+  background: #b91c1c;
+  border-color: #991b1b;
 }
 
 .zbx-map-hud .hud-btn-alert:hover {
-  background: #b91c1c !important;
+  background: #dc2626;
+  border-color: #fca5a5;
 }
 
-.zbx-map-hud .hud-counter {
-  font-size: 12px !important;
-  font-weight: 600 !important;
-  margin-right: 6px !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 6px !important;
-  color: #9ca3af !important;
+.zbx-map-hud .hud-zoom-label {
+  min-width: 42px;
+  color: #d1d5db;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.zbx-map-hud-message {
+  position: absolute;
+  top: 46px;
+  right: 8px;
+  z-index: 20;
+  padding: 4px 10px;
+  background: rgba(17, 24, 39, 0.92);
+  color: #f9fafb;
+  border-radius: 4px;
+  font-size: 12px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.zbx-map-hud-message.visible {
+  opacity: 1;
+}
+
+.zbx-map-pulse {
+  position: absolute;
+  z-index: 19;
+  border: 3px solid #f87171;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: zbx-map-pulse 0.8s ease-out 2;
+}
+
+@keyframes zbx-map-pulse {
+  from { transform: scale(0.6); opacity: 1; }
+  to { transform: scale(1.4); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zbx-map-pulse { animation: none; }
 }
