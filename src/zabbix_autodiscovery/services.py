@@ -9,6 +9,7 @@ the groups listed in config "service_checks" also get a template that raises a p
 answering (no credentials needed). Everything here targets local / on-premises networks.
 """
 import asyncio
+import re
 
 PREFIX = "AutoDiscovery - "             # same prefix as provision.PREFIX (not imported: scanner uses this module)
 TEMPLATE_GROUP = "Templates/AutoDiscovery"
@@ -148,17 +149,33 @@ async def detect(ip, open_ports, timeout, web_servers=""):
 
 # ---------------------------------------------------------------- Zabbix side
 
+def sanitize_template_name(name):
+    """Ensure a template technical name only contains characters allowed by Zabbix (0-9a-zA-Z_.- and space)."""
+    s = re.sub(r"\s*[/\\|:]+\s*", " - ", name)
+    s = re.sub(r"[()]", "", s)
+    s = re.sub(r"[^0-9A-Za-z._ -]", "", s)
+    s = re.sub(r"\s+", " ", s)
+    return s.strip(" ._-")
+
+
 def template_name(service, port=None):
-    """One template per service and port: e.g. SMTP on 25 and SMTP on 587 are separate templates."""
+    """One template per service and port: e.g. SMTP on 25 and SMTP on 587 are separate templates.
+
+    Template names are sanitized to only contain characters allowed in Zabbix host names
+    (letters, numbers, spaces, dots, dashes, underscores; no parentheses or slashes).
+    """
     _, label, _, ports, _ = BY_NAME[service]
-    suffix = f" (TCP {port})" if port and port != ports[0] else ""
-    return f"{PREFIX}Service {label}{suffix}"
+    clean_label = sanitize_template_name(label)
+    first_port = ports[0] if ports else None
+    suffix = f" - TCP {port}" if port and port != first_port else ""
+    return f"{PREFIX}Service {clean_label}{suffix}"
 
 
 def check_port(service, open_ports=()):
     """Port monitored for a service: the first of its ports that was found open, else its first port."""
     ports = BY_NAME[service][3]
-    return next((p for p in ports if p in set(open_ports)), ports[0])
+    first_port = ports[0] if ports else None
+    return next((p for p in ports if p in set(open_ports)), first_port)
 
 
 def checked_services(services, cfg):
@@ -174,7 +191,10 @@ def ensure_service_template(api, service, port=None, log=print):
 
     The port is part of the item key (not a macro): several service templates on one host never clash."""
     name, label, _, ports, _ = BY_NAME[service]
-    port = port or ports[0]
+    first_port = ports[0] if ports else None
+    port = port or first_port
+    if not port:
+        return None
     tname = template_name(service, port)
     found = api.call("template.get", {"output": ["templateid"], "filter": {"host": tname}})
     if found:
