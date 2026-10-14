@@ -1,29 +1,30 @@
 # Módulo Zabbix: Controle Interativo e Zoom nos Mapas Nativos
 
-Este módulo adiciona **controle fluido de zoom com o scroll do mouse**, **pan (arrastar)** e **botão de foco automático em alertas** diretamente nas telas de mapa nativas do Zabbix (`Monitoring -> Maps` e widgets de mapa no Dashboard).
+Este módulo adiciona **controle fluido de zoom com o scroll do mouse**, **pan (arrastar)** e **botão de foco automático em alertas** diretamente nas telas de mapa nativas do Zabbix (`Monitoring -> Maps` e widgets de mapa no Dashboard). É a forma oficial do projeto de ter um mapa interativo: tudo fica dentro do Zabbix, sobre os mapas criados por `zabbix-autodiscovery maps`.
+
+Requer Zabbix 6.4 ou mais novo (manifest v2).
 
 ---
 
-## Como Instalar no Servidor Zabbix
+## Como Instalar
 
-No servidor onde o Zabbix Web UI está instalado:
+### Docker (`deploy/docker-compose.yml`)
+Nada a copiar: o container `zabbix-web` monta esta pasta, somente leitura, em `/usr/share/zabbix/modules/interactive_map_zoom` (diretório de módulos das imagens oficiais `zabbix/zabbix-web-*`).
 
-### 1. Copiar a pasta do módulo para o diretório de módulos do Zabbix:
+### Zabbix instalado por pacotes
 ```bash
-# Se estiver no servidor local:
+# Zabbix 7.0+ (frontend em /usr/share/zabbix/ui):
 sudo cp -r deploy/zabbix-modules/interactive_map_zoom /usr/share/zabbix/ui/modules/
-
-# Ou se for transferir do Windows via SCP:
-scp -r deploy/zabbix-modules/interactive_map_zoom usuario@192.168.0.15:/tmp/
-ssh usuario@192.168.0.15 "sudo mv /tmp/interactive_map_zoom /usr/share/zabbix/ui/modules/ && sudo chown -R www-data:www-data /usr/share/zabbix/ui/modules/interactive_map_zoom"
+# Zabbix 6.4 (frontend em /usr/share/zabbix):
+sudo cp -r deploy/zabbix-modules/interactive_map_zoom /usr/share/zabbix/modules/
 ```
 
-### 2. Ativar no Zabbix Web:
-1. Acesse o Zabbix: `http://192.168.0.15:8080`
-2. Vá em **Administration** (Administração) -> **General** (Geral) -> **Modules** (Módulos).
-3. Clique no botão **Scan directory** (Escanear diretório) no canto superior direito.
-4. O módulo **NOC Interactive Map Controls** aparecerá listado como *Disabled*.
-5. Clique em **Enable** (Ativar).
+## Como Ativar
 
-Pronto! Ao abrir qualquer mapa (`Monitoring -> Maps`), os controles interativos (zoom com scroll, arrastar e focar alarme) estarão ativos instantaneamente sobre o mapa nativo.
+* **Automático (Zabbix 7.0+):** `zabbix-autodiscovery maps` ativa o módulo pela API (token de Super admin). Se o módulo não estiver no frontend ou faltar permissão, o comando apenas avisa. Para não ativar, use `maps.enable_module: false` no `config.yaml`.
+* **Manual:**
+  1. Vá em **Administration** (Administração) -> **General** (Geral) -> **Modules** (Módulos).
+  2. Clique em **Scan directory** (Escanear diretório).
+  3. O módulo **NOC Interactive Map Controls** aparecerá como *Disabled*; clique em **Enable** (Ativar).
 
+Ao abrir qualquer mapa (`Monitoring -> Maps`), os controles (zoom com scroll, arrastar, ajustar e focar alarme) aparecem sobre o mapa nativo.

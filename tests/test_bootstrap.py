@@ -155,3 +155,12 @@ def test_offer_install_only_on_linux_without_local_zabbix(tmp_path, monkeypatch)
     assert w.offer_install() is True
     monkeypatch.setattr(Wizard, "_probe", staticmethod(lambda url: "8.0.0"))
     assert w.offer_install() is False
+
+
+def test_install_docker_downloads_script_before_running(monkeypatch):
+    calls = []
+    monkeypatch.setattr(bootstrap, "_is_root", lambda: True)
+    bootstrap.install_docker(run=lambda cmd, **kw: calls.append(cmd))
+    assert calls[0][0] == "curl" and "-o" in calls[0] and calls[0][-1] == bootstrap.DOCKER_INSTALL_URL
+    assert calls[1] == ["sh", calls[0][calls[0].index("-o") + 1]]
+    assert not any("|" in " ".join(c) for c in calls)

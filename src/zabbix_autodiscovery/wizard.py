@@ -16,6 +16,8 @@ from collections import Counter
 from importlib import resources
 from pathlib import Path
 
+from .config import write_private
+
 TEXT = {
     "pt": {
         "title": "zabbix-autodiscovery - assistente de implantação",
@@ -358,8 +360,7 @@ class Wizard:
             self.out(f"  {self.t['env_reuse']}")
         else:
             example = (deploy / ".env.example").read_text("utf-8")
-            env_file.write_text(bootstrap.render_deploy_env(example, bootstrap.local_timezone()), "utf-8")
-            env_file.chmod(0o600)
+            write_private(env_file, bootstrap.render_deploy_env(example, bootstrap.local_timezone()))
             self.out(f"  {self.t['env_written'].format(file=env_file)}")
         env = bootstrap.read_env(env_file.read_text("utf-8"))
         self.out(f"  {self.t['compose_up']}")
@@ -485,9 +486,7 @@ class Wizard:
             example = resources.files("zabbix_autodiscovery").joinpath("data/config.example.yaml").read_text("utf-8")
             self.config.write_text(render_config(example, url, networks, exclude, grafana, pt_groups), "utf-8")
             env = self.config.resolve().parent / ".env"
-            env.write_text(render_env(token, community, guser, gpass), "utf-8")
-            if os.name == "posix":
-                env.chmod(0o600)
+            write_private(env, render_env(token, community, guser, gpass))
             self.out(f"  {self.t['saved'].format(files=f'{self.config}, {env}')}")
             cfg = cli.load_config(self.config)
             api = cli.connect(cfg)

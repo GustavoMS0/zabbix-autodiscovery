@@ -1,10 +1,16 @@
-"""Build standalone zabbix-autodiscovery.exe with PyInstaller."""
+"""Build standalone zabbix-autodiscovery.exe with PyInstaller.
+
+Requires the optional build extra: pip install -e ".[build]"
+"""
+import importlib.util
 import subprocess
 import sys
 from pathlib import Path
 
 
 def build():
+    if importlib.util.find_spec("PyInstaller") is None:
+        sys.exit('PyInstaller não está instalado. Instale com: pip install -e ".[build]"')
     root = Path(__file__).resolve().parent
     data_src = root / "src" / "zabbix_autodiscovery" / "data"
     entry = root / "src" / "zabbix_autodiscovery" / "__main__.py"

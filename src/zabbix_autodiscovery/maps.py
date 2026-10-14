@@ -12,6 +12,9 @@ from .provision import PREFIX
 from .zabbix_api import ZabbixError
 
 DASHBOARD = f"{PREFIX}Maps"
+# Zabbix frontend module shipped in deploy/zabbix-modules: zoom, pan and "focus on problems" on native maps
+MAP_MODULE_ID = "interactive_map_zoom"
+MAP_MODULE_PATH = f"modules/{MAP_MODULE_ID}"
 DEFAULT_ICONS = {
     "firewall": "Firewall", "router": "Router", "switch": "Switch", "ap": "Satellite_antenna",
     "server-windows": "Server", "server-linux": "Server", "hypervisor": "Rackmountable_2U_server_2D",
@@ -291,7 +294,34 @@ def provision(api, cfg, base_dir, rebuild=False, dry_run=False, log=print):
             log(f"  + map '{name}' ({len(placed)} hosts)")
     if map_ids and not dry_run:
         ensure_dashboard(api, map_ids, rebuild, log)
+        if maps_cfg.get("enable_module", True):
+            enable_map_module(api, log)
     return map_ids
+
+
+def enable_map_module(api, log=print):
+    """Enable the interactive map controls frontend module (Zabbix 7.0+ module API, needs Super admin).
+
+    The module folder must already be in the frontend's modules directory (the Docker deploy mounts it).
+    Never fails the command: on any problem it only prints how to enable it by hand."""
+    hint = (f"copy deploy/zabbix-modules/{MAP_MODULE_ID} to the frontend's modules folder and enable it in "
+            "Administration > General > Modules (Scan directory)")
+    if api.version < (7, 0):
+        log(f"  i interactive map module: {hint}")
+        return False
+    try:
+        found = api.call("module.get", {"output": ["moduleid", "status"], "filter": {"id": MAP_MODULE_ID}})
+        if found and str(found[0]["status"]) == "1":
+            return True
+        if found:
+            api.call("module.update", {"moduleid": found[0]["moduleid"], "status": 1})
+        else:
+            api.call("module.create", {"id": MAP_MODULE_ID, "relative_path": MAP_MODULE_PATH, "status": 1})
+        log(f"- frontend module '{MAP_MODULE_ID}' enabled (zoom and pan on the native maps)")
+        return True
+    except ZabbixError as exc:
+        log(f"  i interactive map module not enabled ({exc}): {hint}")
+        return False
 
 
 def ensure_dashboard(api, map_ids, rebuild, log=print):

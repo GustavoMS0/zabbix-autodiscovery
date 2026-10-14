@@ -9,6 +9,7 @@ import re
 import secrets
 import shutil
 import subprocess
+import tempfile
 import time
 from pathlib import Path
 
@@ -82,9 +83,15 @@ def has_compose(prefix, run=subprocess.run):
 
 
 def install_docker(run=subprocess.run):
-    """Docker's official convenience script (Debian, Ubuntu, RHEL, CentOS, Fedora...). Asks for sudo."""
+    """Docker's official convenience script (Debian, Ubuntu, RHEL, CentOS, Fedora...). Asks for sudo.
+
+    The script is downloaded to a private temporary file first (never piped into a root shell), so a
+    truncated or failed download is never executed."""
     sudo = [] if _is_root() else ["sudo"]
-    run([*sudo, "sh", "-c", f"curl -fsSL {DOCKER_INSTALL_URL} | sh"], check=True)
+    with tempfile.TemporaryDirectory(prefix="zad-docker-") as tmp:
+        script = Path(tmp) / "get-docker.sh"
+        run(["curl", "-fsSL", "--proto", "=https", "--tlsv1.2", "-o", str(script), DOCKER_INSTALL_URL], check=True)
+        run([*sudo, "sh", str(script)], check=True)
     run([*sudo, "systemctl", "enable", "--now", "docker"])
     user = os.environ.get("SUDO_USER") or os.environ.get("USER")
     if sudo and user:

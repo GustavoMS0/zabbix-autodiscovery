@@ -29,7 +29,8 @@ scan:
   exclude:                            # never scanned (e.g. the workstation DHCP pool)
     - 192.168.0.100-192.168.0.199
   ports: [22, 23, 80, 88, 135, 139, 389, 443, 445, 515, 554, 631, 902, 1433, 3306, 3389, 5060, 5432, 5985, 8000, 8006, 8080, 8291, 8443, 9100, 10050, 37777]
-  concurrency: 30
+  concurrency: 30                     # parallel hosts (capped at 256)
+  # max_targets: 65536                # refuse to scan more addresses than this (a /16) unless "scan --force"
   timeout: 2.0                        # seconds per TCP/SNMP probe (the second pass uses twice this)
   snmp_retries: 1
   ping: true
@@ -80,9 +81,19 @@ category_templates:
 # per category or per vendor ("vendor:HP"). Defaults: Printer, Switch, Firewall, Router, Server, UPS...
 maps:
   name_format: "Site: {site}"
+  enable_module: true                 # Zabbix 7.0+: enable the zoom/pan frontend module (deploy/zabbix-modules)
   # icons:
   #   printer: Printer
   #   vendor:HP: icons/hp-laserjet.png
+
+# NOC commands ("dependencies" and "sla").
+# Trigger dependencies SUPPRESS alerts: when a parent is down, its children's availability alerts are hidden.
+# Automatic inference only links switch -> gateway when a site has exactly ONE firewall/router; anything else
+# (HA gateway pairs, servers, VMs, endpoints) must be declared here, one parent per host.
+noc:
+  sla_timezone: America/Sao_Paulo     # timezone of the "sla" command's SLA (any IANA name, e.g. UTC)
+  dependencies: []
+  #  - {host: sw-core-01, depends_on: fw-branch-01}      # technical or visible host names
 
 # SSL certificate and domain expiration monitoring ("zabbix-autodiscovery web").
 web:

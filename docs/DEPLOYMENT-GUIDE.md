@@ -19,7 +19,9 @@ Step by step for three situations. Pick yours:
 If you would rather not edit files by hand, one command installs the tool and opens a wizard that covers scenarios A, B and C:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/install.sh | bash        # Linux, e.g. on the Zabbix server
+# Linux, e.g. on the Zabbix server: download, (optionally) review, run
+curl -fsSL https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/install.sh -o install.sh
+bash install.sh
 ```
 
 ```powershell
@@ -28,7 +30,7 @@ irm https://raw.githubusercontent.com/GustavoMS0/zabbix-autodiscovery/main/insta
 
 The wizard detects a local Zabbix, validates the token, suggests networks from the IPs already in Zabbix and the machine's own IPs, writes `config.yaml` and `.env`, and runs `check`, `setup`, `scan` and `apply`. On a Zabbix that already has hosts it also offers `audit`, `organize`, add-on templates and services. Every change asks for confirmation and defaults to "no". The rest of this guide explains the same steps for doing them manually.
 
-**Fresh server (Linux):** if no Zabbix answers on the machine, the wizard offers to install one. It installs Docker with the official script (get.docker.com, asks for your sudo password) if needed, writes `deploy/.env` with random passwords, starts Zabbix 8 (and Grafana, if you want) from `deploy/docker-compose.yml`, creates the Admin API token and changes the default Admin password. It then goes straight to networks and scanning, without opening the Zabbix frontend.
+**Fresh server (Linux):** if no Zabbix answers on the machine, the wizard offers to install one. It installs Docker with the official script (get.docker.com, downloaded to a temporary file before it runs; asks for your sudo password) if needed, writes `deploy/.env` with random passwords (mode 600), starts Zabbix (image pinned by `ZABBIX_TAG`, default `ubuntu-trunk`, the Zabbix 8.0 development build, with the interactive map module mounted) and Grafana, if you want, from `deploy/docker-compose.yml`, creates the Admin API token and changes the default Admin password. It then goes straight to networks and scanning, without opening the Zabbix frontend.
 
 ---
 
@@ -114,7 +116,7 @@ zabbix-autodiscovery scan -o inventory.csv         # only reads the network
 zabbix-autodiscovery apply -i inventory.csv --dry-run
 zabbix-autodiscovery apply -i inventory.csv
 zabbix-autodiscovery setup --rebuild-dashboards    # dashboards with the newly added hosts
-zabbix-autodiscovery maps                          # one map per site
+zabbix-autodiscovery maps                          # one native map per site (+ zoom/pan module on 7.0+)
 ```
 
 **5. Grafana dashboards.** The dashboards shipped in `deploy/grafana/dashboards` use the example group names. If you renamed groups in `config.yaml`, regenerate them and restart Grafana:

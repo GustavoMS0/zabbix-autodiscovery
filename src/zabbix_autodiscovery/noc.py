@@ -5,9 +5,18 @@
 - Rogue Device Detection
 """
 
-from .inventory import network_hosts
-from .maps import infer_links, layout
+from .inventory import category_of, network_hosts
 from .zabbix_api import ZabbixError
+
+DEFAULT_SLA_TIMEZONE = "America/Sao_Paulo"
+GATEWAY_CATEGORIES = ("firewall", "router")
+
+DEPENDENCIES_WARNING = (
+    "ATENÇÃO: dependências de trigger SUPRIMEM alertas. Se um host-pai estiver em problema, os alertas de\n"
+    "indisponibilidade dos hosts dependentes deixam de aparecer. Uma dependência errada esconde quedas reais.\n"
+    "Inferência automática: somente switch -> gateway quando a filial tem UM único firewall/roteador.\n"
+    "Demais vínculos (servidores, VMs, endpoints, gateways redundantes/HA) só via noc.dependencies no config."
+)
 
 
 def primary_down_trigger(api, hostid):
@@ -24,81 +33,118 @@ def primary_down_trigger(api, hostid):
     return None
 
 
-def link_trigger_dependencies(api, cfg, dry_run=False, log=print):
-    """Automatically build trigger dependencies based on network topology.
+def infer_site_dependencies(hosts):
+    """[(child, parent)] inferred for one site, plus warnings.
 
-    Endpoints -> depend on their closest Switch.
-    VMs -> depend on their physical Host / iDRAC.
-    Switches -> depend on their Gateway / Firewall.
-
-    Prevents alert storms during outages.
+    Only switch -> gateway, and only when the site has exactly ONE gateway (firewall/router): a trigger
+    with several dependencies is suppressed when ANY parent is down, so with an HA pair one firewall down
+    would hide every switch alert. Endpoints, VMs and servers are never inferred (map positions say
+    nothing about real cabling or virtualization); declare them in noc.dependencies.
     """
-    sites = cfg.get("_sites") or []
-    if not sites:
-        log("Nenhuma filial configurada em scan.networks.")
-        return {"linked": 0, "skipped": 0, "errors": 0}
+    gateways = [h for h in hosts if category_of(h) in GATEWAY_CATEGORIES]
+    switches = [h for h in hosts if category_of(h) == "switch"]
+    if not gateways or not switches:
+        return [], []
+    if len(gateways) > 1:
+        names = ", ".join(sorted(h["name"] for h in gateways))
+        return [], [f"{len(gateways)} gateways ({names}) - possivelmente redundantes (HA): dependências "
+                    "switch -> gateway NÃO criadas; declare-as em noc.dependencies se for o caso"]
+    return [(sw, gateways[0]) for sw in switches], []
 
+
+def explicit_dependencies(api, cfg):
+    """noc.dependencies: [{host: <child>, depends_on: <parent>}] matched by technical or visible name."""
+    entries = (cfg.get("noc") or {}).get("dependencies") or []
+    pairs, warnings, by_child = [], [], {}
+    cache = {}
+
+    def find(name):
+        if name not in cache:
+            found = api.call("host.get", {"output": ["hostid", "host", "name"], "filter": {"host": [name]}}) or \
+                api.call("host.get", {"output": ["hostid", "host", "name"], "filter": {"name": [name]}})
+            cache[name] = found[0] if len(found) == 1 else None
+        return cache[name]
+
+    for e in entries:
+        child_name, parent_name = str(e.get("host") or "").strip(), str(e.get("depends_on") or "").strip()
+        if not child_name or not parent_name:
+            warnings.append(f"noc.dependencies: entrada inválida (use host e depends_on): {e}")
+            continue
+        by_child.setdefault(child_name, []).append(parent_name)
+    for child_name, parents in by_child.items():
+        if len(parents) > 1:
+            warnings.append(f"{child_name}: {len(parents)} pais em noc.dependencies ({', '.join(parents)}) - "
+                            "um alerta com vários pais some quando QUALQUER pai cai; ignorado")
+            continue
+        child, parent = find(child_name), find(parents[0])
+        if not child or not parent:
+            warnings.append(f"noc.dependencies: host não encontrado (ou ambíguo): "
+                            f"{child_name if not child else parents[0]}")
+            continue
+        pairs.append((child, parent))
+    return pairs, warnings
+
+
+def link_trigger_dependencies(api, cfg, dry_run=False, log=print):
+    """Create trigger dependencies (child availability trigger depends on the parent's).
+
+    Sources: noc.dependencies in the config (explicit, preferred) and, per site, switch -> gateway when
+    the site has a single gateway. A child never gets more than one parent, and triggers that already
+    have dependencies are left untouched.
+    """
     stats = {"linked": 0, "skipped": 0, "errors": 0}
-    by_site = {}
-    for s in sites:
-        by_site.setdefault(s.get("site") or s["network"], []).append(s["network"])
+    pairs, warnings = explicit_dependencies(api, cfg)
+    explicit_children = {c["hostid"] for c, _ in pairs}
 
+    by_site = {}
+    for s in cfg.get("_sites") or []:
+        by_site.setdefault(s.get("site") or s["network"], []).append(s["network"])
     for site_name, networks in by_site.items():
         hosts = network_hosts(api, networks)
-        if not hosts:
+        inferred, site_warnings = infer_site_dependencies(hosts)
+        warnings += [f"Filial {site_name}: {w}" for w in site_warnings]
+        inferred = [(c, p) for c, p in inferred if c["hostid"] not in explicit_children]
+        if inferred:
+            log(f"\n--- Filial {site_name}: {len(inferred)} dependência(s) switch -> gateway ---")
+        pairs += inferred
+
+    for w in warnings:
+        log(f"  ! {w}")
+    if not pairs:
+        log("Nenhuma dependência a criar.")
+        return stats
+
+    for child, parent in pairs:
+        if child["hostid"] == parent["hostid"]:
+            continue
+        child_trig = primary_down_trigger(api, child["hostid"])
+        parent_trig = primary_down_trigger(api, parent["hostid"])
+        if not child_trig or not parent_trig:
+            stats["skipped"] += 1
             continue
 
-        placed, _, _ = layout(hosts)
-        selements = [{"selementid": str(i + 1), "hostid": h["hostid"]} for i, (h, _, _, _) in enumerate(placed)]
-        links = infer_links(placed, selements)
+        current = api.call("trigger.get", {"triggerids": child_trig, "selectDependencies": ["triggerid"]})
+        existing_dep_ids = {d["triggerid"] for d in current[0].get("dependencies", [])} if current else set()
+        if parent_trig in existing_dep_ids:
+            stats["skipped"] += 1
+            continue
+        if existing_dep_ids:
+            # Never stack a second parent: the trigger would be hidden when ANY of them is down
+            log(f"  = {child['name']}: já possui dependência(s) configurada(s), mantida(s) sem alteração")
+            stats["skipped"] += 1
+            continue
 
-        sid_to_hostid = {s["selementid"]: s["hostid"] for s in selements}
-        hostid_to_name = {h["hostid"]: h["name"] for h in hosts}
-
-        log(f"\n--- Filial {site_name}: {len(links)} conexões mapeadas ---")
-        for link in links:
-            parent_hid = sid_to_hostid.get(link["selementid1"])
-            child_hid = sid_to_hostid.get(link["selementid2"])
-            if not parent_hid or not child_hid or parent_hid == child_hid:
-                continue
-
-            child_trig = primary_down_trigger(api, child_hid)
-            parent_trig = primary_down_trigger(api, parent_hid)
-
-            if not child_trig or not parent_trig:
-                stats["skipped"] += 1
-                continue
-
-            # Check if dependency already exists
-            current = api.call("trigger.get", {
-                "triggerids": child_trig,
-                "selectDependencies": ["triggerid"]
-            })
-            existing_dep_ids = {d["triggerid"] for d in current[0].get("dependencies", [])} if current else set()
-
-            if parent_trig in existing_dep_ids:
-                stats["skipped"] += 1
-                continue
-
-            child_name = hostid_to_name.get(child_hid, child_hid)
-            parent_name = hostid_to_name.get(parent_hid, parent_hid)
-
-            if dry_run:
-                log(f"  [dry-run] {child_name} passará a depender de {parent_name}")
-                stats["linked"] += 1
-                continue
-
-            try:
-                new_deps = [{"triggerid": d} for d in existing_dep_ids] + [{"triggerid": parent_trig}]
-                api.call("trigger.update", {
-                    "triggerid": child_trig,
-                    "dependencies": new_deps
-                })
-                log(f"  + {child_name} -> depende de {parent_name}")
-                stats["linked"] += 1
-            except ZabbixError as exc:
-                log(f"  x Erro em {child_name}: {exc}")
-                stats["errors"] += 1
+        if dry_run:
+            log(f"  [dry-run] {child['name']} passará a depender de {parent['name']}")
+            stats["linked"] += 1
+            continue
+        try:
+            api.call("trigger.update", {"triggerid": child_trig, "dependencies": [{"triggerid": parent_trig}]})
+            log(f"  + {child['name']} -> depende de {parent['name']}")
+            stats["linked"] += 1
+        except ZabbixError as exc:
+            log(f"  x Erro em {child['name']}: {exc}")
+            stats["errors"] += 1
 
     return stats
 
@@ -180,7 +226,7 @@ def setup_noc_services(api, cfg, dry_run=False, log=print):
             "period": 2,  # Monthly
             "slo": 99.5,
             "effective_date": 1704067200,  # 2024-01-01
-            "timezone": "America/Sao_Paulo",
+            "timezone": (cfg.get("noc") or {}).get("sla_timezone") or DEFAULT_SLA_TIMEZONE,
             "service_tags": [{"tag": "origin", "operator": 0, "value": "autodiscovery"}],
             "schedule": [{"period_from": 0, "period_to": 604800}]  # 24x7
         })

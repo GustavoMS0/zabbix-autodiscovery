@@ -46,16 +46,21 @@ def test_interactive_menu_dispatches_check(tmp_path):
             assert mock_check.called
 
 
-def test_interactive_menu_dispatches_interactive_map(tmp_path):
+
+def test_interactive_menu_has_no_html_map_option(tmp_path, capsys):
+    # The interactive map lives only inside Zabbix (native maps + frontend module): no option 15
+    inputs = iter(["15", "", "0"])
+    with patch("builtins.input", side_effect=lambda *args: next(inputs)):
+        assert interactive_menu(str(tmp_path / "missing.yaml")) == 0
+    assert "inválida" in capsys.readouterr().out
+
+
+def test_menu_dependencies_requires_confirmation(tmp_path):
     cfg_file = tmp_path / "config.yaml"
     cfg_file.write_text("zabbix:\n  url: http://fake\nscan:\n  networks: [192.168.0.0/24]\n", encoding="utf-8")
-
-    # User selects "15" (interactive map), presses enter on prompts, then "0" (exit)
-    inputs = iter(["15", "", "", "n", "", "0"])
+    # "12" dependencies, "2" apply, "n" do not confirm, ENTER (pause), "0" exit
+    inputs = iter(["12", "2", "n", "", "0"])
     with patch("builtins.input", side_effect=lambda *args: next(inputs)):
-        with patch("zabbix_autodiscovery.cli.cmd_interactive_map") as mock_map:
-            ret = interactive_menu(str(cfg_file))
-            assert ret == 0
-            assert mock_map.called
-
-
+        with patch("zabbix_autodiscovery.cli.cmd_dependencies") as mock_dep:
+            assert interactive_menu(str(cfg_file)) == 0
+            assert not mock_dep.called
