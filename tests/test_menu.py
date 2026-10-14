@@ -48,11 +48,21 @@ def test_interactive_menu_dispatches_check(tmp_path):
 
 
 def test_interactive_menu_has_no_html_map_option(tmp_path, capsys):
-    # The interactive map lives only inside Zabbix (native maps + frontend module): no option 15
-    inputs = iter(["15", "", "0"])
+    # Standalone HTML map was removed; typing an unknown option prints invalid
+    inputs = iter(["99", "", "0"])
     with patch("builtins.input", side_effect=lambda *args: next(inputs)):
         assert interactive_menu(str(tmp_path / "missing.yaml")) == 0
     assert "inválida" in capsys.readouterr().out
+
+
+def test_interactive_menu_dispatches_grafana(tmp_path):
+    cfg_file = tmp_path / "config.yaml"
+    cfg_file.write_text("zabbix:\n  url: http://fake\nscan:\n  networks: [192.168.0.0/24]\n", encoding="utf-8")
+
+    # User selects "15" (grafana), then "0" (back to main), then "0" (exit)
+    inputs = iter(["15", "0", "0"])
+    with patch("builtins.input", side_effect=lambda *args: next(inputs)):
+        assert interactive_menu(str(cfg_file)) == 0
 
 
 def test_menu_dependencies_requires_confirmation(tmp_path):
