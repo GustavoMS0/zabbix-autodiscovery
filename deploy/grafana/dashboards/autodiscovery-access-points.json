@@ -282,7 +282,7 @@
             "filter": ""
           },
           "item": {
-            "filter": "/CPU utilization/i"
+            "filter": "/((cpu|processor).*(utilization|usage)|utiliza[cç][aã]o.*cpu|load average)/i"
           },
           "functions": [
             {
@@ -770,7 +770,7 @@
     },
     {
       "type": "timeseries",
-      "title": "Connected clients",
+      "title": "CPU Load average",
       "datasource": {
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
@@ -796,7 +796,7 @@
             "filter": ""
           },
           "item": {
-            "filter": "/(client|station|associated)/i"
+            "filter": "/load average/i"
           },
           "functions": [
             {
@@ -843,7 +843,7 @@
     },
     {
       "type": "timeseries",
-      "title": "Signal / noise",
+      "title": "Connected clients",
       "datasource": {
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
@@ -869,7 +869,7 @@
             "filter": ""
           },
           "item": {
-            "filter": "/(signal|noise|ccq)/i"
+            "filter": "/(client|station|associated|user)/i"
           },
           "functions": [
             {
@@ -910,6 +910,79 @@
       "gridPos": {
         "x": 12,
         "y": 37,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Signal / noise",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/(signal|noise|ccq|rssi)/i"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias"
+              },
+              "params": [
+                "$__zbx_host_name: $__zbx_item"
+              ]
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 11,
+      "gridPos": {
+        "x": 0,
+        "y": 45,
         "w": 12,
         "h": 8
       }
@@ -982,10 +1055,10 @@
         },
         "overrides": []
       },
-      "id": 11,
+      "id": 12,
       "gridPos": {
         "x": 0,
-        "y": 45,
+        "y": 53,
         "w": 24,
         "h": 5
       }

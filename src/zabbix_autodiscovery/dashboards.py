@@ -13,9 +13,9 @@ AGENT_PORT_ITEM = "Zabbix agent: port 10050 reachable"
 
 # Item filters: "zbx" is a Zabbix item-name pattern (honeycomb, * wildcard),
 # "re" is the Grafana-Zabbix plugin regex (each vendor template names items differently).
-CPU = {"zbx": "*CPU utilization*", "re": r"/CPU utilization/i"}
+CPU = {"zbx": "*utilization*", "re": r"/((cpu|processor).*(utilization|usage)|utiliza[cç][aã]o.*cpu|load average)/i"}
 MEM = {"zbx": "*Memory utilization*", "re": r"/Memory utilization/i"}
-TEMP = {"zbx": "*emperature*", "re": r"/temperature/i"}
+TEMP = {"zbx": "*emp*", "re": r"/temp(erature)?|temperatura/i"}
 TRAFFIC_IN = {"re": r"/Bits received/"}
 TRAFFIC_OUT = {"re": r"/Bits sent/"}
 ERRORS = {"re": r"/packets with errors/i"}
@@ -85,8 +85,9 @@ SPECS = [
         {"kind": "series", "title": "VPN / tunnels", "re": r"/(vpn|tunnel)/i"},
     ]},
     {"key": "access-points", "title": "Access points", "categories": ["ap"], "panels": network_panels([
-        {"kind": "series", "title": "Connected clients", "re": r"/(client|station|associated)/i"},
-        {"kind": "series", "title": "Signal / noise", "re": r"/(signal|noise|ccq)/i"},
+        {"kind": "series", "title": "CPU Load average", "re": r"/load average/i"},
+        {"kind": "series", "title": "Connected clients", "re": r"/(client|station|associated|user)/i"},
+        {"kind": "series", "title": "Signal / noise", "re": r"/(signal|noise|ccq|rssi)/i"},
     ])},
     {"key": "printers", "title": "Printers", "categories": ["printer"], "panels": [
         {"kind": "problems"},
@@ -114,10 +115,16 @@ SPECS = [
         {"kind": "problems"},
         {"kind": "availability"},
         {"kind": "gauge", "title": "Battery charge", "low_is_bad": True,
-         "zbx": "*attery*", "re": r"/battery.*(capacity|charge)/i"},
-        {"kind": "gauge", "title": "Output load", "zbx": "*load*", "re": r"/output.*load/i"},
-        {"kind": "series", "title": "Remaining runtime", "unit": "s", "re": r"/runtime/i"},
-        {"kind": "series", "title": "Input voltage", "unit": "volt", "re": r"/input.*voltage/i"},
+         "zbx": "*carga*", "re": r"/(battery.*(capacity|charge)|bateria.*carga)/i"},
+        {"kind": "gauge", "title": "Output load", "zbx": "*carga*",
+         "re": r"/(output.*load|sa[ií]da.*(percentual de carga|carga)|percentual de carga)/i"},
+        {"kind": "series", "title": "Remaining runtime", "unit": "s",
+         "re": r"/(runtime|tempo restante)/i"},
+        {"kind": "series", "title": "Input voltage", "unit": "volt",
+         "re": r"/(input.*voltage|entrada.*tens[aã]o|tens[aã]o.*entrada)/i"},
+        {"kind": "series", "title": "Output voltage", "unit": "volt",
+         "re": r"/(output.*voltage|sa[ií]da.*tens[aã]o|tens[aã]o.*sa[ií]da)/i"},
+        {"kind": "series", "title": "Battery temperature", "unit": "celsius", **TEMP},
     ]},
     {"key": "storage", "title": "Storage / NAS", "categories": ["storage"], "panels": [
         {"kind": "problems"},

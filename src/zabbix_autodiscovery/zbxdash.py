@@ -37,9 +37,9 @@ UPTIME = ("Uptime", r"^(system )?uptime|uptime \((network|hardware)\)", "value")
 TRAFFIC = ("Traffic", [("in", ["*Bits received*"]), ("out", ["*Bits sent*"])])
 ERRORS = ("Interface errors", [("in", ["*Inbound packets with errors*"]),
                                ("out", ["*Outbound packets with errors*"])])
-CPU_MEM = ("CPU and memory", [("CPU", ["*CPU utilization*", "*CPU usage*"]),
+CPU_MEM = ("CPU and memory", [("CPU", ["*CPU utilization*", "*CPU usage*", "*load average*"]),
                                ("memory", ["*Memory utilization*", "*Memory usage*"])])
-TEMP = ("Temperature", [("temperature", ["*emperature*", "*Temp*: Value", "*emperatura*"])])
+TEMP = ("Temperature", [("temperature", ["*emperature*", "*Temp*: Value", "*Temp*", "*emperatura*"])])
 LATENCY = ("ICMP latency", [("latency", ["ICMP response time"])])
 
 WAN_TRAFFIC = ("Internet & WAN Traffic", [
@@ -98,10 +98,11 @@ LAYOUTS = {
                       ("Runtime", r"runtime|time remaining|tempo restante|autonomia", "value"),
                       ("Input voltage", r"(input|entrada).*(volt|tens)", "value"),
                       ("Battery temp.", r"(battery|bateria).*temperat", "value")],
-            "graphs": [("Battery and load", [("battery", ["*attery*harge*", "*ateria*arga*"]),
-                                             ("load", ["*utput*oad*", "*aida*arga*"])]),
-                       ("Voltage", [("input", ["*nput*olt*", "*ntrada*ens*"]),
-                                    ("output", ["*utput*olt*", "*aida*ens*"])])]},
+            "graphs": [("Battery and load", [("battery", ["*battery*charge*", "*bateria*carga*",
+                                                             "*carga estimada restante*"]),
+                                             ("load", ["*output*load*", "*saida*carga*", "*percentual de carga*"])]),
+                       ("Voltage", [("input", ["*input*volt*", "*entrada*tens*"]),
+                                    ("output", ["*output*volt*", "*saida*tens*"])])]},
     "storage": {"table": [ICMP, CPU, MEM, UPTIME],
                 "graphs": [("Volume usage", [("used", ["*olume*used*", "*olume*sage*"])]), TEMP, TRAFFIC]},
     "server-hardware": {"table": [("Overall status", r"(overall|global|system).*(health )?status", "value"),

@@ -282,7 +282,7 @@
             "filter": ""
           },
           "item": {
-            "filter": "/battery.*(capacity|charge)/i"
+            "filter": "/(battery.*(capacity|charge)|bateria.*carga)/i"
           },
           "functions": [
             {
@@ -375,7 +375,7 @@
             "filter": ""
           },
           "item": {
-            "filter": "/output.*load/i"
+            "filter": "/(output.*load|sa[ií]da.*(percentual de carga|carga)|percentual de carga)/i"
           },
           "functions": [
             {
@@ -468,7 +468,7 @@
             "filter": ""
           },
           "item": {
-            "filter": "/runtime/i"
+            "filter": "/(runtime|tempo restante)/i"
           },
           "functions": [
             {
@@ -543,7 +543,7 @@
             "filter": ""
           },
           "item": {
-            "filter": "/input.*voltage/i"
+            "filter": "/(input.*voltage|entrada.*tens[aã]o|tens[aã]o.*entrada)/i"
           },
           "functions": [
             {
@@ -586,6 +586,156 @@
       "gridPos": {
         "x": 12,
         "y": 21,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Output voltage",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/(output.*voltage|sa[ií]da.*tens[aã]o|tens[aã]o.*sa[ií]da)/i"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias"
+              },
+              "params": [
+                "$__zbx_host_name: $__zbx_item"
+              ]
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "volt"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 7,
+      "gridPos": {
+        "x": 0,
+        "y": 29,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Battery temperature",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/temp(erature)?|temperatura/i"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias"
+              },
+              "params": [
+                "$__zbx_host_name: $__zbx_item"
+              ]
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 8,
+      "gridPos": {
+        "x": 12,
+        "y": 29,
         "w": 12,
         "h": 8
       }
