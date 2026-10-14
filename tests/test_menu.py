@@ -64,3 +64,48 @@ def test_menu_dependencies_requires_confirmation(tmp_path):
         with patch("zabbix_autodiscovery.cli.cmd_dependencies") as mock_dep:
             assert interactive_menu(str(cfg_file)) == 0
             assert not mock_dep.called
+
+
+def test_add_site_and_domain_to_config(tmp_path):
+    from zabbix_autodiscovery.menu import add_domain_to_config, add_site_to_config
+
+    cfg_file = tmp_path / "config.yaml"
+    cfg_file.write_text("""
+web:
+  certificates:
+    group: Web/Certificados
+    sites:
+      - https://site1.com
+  domains:
+    group: Web/Dominios
+    list:
+      - domain1.com
+""", encoding="utf-8")
+
+    assert add_site_to_config(cfg_file, "https://site2.com") == "added"
+    assert "https://site2.com" in cfg_file.read_text(encoding="utf-8")
+    assert add_site_to_config(cfg_file, "https://site2.com") == "already_present"
+
+    assert add_domain_to_config(cfg_file, "domain2.com.br") == "added"
+    assert "domain2.com.br" in cfg_file.read_text(encoding="utf-8")
+    assert add_domain_to_config(cfg_file, "domain2.com.br") == "already_present"
+
+
+def test_interactive_menu_web_navigation(tmp_path):
+    cfg_file = tmp_path / "config.yaml"
+    cfg_file.write_text("""
+web:
+  certificates:
+    sites:
+      - https://mytest.org
+  domains:
+    list:
+      - mytest.org
+""", encoding="utf-8")
+
+    # Select "9" (web), then "1" (list), enter (pause), then "0" (back to main), then "0" (exit main)
+    inputs = iter(["9", "1", "", "0", "0"])
+    with patch("builtins.input", side_effect=lambda *args: next(inputs)):
+        ret = interactive_menu(str(cfg_file))
+        assert ret == 0
+

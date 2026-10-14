@@ -11,6 +11,7 @@ Provides an intuitive console control center for day-to-day operations:
 - Web & SSL certificate monitoring
 """
 import argparse
+import re
 from pathlib import Path
 
 from . import __version__
@@ -213,19 +214,223 @@ def run_export(cfg, args_base):
         print(f"\nErro ao exportar: {exc}")
 
 
-def run_web(cfg, args_base):
-    from .cli import cmd_web
-    print("\n--- [9] Monitoramento Web & Certificados SSL ---")
-    mode = prompt_choice("Modo (1: Simulação / Dry-run, 2: Aplicar no Zabbix)", "1")
-    dry_run = (mode != "2")
-    use_inv = prompt_yes_no("Adicionar certificados descobertos no inventory.csv?", default=False)
-    in_file = "inventory.csv" if use_inv else None
+def add_site_to_config(config_path, site):
+    """Add a site to web.certificates.sites in config.yaml preserving existing formatting."""
+    path = Path(config_path)
+    if not path.exists():
+        return False
+    text = path.read_text(encoding="utf-8")
+    if re.search(rf'-\s+["\']?{re.escape(site)}["\']?', text):
+        return "already_present"
+    m = re.search(r'(\bcertificates:\s*\n.*?\bsites:\s*\n)', text, re.DOTALL)
+    if not m:
+        m = re.search(r'(\bsites:\s*\n)', text)
+    if m:
+        idx = m.end()
+        rest = text[idx:].splitlines()
+        indent = "      "
+        if rest and rest[0].strip().startswith("-"):
+            indent = rest[0][:rest[0].index("-")]
+        new_text = text[:idx] + f"{indent}- {site}\n" + text[idx:]
+        path.write_text(new_text, encoding="utf-8")
+        return "added"
+    m_empty = re.search(r'(\bsites:\s*)\[\s*\]', text)
+    if m_empty:
+        new_text = text[:m_empty.start()] + f"sites:\n      - {site}\n" + text[m_empty.end():]
+        path.write_text(new_text, encoding="utf-8")
+        return "added"
+    if "web:" in text:
+        m_web = re.search(r'(\bweb:\s*\n)', text)
+        block = f"  certificates:\n    group: Web/Certificados\n    sites:\n      - {site}\n"
+        path.write_text(text[:m_web.end()] + block + text[m_web.end():], encoding="utf-8")
+        return "added"
+    block = f"\nweb:\n  certificates:\n    group: Web/Certificados\n    sites:\n      - {site}\n"
+    path.write_text(text.rstrip() + block, encoding="utf-8")
+    return "added"
 
-    args = argparse.Namespace(config=args_base.config, dry_run=dry_run, input=in_file)
-    try:
-        cmd_web(cfg, args)
-    except Exception as exc:
-        print(f"\nErro no monitoramento web: {exc}")
+
+def add_domain_to_config(config_path, domain):
+    """Add a domain to web.domains.list in config.yaml preserving existing formatting."""
+    path = Path(config_path)
+    if not path.exists():
+        return False
+    text = path.read_text(encoding="utf-8")
+    if re.search(rf'-\s+["\']?{re.escape(domain)}["\']?', text):
+        return "already_present"
+    m = re.search(r'(\bdomains:\s*\n.*?\blist:\s*\n)', text, re.DOTALL)
+    if not m:
+        m = re.search(r'(\blist:\s*\n)', text)
+    if m:
+        idx = m.end()
+        rest = text[idx:].splitlines()
+        indent = "      "
+        if rest and rest[0].strip().startswith("-"):
+            indent = rest[0][:rest[0].index("-")]
+        new_text = text[:idx] + f"{indent}- {domain}\n" + text[idx:]
+        path.write_text(new_text, encoding="utf-8")
+        return "added"
+    m_empty = re.search(r'(\blist:\s*)\[\s*\]', text)
+    if m_empty:
+        new_text = text[:m_empty.start()] + f"list:\n      - {domain}\n" + text[m_empty.end():]
+        path.write_text(new_text, encoding="utf-8")
+        return "added"
+    if "web:" in text:
+        m_web = re.search(r'(\bweb:\s*\n)', text)
+        block = f"  domains:\n    group: Web/Dominios\n    list:\n      - {domain}\n"
+        path.write_text(text[:m_web.end()] + block + text[m_web.end():], encoding="utf-8")
+        return "added"
+    block = f"\nweb:\n  domains:\n    group: Web/Dominios\n    list:\n      - {domain}\n"
+    path.write_text(text.rstrip() + block, encoding="utf-8")
+    return "added"
+
+
+def run_web(cfg, args_base):
+    from . import web
+    from .cli import cmd_web, connect
+
+    while True:
+        try:
+            cfg = load_config(args_base.config)
+        except Exception:
+            pass
+
+        web_cfg = cfg.get("web") or {}
+        certs_cfg = web_cfg.get("certificates") or {}
+        domains_cfg = web_cfg.get("domains") or {}
+        sites = certs_cfg.get("sites") or []
+        domains = domains_cfg.get("list") or []
+
+        print("\n" + "=" * 72)
+        print("--- [9] Monitoramento Web, Certificados SSL e Domínios ---")
+        print("=" * 72)
+        print(f"  Certificados SSL configurados: {len(sites)} site(s)")
+        print(f"  Domínios (RDAP/WHOIS) configurados: {len(domains)} domínio(s)")
+        print("-" * 72)
+        print(" [1] 📋 Listar certificados e domínios cadastrados")
+        print(" [2] ➕ Cadastrar novo Certificado SSL (URL / Site)")
+        print(" [3] ➕ Cadastrar novo Domínio (Expiração RDAP / WHOIS)")
+        print(" [4] 🚀 Sincronizar todos no Zabbix (Aplicar / Simular)")
+        print(" [5] 📂 Importar certificados descobertos do CSV de inventário")
+        print(" [0] ⬅️  Voltar ao menu principal")
+        print("=" * 72)
+
+        sub_choice = prompt_choice("Escolha uma opção (0-5)", "1")
+
+        if sub_choice == "0":
+            return
+        elif sub_choice == "1":
+            print("\n-- Certificados SSL Cadastrados no config.yaml --")
+            if sites:
+                for s in sites:
+                    try:
+                        h, p = web.parse_site(s)
+                        print(f"  * {s:<35} -> Host: {h} (Porta TCP {p})")
+                    except Exception:
+                        print(f"  * {s}")
+            else:
+                print("  (nenhum certificado configurado)")
+
+            print(f"\n-- Domínios Cadastrados ({len(domains)}) --")
+            if domains:
+                for d in domains:
+                    print(f"  * {d}")
+            else:
+                print("  (nenhum domínio configurado)")
+            pause()
+
+        elif sub_choice == "2":
+            print("\n-- Cadastrar Novo Certificado SSL --")
+            raw_site = prompt_string("Digite a URL ou Hostname (ex: https://sistema.empresa.com.br ou portal:8443)")
+            if not raw_site:
+                print("Operação cancelada.")
+                continue
+            try:
+                hostname, port = web.parse_site(raw_site)
+            except ValueError as exc:
+                print(f"Erro no formato do site: {exc}")
+                pause()
+                continue
+
+            print(f"\nSite validado: Host={hostname}, Porta={port}")
+            save_cfg = prompt_yes_no(f"Salvar '{raw_site}' no {args_base.config}?", default=True)
+            if save_cfg:
+                status = add_site_to_config(args_base.config, raw_site)
+                if status == "already_present":
+                    print(f"  i O site '{raw_site}' já constava no {args_base.config}.")
+                elif status == "added":
+                    print(f"  + Site salvo no {args_base.config} com sucesso!")
+
+            apply_now = prompt_yes_no("Criar o monitoramento no Zabbix agora?", default=True)
+            if apply_now:
+                try:
+                    cfg_updated = load_config(args_base.config)
+                    api = connect(cfg_updated)
+                    stats = web.provision(api, cfg_updated, extra_sites=[(hostname, port, "")], dry_run=False)
+                    print(f"\nConcluído no Zabbix: {stats}")
+                except Exception as exc:
+                    print(f"\nErro ao provisionar no Zabbix: {exc}")
+            pause()
+
+        elif sub_choice == "3":
+            print("\n-- Cadastrar Novo Domínio --")
+            raw_domain = prompt_string("Digite o domínio (ex: novodominio.com.br)")
+            if not raw_domain:
+                print("Operação cancelada.")
+                continue
+            try:
+                clean_d = web.clean_domain(raw_domain)
+            except ValueError as exc:
+                print(f"Erro no formato do domínio: {exc}")
+                pause()
+                continue
+
+            print(f"\nDomínio validado: {clean_d}")
+            save_cfg = prompt_yes_no(f"Salvar '{clean_d}' no {args_base.config}?", default=True)
+            if save_cfg:
+                status = add_domain_to_config(args_base.config, clean_d)
+                if status == "already_present":
+                    print(f"  i O domínio '{clean_d}' já constava no {args_base.config}.")
+                elif status == "added":
+                    print(f"  + Domínio salvo no {args_base.config} com sucesso!")
+
+            apply_now = prompt_yes_no("Criar o monitoramento no Zabbix agora?", default=True)
+            if apply_now:
+                try:
+                    cfg_updated = load_config(args_base.config)
+                    if not save_cfg:
+                        w_dom = cfg_updated.setdefault("web", {}).setdefault("domains", {})
+                        w_dom.setdefault("list", []).append(clean_d)
+                    api = connect(cfg_updated)
+                    stats = web.provision(api, cfg_updated, dry_run=False)
+                    print(f"\nConcluído no Zabbix: {stats}")
+                except Exception as exc:
+                    print(f"\nErro ao provisionar no Zabbix: {exc}")
+            pause()
+
+        elif sub_choice == "4":
+            mode = prompt_choice("Modo (1: Simulação / Dry-run, 2: Aplicar no Zabbix)", "1")
+            dry_run = (mode != "2")
+            args = argparse.Namespace(config=args_base.config, dry_run=dry_run, input=None)
+            try:
+                cmd_web(cfg, args)
+            except Exception as exc:
+                print(f"\nErro no monitoramento web: {exc}")
+            pause()
+
+        elif sub_choice == "5":
+            in_file = prompt_string("Arquivo CSV de inventário", "inventory.csv")
+            if not Path(in_file).exists():
+                print(f"Aviso: Arquivo '{in_file}' não encontrado.")
+                pause()
+                continue
+            mode = prompt_choice("Modo (1: Simulação / Dry-run, 2: Aplicar no Zabbix)", "1")
+            dry_run = (mode != "2")
+            args = argparse.Namespace(config=args_base.config, dry_run=dry_run, input=in_file)
+            try:
+                cmd_web(cfg, args)
+            except Exception as exc:
+                print(f"\nErro ao importar certificados: {exc}")
+            pause()
 
 
 def run_agent_sync(cfg, args_base):
@@ -371,6 +576,7 @@ def interactive_menu(config_path="config.yaml"):
         elif choice == "9":
             if cfg:
                 run_web(cfg, args_base)
+                continue
             else:
                 print("Configure o config.yaml primeiro.")
         elif choice == "10":
