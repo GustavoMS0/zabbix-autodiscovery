@@ -759,6 +759,11 @@ def cmd_grafana_dashboards(cfg, args):
         path.write_text(json.dumps(dashboards.grafana_dashboard(spec, cfg, args.datasource_uid),
                                    ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"written {path}")
+    from .topology import build_topology_dashboard
+    topo_path = out / "autodiscovery-topology.json"
+    topo_path.write_text(json.dumps(build_topology_dashboard(args.datasource_uid),
+                                   ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"written {topo_path}")
 
 
 def cmd_export(cfg, args):
