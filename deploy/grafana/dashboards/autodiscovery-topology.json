@@ -1,0 +1,1110 @@
+{
+  "uid": "autodiscovery-topology",
+  "title": "AutoDiscovery - Topologia de Rede & Infraestrutura",
+  "tags": [
+    "autodiscovery",
+    "topologia",
+    "noc",
+    "zabbix"
+  ],
+  "timezone": "browser",
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "editable": true,
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "links": [
+    {
+      "title": "AutoDiscovery dashboards",
+      "type": "dashboards",
+      "tags": [
+        "autodiscovery"
+      ],
+      "asDropdown": true,
+      "includeVars": false,
+      "keepTime": true
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "label": "Zabbix",
+        "type": "datasource",
+        "query": "alexanderzobnin-zabbix-datasource",
+        "current": {
+          "text": "zabbix",
+          "value": "zabbix"
+        },
+        "hide": 0
+      },
+      {
+        "name": "site",
+        "label": "Filial / Sede",
+        "type": "custom",
+        "options": [
+          {
+            "text": "Todas as Filiais (Global)",
+            "value": "all",
+            "selected": true
+          },
+          {
+            "text": "Matriz - Sede Principal",
+            "value": "Matriz",
+            "selected": false
+          },
+          {
+            "text": "Filial 1 (se houver)",
+            "value": "RJ",
+            "selected": false
+          },
+          {
+            "text": "Filial 2 (se houver)",
+            "value": "BA",
+            "selected": false
+          },
+          {
+            "text": "Filial 3 (se houver)",
+            "value": "PR",
+            "selected": false
+          }
+        ],
+        "current": {
+          "text": "Todas as Filiais (Global)",
+          "value": "all"
+        },
+        "query": "Todas as Filiais (Global) : all, Matriz - Sede Principal : Matriz, Filial 1 (se houver) : RJ, Filial 2 (se houver) : BA, Filial 3 (se houver) : PR",
+        "multi": false,
+        "includeAll": false,
+        "hide": 0
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Infraestrutura Global - Visão Executiva",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 3
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "ICMP ping"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "$__zbx_host_name"
+              ],
+              "text": "setAlias($__zbx_host_name)"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true
+          }
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "count"
+          ],
+          "values": false,
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "colorMode": "background",
+        "graphMode": "none",
+        "wideLayout": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Links de Internet & Provedores",
+      "gridPos": {
+        "x": 0,
+        "y": 3,
+        "w": 5,
+        "h": 11
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/interface\\s+(?!fortilink|loopback)(wan\\d*|uplink\\d*|internet\\d*|a\\([^)]*(wan|internet|net\\s*fiber|mbps|ligga|its|easy|america|mega)[^)]*\\)).*: operational status/i"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "$__zbx_host_name: $__zbx_item"
+              ],
+              "text": "setAlias($__zbx_host_name: $__zbx_item)"
+            },
+            {
+              "def": {
+                "name": "replaceAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "regexp",
+                    "type": "string"
+                  },
+                  {
+                    "name": "newAlias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": [
+                  "/(.*)/",
+                  "$1"
+                ]
+              },
+              "params": [
+                "/^(?:Interface\\s+)?([^:]+):\\s+Operational status$/i",
+                "$__zbx_host_name - $1"
+              ],
+              "text": "replaceAlias(/^(?:Interface\\s+)?([^:]+):\\s+Operational status$/i, $__zbx_host_name - $1)"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true
+          }
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false,
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "colorMode": "background",
+        "graphMode": "none",
+        "wideLayout": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": {
+                  "text": "UP",
+                  "color": "green",
+                  "index": 0
+                },
+                "2": {
+                  "text": "DOWN",
+                  "color": "red",
+                  "index": 1
+                },
+                "3": {
+                  "text": "TESTING",
+                  "color": "yellow",
+                  "index": 2
+                },
+                "4": {
+                  "text": "UNKNOWN",
+                  "color": "orange",
+                  "index": 3
+                },
+                "5": {
+                  "text": "DORMANT",
+                  "color": "blue",
+                  "index": 4
+                },
+                "6": {
+                  "text": "NOT PRESENT",
+                  "color": "dark-grey",
+                  "index": 5
+                },
+                "7": {
+                  "text": "DOWN",
+                  "color": "red",
+                  "index": 6
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 2
+              }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Tráfego Internet WAN (Top Links)",
+      "gridPos": {
+        "x": 0,
+        "y": 14,
+        "w": 5,
+        "h": 10
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/interface\\s+(?!fortilink|loopback)(wan\\d*|uplink\\d*|internet\\d*|a\\([^)]*(wan|internet|net\\s*fiber|mbps|ligga|its|easy|america|mega)[^)]*\\)).*: bits received/i"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "$__zbx_host_name: $__zbx_item"
+              ],
+              "text": "setAlias($__zbx_host_name: $__zbx_item)"
+            },
+            {
+              "def": {
+                "name": "replaceAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "regexp",
+                    "type": "string"
+                  },
+                  {
+                    "name": "newAlias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": [
+                  "/(.*)/",
+                  "$1"
+                ]
+              },
+              "params": [
+                "/^(?:Interface\\s+)?([^:]+):\\s+Bits received$/i",
+                "$__zbx_host_name: $1 (In)"
+              ],
+              "text": "replaceAlias(/^(?:Interface\\s+)?([^:]+):\\s+Bits received$/i, $__zbx_host_name: $1 (In))"
+            },
+            {
+              "def": {
+                "name": "top",
+                "category": "Filter",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "int"
+                  },
+                  {
+                    "name": "value",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  5,
+                  "avg"
+                ]
+              },
+              "params": [
+                5,
+                "avg"
+              ],
+              "text": "top(5, avg)"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true
+          }
+        },
+        {
+          "refId": "B",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/interface\\s+(?!fortilink|loopback)(wan\\d*|uplink\\d*|internet\\d*|a\\([^)]*(wan|internet|net\\s*fiber|mbps|ligga|its|easy|america|mega)[^)]*\\)).*: bits sent/i"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "$__zbx_host_name: $__zbx_item"
+              ],
+              "text": "setAlias($__zbx_host_name: $__zbx_item)"
+            },
+            {
+              "def": {
+                "name": "replaceAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "regexp",
+                    "type": "string"
+                  },
+                  {
+                    "name": "newAlias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": [
+                  "/(.*)/",
+                  "$1"
+                ]
+              },
+              "params": [
+                "/^(?:Interface\\s+)?([^:]+):\\s+Bits sent$/i",
+                "$__zbx_host_name: $1 (Out)"
+              ],
+              "text": "replaceAlias(/^(?:Interface\\s+)?([^:]+):\\s+Bits sent$/i, $__zbx_host_name: $1 (Out))"
+            },
+            {
+              "def": {
+                "name": "top",
+                "category": "Filter",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "int"
+                  },
+                  {
+                    "name": "value",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  5,
+                  "avg"
+                ]
+              },
+              "params": [
+                5,
+                "avg"
+              ],
+              "text": "top(5, avg)"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true
+          }
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "type": "volkovlabs-echarts-panel",
+      "title": "Mapa de Topologia e Conectividade de Rede",
+      "gridPos": {
+        "x": 5,
+        "y": 3,
+        "w": 14,
+        "h": 21
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "ICMP ping"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "$__zbx_host_name"
+              ],
+              "text": "setAlias($__zbx_host_name)"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true
+          }
+        }
+      ],
+      "options": {
+        "renderer": "canvas",
+        "editor": {
+          "height": 600,
+          "format": "auto"
+        },
+        "getOption": "// Apache ECharts Network Topology & Path Tracing for AutoDiscovery NOC\nconst seriesData = data.series || [];\n\n// Node definitions (Coordinates system 0-1200 x, 0-800 y)\nconst nodes = [\n  // --- TIER 0: Provedores / Internet (Y: 60) ---\n  { id: 'inet-sp', name: 'Internet SP\\n(Mega / America)', category: 'Internet', x: 500, y: 60, symbolSize: 52,\n    itemStyle: { color: '#10b981', borderColor: '#34d399', borderWidth: 3, shadowBlur: 15, shadowColor: '#10b981' },\n    ip: 'BGP / Multi-WAN', site: 'Matriz - Sede Principal', role: 'Link Primário 50M | Link Redundante 50M' },\n  { id: 'inet-rj', name: 'Internet RJ\\n(Easy / Int10)', category: 'Internet', x: 160, y: 60, symbolSize: 45,\n    itemStyle: { color: '#10b981', borderColor: '#34d399', borderWidth: 2, shadowBlur: 10, shadowColor: '#10b981' },\n    ip: 'Multi-WAN', site: 'Filial 1 (se houver)', role: 'Operadora A 50M | Operadora B 50M' },\n  { id: 'inet-ba', name: 'Internet BA\\n(Link Rádio / NetFiber)', category: 'Internet', x: 840, y: 60, symbolSize: 45,\n    itemStyle: { color: '#10b981', borderColor: '#34d399', borderWidth: 2, shadowBlur: 10, shadowColor: '#10b981' },\n    ip: 'Multi-WAN', site: 'Filial 2 (se houver)', role: 'Link Fibra 30M | Link Rádio 40M' },\n  { id: 'inet-pr', name: 'Internet PR\\n(SD-WAN)', category: 'Internet', x: 1080, y: 60, symbolSize: 45,\n    itemStyle: { color: '#10b981', borderColor: '#34d399', borderWidth: 2, shadowBlur: 10, shadowColor: '#10b981' },\n    ip: 'Multi-WAN', site: 'Filial 3 (se houver)', role: 'Link Dedicado SD-WAN | wan2' },\n\n  // --- TIER 1: Firewalls FortiGate (Y: 180) ---\n  { id: 'fw-sp', name: 'FW-SP (FortiGate)', category: 'Firewall', x: 500, y: 180, symbolSize: 58,\n    itemStyle: { color: '#ef4444', borderColor: '#f87171', borderWidth: 3, shadowBlur: 18, shadowColor: '#ef4444' },\n    ip: '192.168.0.4', site: 'Matriz - Sede Principal', role: 'Firewall Core / Hub SD-WAN' },\n  { id: 'fw-rj', name: 'FW-RJ (FortiGate)', category: 'Firewall', x: 160, y: 180, symbolSize: 48,\n    itemStyle: { color: '#ef4444', borderColor: '#f87171', borderWidth: 2, shadowBlur: 10, shadowColor: '#ef4444' },\n    ip: '192.168.3.21', site: 'Filial 1 (se houver)', role: 'Firewall Filial / SD-WAN Spoke' },\n  { id: 'fw-ba', name: 'FW-BA (FortiGate)', category: 'Firewall', x: 840, y: 180, symbolSize: 48,\n    itemStyle: { color: '#ef4444', borderColor: '#f87171', borderWidth: 2, shadowBlur: 10, shadowColor: '#ef4444' },\n    ip: '192.168.2.244', site: 'Filial 2 (se houver)', role: 'Firewall Filial / SD-WAN Spoke' },\n  { id: 'fw-pr', name: 'FW-PR (FortiGate)', category: 'Firewall', x: 1080, y: 180, symbolSize: 48,\n    itemStyle: { color: '#ef4444', borderColor: '#f87171', borderWidth: 2, shadowBlur: 10, shadowColor: '#ef4444' },\n    ip: '192.168.1.2', site: 'Filial 3 (se houver)', role: 'Firewall Filial / SD-WAN Spoke' },\n\n  // --- TIER 2: Switches Core & Distribuição (Y: 310) ---\n  { id: 'sw-core-sp', name: 'Switch-Aruba\\n192.168.0.22', category: 'Switch', x: 500, y: 310, symbolSize: 52,\n    itemStyle: { color: '#3b82f6', borderColor: '#60a5fa', borderWidth: 3, shadowBlur: 15, shadowColor: '#3b82f6' },\n    ip: '192.168.0.22', site: 'Matriz - Sede Principal', role: 'Core Switch / VLT Stacking' },\n  { id: 'sw-sp-17', name: 'SW-17 (Dist)', category: 'Switch', x: 380, y: 410, symbolSize: 36,\n    itemStyle: { color: '#2563eb' }, ip: '192.168.0.17', site: 'Matriz - Sede Principal', role: 'Switch Acesso' },\n  { id: 'sw-sp-19', name: 'SW-19 (Dist)', category: 'Switch', x: 440, y: 410, symbolSize: 36,\n    itemStyle: { color: '#2563eb' }, ip: '192.168.0.19', site: 'Matriz - Sede Principal', role: 'Switch Acesso' },\n  { id: 'sw-sp-20', name: 'SW-20 (Dist)', category: 'Switch', x: 560, y: 410, symbolSize: 36,\n    itemStyle: { color: '#2563eb' }, ip: '192.168.0.20', site: 'Matriz - Sede Principal', role: 'Switch Acesso' },\n  { id: 'sw-sp-21', name: 'SW-21 (Dist)', category: 'Switch', x: 620, y: 410, symbolSize: 36,\n    itemStyle: { color: '#2563eb' }, ip: '192.168.0.21', site: 'Matriz - Sede Principal', role: 'Switch Acesso' },\n  { id: 'sw-core-rj', name: 'SW-Filial1-MikroTik', category: 'Switch', x: 160, y: 310, symbolSize: 42,\n    itemStyle: { color: '#3b82f6' }, ip: '192.168.3.19', site: 'Filial 1 (se houver)', role: 'Core Switch RJ' },\n  { id: 'sw-core-ba', name: 'SW-Core-Filial2', category: 'Switch', x: 840, y: 310, symbolSize: 42,\n    itemStyle: { color: '#3b82f6' }, ip: '192.168.2.144', site: 'Filial 2 (se houver)', role: 'Core Switch BA' },\n\n  // --- TIER 3: Infraestrutura, Nobreak & Hardware Dell (Y: 490) ---\n  { id: 'ups-sp', name: 'Nobreak-Matriz', category: 'Nobreak UPS', x: 320, y: 310, symbolSize: 40,\n    itemStyle: { color: '#eab308', borderColor: '#fde047', borderWidth: 2 },\n    ip: '192.168.0.3', site: 'Matriz - Sede Principal', role: 'Nobreak Nobreak NHS Laser Senoidal' },\n  { id: 'hw-sp-1', name: 'idrac-srv01', category: 'Hardware Servidor', x: 380, y: 500, symbolSize: 32,\n    itemStyle: { color: '#a855f7' }, ip: '192.168.0.224', site: 'Matriz - Sede Principal', role: 'Dell iDRAC Enterprise' },\n  { id: 'hw-sp-2', name: 'idrac-srv02', category: 'Hardware Servidor', x: 440, y: 500, symbolSize: 32,\n    itemStyle: { color: '#a855f7' }, ip: '192.168.0.228', site: 'Matriz - Sede Principal', role: 'Dell iDRAC Enterprise' },\n  { id: 'hw-sp-3', name: 'idrac-srv03', category: 'Hardware Servidor', x: 500, y: 500, symbolSize: 32,\n    itemStyle: { color: '#a855f7' }, ip: '192.168.0.226', site: 'Matriz - Sede Principal', role: 'Dell iDRAC Enterprise' },\n  { id: 'hw-sp-4', name: 'idrac-srv04', category: 'Hardware Servidor', x: 560, y: 500, symbolSize: 32,\n    itemStyle: { color: '#a855f7' }, ip: '192.168.0.225', site: 'Matriz - Sede Principal', role: 'Dell iDRAC Enterprise' },\n  { id: 'hw-sp-5', name: 'idrac-srv05', category: 'Hardware Servidor', x: 620, y: 500, symbolSize: 32,\n    itemStyle: { color: '#a855f7' }, ip: '192.168.0.227', site: 'Matriz - Sede Principal', role: 'Dell iDRAC Enterprise' },\n  { id: 'hw-rj-1', name: 'idrac-filial01', category: 'Hardware Servidor', x: 160, y: 440, symbolSize: 32,\n    itemStyle: { color: '#a855f7' }, ip: '192.168.3.22', site: 'Filial 1 (se houver)', role: 'Dell iDRAC Enterprise' },\n  { id: 'hw-ba-1', name: 'idrac-filial02', category: 'Hardware Servidor', x: 840, y: 440, symbolSize: 32,\n    itemStyle: { color: '#a855f7' }, ip: '192.168.2.14', site: 'Filial 2 (se houver)', role: 'Dell iDRAC Enterprise' },\n\n  // --- TIER 4: Hypervisors & Servidores (Y: 620) ---\n  { id: 'vm-cluster-sp', name: 'Cluster Hypervisors SP\\n(ASSEMBLY/DELPHI/CLIPPER)', category: 'Virtualização / Servidor', x: 500, y: 620, symbolSize: 45,\n    itemStyle: { color: '#8b5cf6', borderColor: '#c4b5fd', borderWidth: 2 },\n    ip: '192.168.0.x', site: 'Matriz - Sede Principal', role: '5 Hypervisors | VMs: NGINX, CS01, AD01/02' },\n  { id: 'vm-rj-1', name: 'SRV-DC01 (RJ)', category: 'Virtualização / Servidor', x: 160, y: 540, symbolSize: 34,\n    itemStyle: { color: '#8b5cf6' }, ip: '192.168.3.1', site: 'Filial 1 (se houver)', role: 'Domain Controller Filial' },\n  { id: 'vm-ba-1', name: 'SRV-AD03 (BA)', category: 'Virtualização / Servidor', x: 840, y: 540, symbolSize: 34,\n    itemStyle: { color: '#8b5cf6' }, ip: '192.168.2.4', site: 'Filial 2 (se houver)', role: 'Domain Controller Filial' },\n\n  // --- TIER 5: Access Points Wi-Fi (Y: 740) ---\n  { id: 'ap-sp', name: '5x APs Wi-Fi SP\\n(TI/Com/Fin/Rec)', category: 'Access Point', x: 500, y: 740, symbolSize: 40,\n    itemStyle: { color: '#f97316' }, ip: '192.168.0.40-44', site: 'Matriz - Sede Principal', role: '5x UniFi APs Corporativos' },\n  { id: 'ap-rj', name: '5x APs Wi-Fi RJ\\n(Galpões/Adm)', category: 'Access Point', x: 160, y: 660, symbolSize: 38,\n    itemStyle: { color: '#f97316' }, ip: '192.168.3.107-116', site: 'Filial 1 (se houver)', role: '5x APs Galpão & Escritório' },\n  { id: 'ap-ba', name: '6x APs Wi-Fi BA\\n(Fábrica/Adm)', category: 'Access Point', x: 840, y: 660, symbolSize: 40,\n    itemStyle: { color: '#f97316' }, ip: '192.168.2.47-52', site: 'Filial 2 (se houver)', role: '6x APs Fábrica & Armazém' }\n];\n\n// Connection links between elements\nconst links = [\n  // Links de Internet -> Firewalls\n  { source: 'inet-sp', target: 'fw-sp', label: { show: true, formatter: 'wan1(50M) / wan2(50M)' }, lineStyle: { width: 3.5, color: '#10b981' } },\n  { source: 'inet-rj', target: 'fw-rj', label: { show: true, formatter: 'Int10 / Easy(50M)' }, lineStyle: { width: 3, color: '#10b981' } },\n  { source: 'inet-ba', target: 'fw-ba', label: { show: true, formatter: 'Link Rádio(40M) / Net(30M)' }, lineStyle: { width: 3, color: '#10b981' } },\n  { source: 'inet-pr', target: 'fw-pr', label: { show: true, formatter: 'SD-WAN / wan2' }, lineStyle: { width: 2.5, color: '#10b981' } },\n\n  // Malha SD-WAN VPN Inter-filiais (linhas tracejadas com brilho)\n  { source: 'fw-sp', target: 'fw-rj', label: { show: false }, lineStyle: { type: 'dashed', curveness: 0.22, color: '#06b6d4', width: 2.5 } },\n  { source: 'fw-sp', target: 'fw-ba', label: { show: false }, lineStyle: { type: 'dashed', curveness: -0.22, color: '#06b6d4', width: 2.5 } },\n  { source: 'fw-sp', target: 'fw-pr', label: { show: false }, lineStyle: { type: 'dashed', curveness: -0.35, color: '#06b6d4', width: 2 } },\n\n  // Firewalls -> Switches Core\n  { source: 'fw-sp', target: 'sw-core-sp', label: { show: true, formatter: '10 Gbps Trunk' }, lineStyle: { width: 4, color: '#3b82f6' } },\n  { source: 'fw-rj', target: 'sw-core-rj', label: { show: true, formatter: '1 Gbps Uplink' }, lineStyle: { width: 3, color: '#3b82f6' } },\n  { source: 'fw-ba', target: 'sw-core-ba', label: { show: true, formatter: '1 Gbps Uplink' }, lineStyle: { width: 3, color: '#3b82f6' } },\n\n  // Nobreak alimentando infra de Core SP\n  { source: 'ups-sp', target: 'sw-core-sp', label: { show: false }, lineStyle: { type: 'dotted', color: '#eab308', width: 2 } },\n  { source: 'ups-sp', target: 'fw-sp', label: { show: false }, lineStyle: { type: 'dotted', color: '#eab308', width: 2 } },\n\n  // Core SP -> Switches de Distribuição\n  { source: 'sw-core-sp', target: 'sw-sp-17', lineStyle: { width: 2.5, color: '#60a5fa' } },\n  { source: 'sw-core-sp', target: 'sw-sp-19', lineStyle: { width: 2.5, color: '#60a5fa' } },\n  { source: 'sw-core-sp', target: 'sw-sp-20', lineStyle: { width: 2.5, color: '#60a5fa' } },\n  { source: 'sw-core-sp', target: 'sw-sp-21', lineStyle: { width: 2.5, color: '#60a5fa' } },\n\n  // Switches -> Servidores Físicos Dell iDRAC\n  { source: 'sw-core-sp', target: 'hw-sp-1', lineStyle: { width: 2, color: '#a855f7' } },\n  { source: 'sw-core-sp', target: 'hw-sp-2', lineStyle: { width: 2, color: '#a855f7' } },\n  { source: 'sw-core-sp', target: 'hw-sp-3', lineStyle: { width: 2, color: '#a855f7' } },\n  { source: 'sw-core-sp', target: 'hw-sp-4', lineStyle: { width: 2, color: '#a855f7' } },\n  { source: 'sw-core-sp', target: 'hw-sp-5', lineStyle: { width: 2, color: '#a855f7' } },\n  { source: 'sw-core-rj', target: 'hw-rj-1', lineStyle: { width: 2, color: '#a855f7' } },\n  { source: 'sw-core-ba', target: 'hw-ba-1', lineStyle: { width: 2, color: '#a855f7' } },\n\n  // Servidores Físicos -> Hypervisors / VMs\n  { source: 'hw-sp-3', target: 'vm-cluster-sp', label: { show: true, formatter: 'VMware ESXi' }, lineStyle: { width: 3, color: '#8b5cf6' } },\n  { source: 'hw-rj-1', target: 'vm-rj-1', lineStyle: { width: 2, color: '#8b5cf6' } },\n  { source: 'hw-ba-1', target: 'vm-ba-1', lineStyle: { width: 2, color: '#8b5cf6' } },\n\n  // Switches -> Access Points Wi-Fi\n  { source: 'sw-sp-20', target: 'ap-sp', label: { show: true, formatter: 'PoE+' }, lineStyle: { width: 2.5, color: '#f97316' } },\n  { source: 'sw-core-rj', target: 'ap-rj', label: { show: true, formatter: 'PoE+' }, lineStyle: { width: 2.5, color: '#f97316' } },\n  { source: 'sw-core-ba', target: 'ap-ba', label: { show: true, formatter: 'PoE+' }, lineStyle: { width: 2.5, color: '#f97316' } }\n];\n\nreturn {\n  backgroundColor: 'transparent',\n  tooltip: {\n    trigger: 'item',\n    backgroundColor: 'rgba(15, 23, 42, 0.95)',\n    borderColor: '#334155',\n    borderWidth: 1,\n    padding: [10, 14],\n    textStyle: { color: '#f8fafc', fontSize: 12 },\n    formatter: function(params) {\n      if (params.dataType === 'node') {\n        const d = params.data;\n        return `\n          <div style=\"font-weight:bold;font-size:14px;color:${d.itemStyle?.color || '#38bdf8'};margin-bottom:6px;\">\n            ${d.name.replace('\\n', ' ')}\n          </div>\n          <table style=\"font-size:12px;line-height:1.6;color:#cbd5e1;\">\n            <tr><td><b>Categoria:</b></td><td style=\"padding-left:8px;\">${d.category}</td></tr>\n            <tr><td><b>Endereço IP:</b></td><td style=\"padding-left:8px;font-family:monospace;color:#38bdf8;\">${d.ip}</td></tr>\n            <tr><td><b>Localidade:</b></td><td style=\"padding-left:8px;\">${d.site}</td></tr>\n            <tr><td><b>Papel / Detalhe:</b></td><td style=\"padding-left:8px;\">${d.role}</td></tr>\n            <tr><td><b>Status:</b></td><td style=\"padding-left:8px;\"><span style=\"color:#22c55e;font-weight:bold;\">● ONLINE</span></td></tr>\n          </table>\n          <div style=\"margin-top:6px;font-size:10px;color:#94a3b8;border-top:1px solid #334155;padding-top:4px;\">\n            Dica: Passe o mouse para destacar o caminho completo até a borda\n          </div>\n        `;\n      } else if (params.dataType === 'edge') {\n        const d = params.data;\n        return `\n          <div style=\"font-weight:bold;margin-bottom:4px;color:#38bdf8;\">Conexão de Enlace</div>\n          <div><b>Origem:</b> ${d.source}</div>\n          <div><b>Destino:</b> ${d.target}</div>\n          <div><b>Info:</b> ${d.label?.formatter || 'Enlace LAN/WAN Ativo'}</div>\n        `;\n      }\n    }\n  },\n  legend: [{\n    data: ['Internet', 'Firewall', 'Switch', 'Hardware Servidor', 'Virtualização / Servidor', 'Access Point', 'Nobreak UPS'],\n    textStyle: { color: '#cbd5e1', fontSize: 11 },\n    top: 6,\n    left: 'center',\n    itemGap: 16\n  }],\n  series: [{\n    type: 'graph',\n    layout: 'none',\n    roam: true,\n    draggable: true,\n    edgeSymbol: ['none', 'none'],\n    label: {\n      show: true,\n      position: 'bottom',\n      color: '#e2e8f0',\n      fontSize: 11,\n      fontWeight: 'bold',\n      distance: 6\n    },\n    emphasis: {\n      focus: 'adjacency',\n      lineStyle: {\n        width: 5,\n        color: '#00ffd5',\n        shadowColor: 'rgba(0, 255, 213, 0.8)',\n        shadowBlur: 14\n      },\n      label: {\n        fontSize: 12,\n        fontWeight: 'bolder',\n        color: '#00ffd5'\n      }\n    },\n    lineStyle: {\n      curveness: 0.08,\n      opacity: 0.85\n    },\n    categories: [\n      { name: 'Internet', itemStyle: { color: '#10b981' } },\n      { name: 'Firewall', itemStyle: { color: '#ef4444' } },\n      { name: 'Switch', itemStyle: { color: '#3b82f6' } },\n      { name: 'Hardware Servidor', itemStyle: { color: '#a855f7' } },\n      { name: 'Virtualização / Servidor', itemStyle: { color: '#8b5cf6' } },\n      { name: 'Access Point', itemStyle: { color: '#f97316' } },\n      { name: 'Nobreak UPS', itemStyle: { color: '#eab308' } }\n    ],\n    nodes: nodes,\n    links: links\n  }]\n};"
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Virtualização & Servidores",
+      "gridPos": {
+        "x": 19,
+        "y": 3,
+        "w": 5,
+        "h": 7
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/ICMP ping/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "$__zbx_host_name"
+              ],
+              "text": "setAlias($__zbx_host_name)"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true
+          }
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false,
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "colorMode": "background",
+        "graphMode": "none",
+        "wideLayout": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "OFF",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "ON",
+                  "color": "green"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Firewalls FortiGate - CPU & Sessões",
+      "gridPos": {
+        "x": 19,
+        "y": 10,
+        "w": 5,
+        "h": 7
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/((cpu|processor).*(utilization|usage)|utiliza[cç][aã]o.*cpu)/i"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "$__zbx_host_name: CPU"
+              ],
+              "text": "setAlias($__zbx_host_name: CPU)"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true
+          }
+        },
+        {
+          "refId": "B",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/session/i"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "$__zbx_host_name: Sessões"
+              ],
+              "text": "setAlias($__zbx_host_name: Sessões)"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true
+          }
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false,
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "colorMode": "background",
+        "graphMode": "none",
+        "wideLayout": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Hardware Físico (Dell iDRAC & UPS)",
+      "gridPos": {
+        "x": 19,
+        "y": 17,
+        "w": 5,
+        "h": 7
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/temp(erature)?|temperatura/i"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "$__zbx_host_name: Temp"
+              ],
+              "text": "setAlias($__zbx_host_name: Temp)"
+            },
+            {
+              "def": {
+                "name": "top",
+                "category": "Filter",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "int"
+                  },
+                  {
+                    "name": "value",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  5,
+                  "avg"
+                ]
+              },
+              "params": [
+                3,
+                "avg"
+              ],
+              "text": "top(3, avg)"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true
+          }
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false,
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "colorMode": "background",
+        "graphMode": "none",
+        "wideLayout": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 45
+              },
+              {
+                "color": "red",
+                "value": 60
+              }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 8,
+      "type": "alexanderzobnin-zabbix-triggers-panel",
+      "title": "Alertas Ativos em Tempo Real (NOC Feed)",
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 24,
+        "h": 7
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "5",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "proxy": {
+            "filter": ""
+          },
+          "trigger": {
+            "filter": ""
+          },
+          "tags": {
+            "filter": ""
+          },
+          "showProblems": "problems",
+          "options": {
+            "minSeverity": 1,
+            "acknowledged": 2,
+            "sortProblems": "priority",
+            "hostsInMaintenance": false,
+            "limit": 100
+          }
+        }
+      ],
+      "options": {
+        "hostField": true,
+        "hostGroups": true,
+        "severityField": true,
+        "ageField": true,
+        "showTags": true,
+        "pageSize": 5
+      }
+    }
+  ]
+}

@@ -619,6 +619,11 @@ def run_grafana(cfg, args_base):
             path.write_text(json.dumps(dashboards.grafana_dashboard(spec, cfg, "zabbix"),
                                        ensure_ascii=False, indent=2), encoding="utf-8")
             count += 1
+        from .topology import build_topology_dashboard
+        topo_path = out_dir / "autodiscovery-topology.json"
+        topo_path.write_text(json.dumps(build_topology_dashboard("zabbix"),
+                                       ensure_ascii=False, indent=2), encoding="utf-8")
+        count += 1
         print(f"[+] {count} dashboards JSON gerados/atualizados em {out_dir}")
         pause()
 
