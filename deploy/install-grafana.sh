@@ -145,8 +145,15 @@ elif [ "$MODE" = "native" ]; then
     echo "[+] Instalando plugin Zabbix no Grafana..."
     sudo grafana-cli plugins install alexanderzobnin-zabbix-app || true
 
-    # Provisionamento do Datasource Zabbix
-    sudo mkdir -p /etc/grafana/provisioning/datasources /etc/grafana/provisioning/dashboards /var/lib/grafana/dashboards
+    # Provisionamento do Datasource Zabbix e ativação do App Plugin
+    sudo mkdir -p /etc/grafana/provisioning/datasources /etc/grafana/provisioning/dashboards /etc/grafana/provisioning/plugins /var/lib/grafana/dashboards
+    cat <<EOF | sudo tee /etc/grafana/provisioning/plugins/zabbix.yaml > /dev/null
+apiVersion: 1
+apps:
+  - type: alexanderzobnin-zabbix-app
+    disabled: false
+EOF
+
     cat <<EOF | sudo tee /etc/grafana/provisioning/datasources/zabbix.yaml > /dev/null
 apiVersion: 1
 datasources:
