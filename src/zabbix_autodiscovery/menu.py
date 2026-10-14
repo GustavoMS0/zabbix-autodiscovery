@@ -11,7 +11,10 @@ Provides an intuitive console control center for day-to-day operations:
 - Web & SSL certificate monitoring
 """
 import argparse
+import json
 import re
+import shutil
+import subprocess
 from pathlib import Path
 
 from . import __version__
@@ -498,6 +501,128 @@ def run_clean_unsupported(cfg, args_base):
         print(f"\nErro ao limpar itens: {exc}")
 
 
+def run_grafana(cfg, args_base):
+    from . import dashboards, provision
+    from .cli import connect
+
+    print("\n" + "=" * 72)
+    print("--- [15] Instalação e Integração do Grafana com Zabbix Existente ---")
+    print("=" * 72)
+    print(" [1] 🚀 Configurar Usuário no Zabbix e Gerar deploy/.env (Docker)")
+    print(" [2] 🐧 Gerar Script de Instalação Nativa no Linux (Ubuntu/Debian sem Docker)")
+    print(" [3] 📊 Regenerar Arquivos JSON dos 13 Dashboards do Grafana")
+    print(" [0] ⬅️  Voltar ao menu principal")
+    print("=" * 72)
+
+    sub_choice = prompt_choice("Escolha uma opção (0-3)", "1")
+    if sub_choice == "0":
+        return
+
+    if sub_choice == "1":
+        print("\n-- Configurar Integração Grafana + Zabbix (Docker) --")
+        zbx_url = cfg.get("zabbix", {}).get("url", "http://192.168.0.15:8080")
+        api_url = zbx_url if zbx_url.endswith(".php") else zbx_url.rstrip("/") + "/api_jsonrpc.php"
+
+        target_url = prompt_string("URL da API do Zabbix", api_url)
+        username = prompt_string("Nome do usuário do Grafana no Zabbix", "grafana")
+        password = prompt_string("Senha para o usuário do Grafana no Zabbix", "GrafanaZabbix@2026")
+        admin_pass = prompt_string("Senha do usuário 'admin' do Grafana UI", "admin@123")
+
+        # 1. Criar / atualizar usuário no Zabbix via API
+        print("\nConectando ao Zabbix para configurar permissões de leitura...")
+        try:
+            api = connect(cfg)
+            gcfg = {"grafana_user": {"username": username, "password": password}}
+            provision.setup_grafana_user(api, gcfg, log=print)
+        except Exception as exc:
+            print(f"  ! Aviso ao criar usuário no Zabbix: {exc}")
+
+        # 2. Atualizar deploy/.env
+        deploy_dir = Path(args_base.config).resolve().parent / "deploy"
+        env_file = deploy_dir / ".env"
+        example_file = deploy_dir / ".env.example"
+
+        env_text = ""
+        if env_file.exists():
+            env_text = env_file.read_text(encoding="utf-8")
+        elif example_file.exists():
+            env_text = example_file.read_text(encoding="utf-8")
+
+        def _set_env(text, k, v):
+            if re.search(rf"(?m)^{k}=.*$", text):
+                return re.sub(rf"(?m)^{k}=.*$", f"{k}={v}", text)
+            return text.rstrip() + f"\n{k}={v}\n"
+
+        env_text = _set_env(env_text, "ZABBIX_API_URL", target_url)
+        env_text = _set_env(env_text, "ZABBIX_GRAFANA_USER", username)
+        env_text = _set_env(env_text, "ZABBIX_GRAFANA_PASSWORD", password)
+        env_text = _set_env(env_text, "GRAFANA_ADMIN_PASSWORD", admin_pass)
+        deploy_dir.mkdir(parents=True, exist_ok=True)
+        env_file.write_text(env_text, encoding="utf-8")
+        print(f"[+] Arquivo {env_file} atualizado com as credenciais.")
+
+        # 3. Atualizar config.yaml
+        cfg_path = Path(args_base.config)
+        if cfg_path.exists():
+            cfg_text = cfg_path.read_text(encoding="utf-8")
+            if "grafana_user:" not in cfg_text:
+                block = f"\ngrafana_user:\n  username: {username}\n  password: {password}\n"
+                cfg_path.write_text(cfg_text.rstrip() + block, encoding="utf-8")
+                print(f"[+] Seção grafana_user adicionada ao {args_base.config}.")
+
+        # 4. Oferecer rodar docker compose se Docker estiver instalado
+        has_docker = shutil.which("docker") is not None
+        if has_docker:
+            prompt_docker = "\nDocker detectado. Deseja iniciar o Grafana agora com 'docker compose'?"
+            up_now = prompt_yes_no(prompt_docker, default=True)
+            if up_now:
+                try:
+                    subprocess.run(["docker", "compose", "--profile", "grafana", "up", "-d"],
+                                   cwd=str(deploy_dir), check=True)
+                    print("\n[+] Grafana iniciado com sucesso na porta 3000!")
+                    print("    URL    : http://localhost:3000 (ou pelo IP do servidor)")
+                    print(f"    Usuário: admin | Senha: {admin_pass}")
+                    print("    Dashboards pré-carregados na pasta 'Zabbix AutoDiscovery'")
+                except Exception as exc:
+                    print(f"[!] Erro ao iniciar container Docker: {exc}")
+        else:
+            host_target = target_url.split("/")[2].split(":")[0]
+            print("\n" + "=" * 72)
+            print("  Configuração concluída! Para subir o Grafana no servidor:")
+            print("========================================================================")
+            print(f"  1. No servidor ({host_target}):")
+            print("     cd deploy && docker compose --profile grafana up -d")
+            print(f"  2. Acesse no navegador: http://{host_target}:3000")
+            print(f"     Usuário: admin | Senha: {admin_pass}")
+            print("========================================================================")
+        pause()
+
+    elif sub_choice == "2":
+        print("\n-- Instalação Nativa no Linux (Ubuntu / Debian sem Docker) --")
+        script_path = Path(args_base.config).resolve().parent / "deploy" / "install-grafana.sh"
+        print(f"\nO script automatizado está disponível em: {script_path}")
+        print("\nPara executar no servidor Linux via SSH:")
+        print("  cd zabbix-autodiscovery")
+        print("  chmod +x deploy/install-grafana.sh")
+        print("  sudo ./deploy/install-grafana.sh native")
+        pause()
+
+    elif sub_choice == "3":
+        print("\n-- Regenerar Dashboards do Grafana --")
+        out_dir = Path(args_base.config).resolve().parent / "deploy" / "grafana" / "dashboards"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        count = 0
+        for spec in dashboards.SPECS:
+            if not dashboards.groups_for(spec, cfg):
+                continue
+            path = out_dir / f"autodiscovery-{spec['key']}.json"
+            path.write_text(json.dumps(dashboards.grafana_dashboard(spec, cfg, "zabbix"),
+                                       ensure_ascii=False, indent=2), encoding="utf-8")
+            count += 1
+        print(f"[+] {count} dashboards JSON gerados/atualizados em {out_dir}")
+        pause()
+
+
 def interactive_menu(config_path="config.yaml"):
     args_base = argparse.Namespace(config=config_path)
 
@@ -525,10 +650,11 @@ def interactive_menu(config_path="config.yaml"):
         print(" [12] 🔗 Dependências de Triggers (NOC)   - Evita tempestade de alertas vinculando topologia")
         print(" [13] 📈 Criar Serviços & SLA 99.5%       - Árvore de serviços e metas de disponibilidade")
         print(" [14] 🧹 Limpar Itens Não Suportados      - Desativa coletores inativos e itens órfãos")
+        print(" [15] 📊 Instalar / Configurar Grafana    - Integra Grafana com Zabbix existente (Docker/Nativo)")
         print(" [0]  ❌ Sair")
         print("=" * 72)
 
-        choice = prompt_choice("Escolha uma opção (0-14)", default="1")
+        choice = prompt_choice("Escolha uma opção (0-15)", default="1")
 
         if choice == "0":
             print("\nEncerrando. Até logo!")
@@ -599,6 +725,12 @@ def interactive_menu(config_path="config.yaml"):
         elif choice == "14":
             if cfg:
                 run_clean_unsupported(cfg, args_base)
+            else:
+                print("Configure o config.yaml primeiro.")
+        elif choice == "15":
+            if cfg:
+                run_grafana(cfg, args_base)
+                continue
             else:
                 print("Configure o config.yaml primeiro.")
         else:
