@@ -54,6 +54,7 @@ def _check_expressions(api, template):
 @pytest.mark.parametrize("builder, name", [
     (templates.ensure_printer_template, templates.PRINTER_TEMPLATE),
     (templates.ensure_switch_template, templates.SWITCH_TEMPLATE),
+    (templates.ensure_unifi_template, templates.UNIFI_TEMPLATE),
     (web.ensure_cert_template, web.CERT_TEMPLATE),
     (web.ensure_domain_template, web.DOMAIN_TEMPLATE),
 ])
@@ -105,9 +106,33 @@ def test_ports_parsing():
     assert _ports_js_in_python(walk) == (3, 1, 1)
 
 
-def test_switch_addon_requires_zabbix_7():
+def test_unifi_clients_parsing():
+    pattern = re.compile(r"\.1\.3\.6\.1\.4\.1\.41112\.1\.6\.1\.2\.1\.(\d+)\.(\d+) = [^:]+: (.*)")
+    walk = "\n".join([
+        '.1.3.6.1.4.1.41112.1.6.1.2.1.7.1 = STRING: "wifi0ap0"',
+        '.1.3.6.1.4.1.41112.1.6.1.2.1.7.6 = STRING: "vwireap4"',
+        '.1.3.6.1.4.1.41112.1.6.1.2.1.7.8 = STRING: "wifi2ap5"',
+        '.1.3.6.1.4.1.41112.1.6.1.2.1.8.1 = INTEGER: 6',
+        '.1.3.6.1.4.1.41112.1.6.1.2.1.8.6 = INTEGER: 2',
+        '.1.3.6.1.4.1.41112.1.6.1.2.1.8.8 = INTEGER: 7',
+    ])
+    name, clients = {}, {}
+    for line in walk.split("\n"):
+        m = pattern.search(line)
+        if m:
+            col, idx, val = m.group(1), m.group(2), m.group(3).strip('"').strip()
+            if col == "7":
+                name[idx] = val
+            elif col == "8":
+                clients[idx] = int(val)
+    total = sum(c for i, c in clients.items() if not re.match(r"(?i)^vwire", name.get(i, "")))
+    assert total == 13
+
+
+def test_switch_and_unifi_addons_require_zabbix_7():
     api = FakeAPI(version=(6, 4))
-    templates.ensure_addons(api, [templates.SWITCH_TEMPLATE, templates.PRINTER_TEMPLATE], log=lambda *_: None)
+    templates.ensure_addons(api, [templates.SWITCH_TEMPLATE, templates.UNIFI_TEMPLATE, templates.PRINTER_TEMPLATE],
+                            log=lambda *_: None)
     created = [p["host"] for p in api.created("template.create")]
     assert created == [templates.PRINTER_TEMPLATE]
 

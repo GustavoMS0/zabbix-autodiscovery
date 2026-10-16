@@ -223,6 +223,11 @@ def addon_templates(cfg, category):
     return list((cfg.get("category_templates") or {}).get(category) or [])
 
 
+def applicable_addons(names, has_snmp):
+    """SNMP add-on templates (templates.ENSURE) require an SNMP interface; others (e.g. ICMP Ping) do not."""
+    return [n for n in names if has_snmp or n not in templates.ENSURE]
+
+
 def all_addons(cfg):
     return sorted({t for names in (cfg.get("category_templates") or {}).values() for t in names or []})
 
@@ -284,9 +289,8 @@ def cmd_apply(cfg, args):
         if visible and visible.lower() in existing_visible | existing_names:
             visible = f"{visible} ({ip})"
         svc_templates = service_template_names(cfg, row)
-        spec = ",".join(filter(None, [row.get("templates", "")] + (
-            addon_templates(cfg, row["category"]) if row.get("interface", "snmp") == "snmp" else [])
-            + svc_templates))
+        addons = applicable_addons(addon_templates(cfg, row["category"]), row.get("interface", "snmp") == "snmp")
+        spec = ",".join(filter(None, [row.get("templates", "")] + addons + svc_templates))
         template_ids, missing = provision.resolve_templates(spec, tmpl_map)
         for m in missing:
             created_later = m == provision.AGENT_TEMPLATE or m in templates.ENSURE or m in svc_templates
@@ -573,7 +577,7 @@ def cmd_check(cfg, args):
 # ---------------------------------------------------------------- setup / grafana
 
 def cmd_update_templates(cfg, args):
-    """Link the category add-on templates to hosts created earlier (only SNMP-monitored hosts)."""
+    """Link the category add-on templates to hosts created earlier."""
     wanted = cfg.get("category_templates") or {}
     if not wanted:
         raise SystemExit("Nothing to do: category_templates is empty in the config")
@@ -581,6 +585,7 @@ def cmd_update_templates(cfg, args):
     if not args.dry_run:
         templates.ensure_addons(api, all_addons(cfg))
     tmpl_map = api.template_ids()
+    icmp_tid = tmpl_map.get("ICMP Ping")
     if args.all:      # every host of the configured networks, type inferred for pre-existing hosts
         hosts = network_hosts(api, cfg["scan"]["networks"])
     else:
@@ -591,8 +596,9 @@ def cmd_update_templates(cfg, args):
     stats = Counter()
     for h in sorted(hosts, key=lambda h: h["name"].lower()):
         category = category_of(h)
-        names = wanted.get(category) or []
-        if not names or not any(i["type"] == "2" for i in h["interfaces"]):
+        has_snmp = any(i["type"] == "2" for i in h["interfaces"])
+        names = applicable_addons(wanted.get(category) or [], has_snmp)
+        if not names or not h["interfaces"]:
             continue
         current = {t["templateid"] for t in h["parentTemplates"]}
         ids, missing = provision.resolve_templates(",".join(names), tmpl_map)
@@ -614,6 +620,19 @@ def cmd_update_templates(cfg, args):
             print(f"  + {h['name']:<32} linked: {', '.join(n for n in names if tmpl_map.get(n) in new)}")
             stats["updated"] += 1
         except ZabbixError as exc:
+            if icmp_tid in new and is_duplicate_key_error(exc):
+                retry = [t for t in new if t != icmp_tid]
+                if not retry:
+                    stats["up to date"] += 1
+                    continue
+                try:
+                    api.call("host.update", {"hostid": h["hostid"],
+                                             "templates": [{"templateid": t} for t in sorted(current) + retry]})
+                    print(f"  + {h['name']:<32} linked: {', '.join(n for n in names if tmpl_map.get(n) in retry)}")
+                    stats["updated"] += 1
+                    continue
+                except ZabbixError as retry_exc:
+                    exc = retry_exc
             print(f"  x {h['name']}: {exc}")
             stats["error"] += 1
     print("\nSummary:", ", ".join(f"{k}={v}" for k, v in sorted(stats.items())) or "nothing to do")
@@ -762,6 +781,8 @@ def connect_optional(cfg):
 
 
 def cmd_grafana_dashboards(cfg, args):
+    if getattr(args, "v3", False):
+        return _write_grafana_v3(cfg, args)
     if getattr(args, "v2", False):
         return _write_grafana_v2(cfg, args)
     out = Path(args.output or "grafana-dashboards")
@@ -778,7 +799,7 @@ def cmd_grafana_dashboards(cfg, args):
     from .topology import build_topology_dashboard
     topo_path = out / "autodiscovery-topology.json"
     topo_path.write_text(json.dumps(build_topology_dashboard(args.datasource_uid),
-                                   ensure_ascii=False, indent=2), encoding="utf-8")
+                                    ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"written {topo_path}")
 
 
@@ -788,6 +809,20 @@ def _write_grafana_v2(cfg, args):
     out = Path(args.output or "deploy/grafana/dashboards-v2")
     out.mkdir(parents=True, exist_ok=True)
     for old in out.glob("autodiscovery-*-v2.json"):
+        old.unlink()
+    api = None if args.include_empty else connect_optional(cfg)
+    for name, dash in build_all(cfg, args.datasource_uid, api).items():
+        path = out / name
+        path.write_text(json.dumps(dash, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"written {path}")
+
+
+def _write_grafana_v3(cfg, args):
+    """v3 set into deploy/grafana/dashboards-v3, preserving v1 and v2 untouched."""
+    from .grafana_v3 import build_all
+    out = Path(args.output or "deploy/grafana/dashboards-v3")
+    out.mkdir(parents=True, exist_ok=True)
+    for old in out.glob("autodiscovery-*-v3.json"):
         old.unlink()
     api = None if args.include_empty else connect_optional(cfg)
     for name, dash in build_all(cfg, args.datasource_uid, api).items():
@@ -980,6 +1015,8 @@ def build_parser():
                    help="output directory (default: grafana-dashboards, or deploy/grafana/dashboards-v2 with --v2)")
     p.add_argument("--v2", action="store_true",
                    help="write the v2 dashboards (NOC dark neon, folder 'AutoDiscovery v2') instead of v1")
+    p.add_argument("--v3", action="store_true",
+                   help="write the v3 dashboards (unified hierarchical topology & enriched telemetry, folder 'AutoDiscovery v3')")
     p.add_argument("--datasource-uid", default="zabbix",
                    help="default Zabbix datasource UID (each dashboard also has a datasource selector)")
     p.add_argument("--include-empty", action="store_true",

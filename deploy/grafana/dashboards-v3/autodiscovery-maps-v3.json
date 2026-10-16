@@ -1,0 +1,1137 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "id": 101,
+      "title": "HOSTS ONLINE (FILIAIS)",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 3
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#10b981"
+          },
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#10b981",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true,
+        "text": {
+          "valueSize": 38,
+          "titleSize": 12
+        }
+      },
+      "targets": [
+        {
+          "application": {
+            "filter": ""
+          },
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "functions": [
+            {
+              "def": {
+                "category": "Aggregate",
+                "defaultParams": [],
+                "name": "sumSeries",
+                "params": []
+              },
+              "params": [],
+              "text": "sumSeries()"
+            },
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [],
+                "name": "setAlias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "Disponíveis"
+              ],
+              "text": "setAlias(Disponíveis)"
+            }
+          ],
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "item": {
+            "filter": "ICMP ping"
+          },
+          "options": {
+            "disableDataAlignment": true,
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "useTrends": "false"
+          },
+          "queryType": "0",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 102,
+      "title": "TOTAL DISPOSITIVOS MAPEADOS",
+      "type": "stat",
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 3
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#00e5ff"
+          },
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#00e5ff",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true,
+        "text": {
+          "valueSize": 38,
+          "titleSize": 12
+        }
+      },
+      "targets": [
+        {
+          "application": {
+            "filter": ""
+          },
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "functions": [
+            {
+              "def": {
+                "category": "Transform",
+                "defaultParams": [
+                  100
+                ],
+                "name": "scale",
+                "params": [
+                  {
+                    "name": "factor",
+                    "type": "float"
+                  }
+                ]
+              },
+              "params": [
+                0
+              ],
+              "text": "scale(0)"
+            },
+            {
+              "def": {
+                "category": "Transform",
+                "defaultParams": [
+                  100
+                ],
+                "name": "offset",
+                "params": [
+                  {
+                    "name": "delta",
+                    "type": "float"
+                  }
+                ]
+              },
+              "params": [
+                1
+              ],
+              "text": "offset(1)"
+            },
+            {
+              "def": {
+                "category": "Aggregate",
+                "defaultParams": [],
+                "name": "sumSeries",
+                "params": []
+              },
+              "params": [],
+              "text": "sumSeries()"
+            },
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [],
+                "name": "setAlias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "Ativos no Mapa"
+              ],
+              "text": "setAlias(Ativos no Mapa)"
+            }
+          ],
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "item": {
+            "filter": "ICMP ping"
+          },
+          "options": {
+            "disableDataAlignment": true,
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "useTrends": "false"
+          },
+          "queryType": "0",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 103,
+      "title": "HOSTS OFFLINE / ALARME",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 3
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#10b981",
+                "value": 0
+              },
+              {
+                "color": "#ef4444",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true,
+        "text": {
+          "valueSize": 38,
+          "titleSize": 12
+        }
+      },
+      "targets": [
+        {
+          "application": {
+            "filter": ""
+          },
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "functions": [
+            {
+              "def": {
+                "category": "Transform",
+                "defaultParams": [
+                  100
+                ],
+                "name": "scale",
+                "params": [
+                  {
+                    "name": "factor",
+                    "type": "float"
+                  }
+                ]
+              },
+              "params": [
+                -1
+              ],
+              "text": "scale(-1)"
+            },
+            {
+              "def": {
+                "category": "Transform",
+                "defaultParams": [
+                  100
+                ],
+                "name": "offset",
+                "params": [
+                  {
+                    "name": "delta",
+                    "type": "float"
+                  }
+                ]
+              },
+              "params": [
+                1
+              ],
+              "text": "offset(1)"
+            },
+            {
+              "def": {
+                "category": "Aggregate",
+                "defaultParams": [],
+                "name": "sumSeries",
+                "params": []
+              },
+              "params": [],
+              "text": "sumSeries()"
+            },
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [],
+                "name": "setAlias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "Indisponíveis"
+              ],
+              "text": "setAlias(Indisponíveis)"
+            }
+          ],
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "item": {
+            "filter": "ICMP ping"
+          },
+          "options": {
+            "disableDataAlignment": true,
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "useTrends": "false"
+          },
+          "queryType": "0",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 104,
+      "title": "STATUS DOS GATEWAYS / BORDA",
+      "type": "stat",
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 3
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#ef4444",
+                "value": 0
+              },
+              {
+                "color": "#10b981",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": {
+                  "text": "ONLINE",
+                  "color": "#10b981"
+                },
+                "0": {
+                  "text": "OFFLINE",
+                  "color": "#ef4444"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true,
+        "text": {
+          "valueSize": 38,
+          "titleSize": 12
+        }
+      },
+      "targets": [
+        {
+          "application": {
+            "filter": ""
+          },
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "functions": [
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [],
+                "name": "setAlias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "$__zbx_host_name"
+              ],
+              "text": "setAlias($__zbx_host_name)"
+            }
+          ],
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/^FW-/i"
+          },
+          "item": {
+            "filter": "ICMP ping"
+          },
+          "options": {
+            "disableDataAlignment": true,
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "useTrends": "false"
+          },
+          "queryType": "0",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "TOPOLOGIA DE REDE MULTIFILIAL (INTERCONEXÃO WAN & MAPAS DAS FILIAIS)",
+      "type": "volkovlabs-echarts-panel",
+      "gridPos": {
+        "x": 0,
+        "y": 3,
+        "w": 19,
+        "h": 16
+      },
+      "targets": [
+        {
+          "application": {
+            "filter": ""
+          },
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "functions": [
+            {
+              "def": {
+                "category": "Transform",
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ],
+                "name": "groupBy",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ],
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "1h",
+                "last"
+              ],
+              "text": "groupBy(1h, last)"
+            }
+          ],
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "item": {
+            "filter": "/^(ICMP ping|SNMP agent availability|Zabbix agent availability|Wireless: Connected clients)$/"
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "options": {
+            "disableDataAlignment": true,
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "useTrends": "false"
+          },
+          "queryType": "0",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "getOption": "\nconst ecInst = (typeof echartsInstance !== 'undefined' ? echartsInstance : (context && context.echartsInstance));\nif (ecInst && !window.__autodiscovery_maps_click_bound) {\n  window.__autodiscovery_maps_click_bound = true;\n  ecInst.on('click', (params) => {\n    if (params && params.data && params.data.tipData) {\n      const d = params.data.tipData;\n      if (d.siteKey && d.siteKey !== 'ALL' && typeof locationService !== 'undefined') {\n        locationService.partial({ 'var-site': d.siteKey }, true);\n      }\n    }\n  });\n}\n\n\nconst seriesData = (context && context.panel && context.panel.data && context.panel.data.series) || [];\n\nconst ICONS = {\n  internet: '<path d=\"M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm-1-15.93a8 8 0 0 0-5.93 5.93h3.07a12.8 12.8 0 0 1 2.86-5.93zm2 0a12.8 12.8 0 0 1 2.86 5.93h3.07A8 8 0 0 0 13 4.07zM4.07 11a8.1 8.1 0 0 0 0 2h3.93a15.7 15.7 0 0 1 0-2zm5.93 7.93a12.8 12.8 0 0 1-2.86-5.93H4.07a8 8 0 0 0 5.93 5.93zm4 0a8 8 0 0 0 5.93-5.93h-3.07a12.8 12.8 0 0 1-2.86 5.93zM16 13h3.93a8.1 8.1 0 0 0 0-2H16a15.7 15.7 0 0 1 0 2zm-6-2v2h4v-2z\"/>',\n  firewall: '<rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M3 9.3h18M3 14.7h18M9 4v5.3M15 4v5.3M12 9.3v5.4M7 14.7V20M17 14.7V20\"/>',\n  switch: '<rect x=\"2\" y=\"7\" width=\"20\" height=\"10\" rx=\"2\"/><circle cx=\"6\" cy=\"12\" r=\"1.5\"/><circle cx=\"10\" cy=\"12\" r=\"1.5\"/><circle cx=\"14\" cy=\"12\" r=\"1.5\"/><circle cx=\"18\" cy=\"12\" r=\"1.5\"/>',\n  server: '<rect x=\"3\" y=\"3.5\" width=\"18\" height=\"7.5\" rx=\"2\"/><rect x=\"3\" y=\"13\" width=\"18\" height=\"7.5\" rx=\"2\"/><circle cx=\"7\" cy=\"7.25\" r=\"1\"/><circle cx=\"7\" cy=\"16.75\" r=\"1\"/><path d=\"M11 7.25h6M11 16.75h6\"/>',\n  chip: '<rect x=\"6\" y=\"6\" width=\"12\" height=\"12\" rx=\"2\"/><circle cx=\"12\" cy=\"12\" r=\"2.5\"/><path d=\"M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4\"/>',\n  battery: '<rect x=\"2\" y=\"7\" width=\"17\" height=\"10\" rx=\"2\"/><path d=\"M22 10.5v3M11 9l-2.5 3.2h3.4L9.5 15.2\"/>',\n  wifi: '<path d=\"M2.5 9.2a14 14 0 0 1 19 0M5.6 12.6a9.5 9.5 0 0 1 12.8 0M8.8 16a4.8 4.8 0 0 1 6.4 0M12 19.6h.01\"/>',\n  printer: '<path d=\"M6 9V3h12v6\"/><rect x=\"3\" y=\"9\" width=\"18\" height=\"8\" rx=\"2\"/><path d=\"M7 14h10v7H7z\"/>'\n};\n\nconst iconUri = (name, color) => 'image://data:image/svg+xml;charset=utf-8,' + encodeURIComponent(\n  '<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"' + color +\n  '\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\">' + (ICONS[name] || ICONS.server) + '</svg>');\n\nconst MAPS = {\"Barueri\": {\"siteKey\": \"Barueri\", \"title\": \"Filial Barueri\", \"width\": 3000, \"height\": 1160, \"nodes\": [{\"id\": \"382\", \"name\": \"FW-SP\", \"label\": \"FW-SP\", \"host\": \"FW-SP\", \"ip\": \"192.168.0.4\", \"category\": \"Firewall\", \"icon\": \"firewall\", \"x\": 1500, \"y\": 150, \"r\": 36, \"color\": \"#e879f9\", \"core\": true, \"siteKey\": \"Barueri\"}, {\"id\": \"383\", \"name\": \"switch-192.168.0.17\", \"label\": \"SW-17\", \"host\": \"switch-192.168.0.17\", \"ip\": \"192.168.0.17\", \"category\": \"Switch\", \"icon\": \"switch\", \"x\": 348, \"y\": 280, \"r\": 32, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"Barueri\"}, {\"id\": \"384\", \"name\": \"switch-192.168.0.19\", \"label\": \"SW-19\", \"host\": \"switch-192.168.0.19\", \"ip\": \"192.168.0.19\", \"category\": \"Switch\", \"icon\": \"switch\", \"x\": 924, \"y\": 280, \"r\": 32, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"Barueri\"}, {\"id\": \"385\", \"name\": \"switch-192.168.0.20\", \"label\": \"SW-20\", \"host\": \"switch-192.168.0.20\", \"ip\": \"192.168.0.20\", \"category\": \"Switch\", \"icon\": \"switch\", \"x\": 1500, \"y\": 280, \"r\": 32, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"Barueri\"}, {\"id\": \"386\", \"name\": \"switch-192.168.0.21\", \"label\": \"SW-21\", \"host\": \"switch-192.168.0.21\", \"ip\": \"192.168.0.21\", \"category\": \"Switch\", \"icon\": \"switch\", \"x\": 2076, \"y\": 280, \"r\": 32, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"Barueri\"}, {\"id\": \"387\", \"name\": \"Switch-Aruba 192.168.0.22\", \"label\": \"SW-Aruba\", \"host\": \"Switch-Aruba 192.168.0.22\", \"ip\": \"192.168.0.22\", \"category\": \"Switch\", \"icon\": \"switch\", \"x\": 2652, \"y\": 280, \"r\": 32, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"Barueri\"}, {\"id\": \"388\", \"name\": \"AP01 - FINANCEIRO\", \"label\": \"AP01\", \"host\": \"AP01 - FINANCEIRO\", \"ip\": \"192.168.0.40\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 150, \"y\": 500, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"389\", \"name\": \"AP02 - Kleber\", \"label\": \"AP02\", \"host\": \"AP02 - Kleber\", \"ip\": \"192.168.0.42\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 330, \"y\": 500, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"390\", \"name\": \"AP03 - RECEPÇÃO\", \"label\": \"AP03\", \"host\": \"AP03 - RECEPCAO\", \"ip\": \"192.168.0.41\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 510, \"y\": 500, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"391\", \"name\": \"AP04 - COMERCIAL\", \"label\": \"AP04\", \"host\": \"AP04 - COMERCIAL\", \"ip\": \"192.168.0.43\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 690, \"y\": 500, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"392\", \"name\": \"AP05 - TI\", \"label\": \"AP05\", \"host\": \"AP05 - TI\", \"ip\": \"192.168.0.44\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 870, \"y\": 500, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"393\", \"name\": \"idrac-66FCHZ3\", \"label\": \"iDRAC-01\", \"host\": \"idrac-66FCHZ3\", \"ip\": \"192.168.0.228\", \"category\": \"Hardware Servidor\", \"icon\": \"chip\", \"x\": 1140, \"y\": 500, \"r\": 25, \"color\": \"#a855f7\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"394\", \"name\": \"idrac-6VW02H2\", \"label\": \"iDRAC-02\", \"host\": \"idrac-6VW02H2\", \"ip\": \"192.168.0.226\", \"category\": \"Hardware Servidor\", \"icon\": \"chip\", \"x\": 1320, \"y\": 500, \"r\": 25, \"color\": \"#a855f7\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"395\", \"name\": \"idrac-6VW22H2\", \"label\": \"iDRAC-03\", \"host\": \"idrac-6VW22H2\", \"ip\": \"192.168.0.225\", \"category\": \"Hardware Servidor\", \"icon\": \"chip\", \"x\": 1500, \"y\": 500, \"r\": 25, \"color\": \"#a855f7\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"396\", \"name\": \"idrac-6VW42H2\", \"label\": \"iDRAC-04\", \"host\": \"idrac-6VW42H2\", \"ip\": \"192.168.0.227\", \"category\": \"Hardware Servidor\", \"icon\": \"chip\", \"x\": 1680, \"y\": 500, \"r\": 25, \"color\": \"#a855f7\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"397\", \"name\": \"RAC_8LK39R1\", \"label\": \"iDRAC-05\", \"host\": \"RAC_8LK39R1\", \"ip\": \"192.168.0.224\", \"category\": \"Hardware Servidor\", \"icon\": \"chip\", \"x\": 1860, \"y\": 500, \"r\": 25, \"color\": \"#a855f7\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"398\", \"name\": \"ASSEMBLY\", \"label\": \"ASSEMBLY\", \"host\": \"ASSEMBLY\", \"ip\": \"192.168.0.31\", \"category\": \"Virtualização / Hypervisor\", \"icon\": \"server\", \"x\": 1050, \"y\": 720, \"r\": 28, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"399\", \"name\": \"CLIPPER\", \"label\": \"CLIPPER\", \"host\": \"CLIPPER\", \"ip\": \"192.168.0.33\", \"category\": \"Virtualização / Hypervisor\", \"icon\": \"server\", \"x\": 1230, \"y\": 720, \"r\": 28, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"400\", \"name\": \"DELPHI\", \"label\": \"DELPHI\", \"host\": \"DELPHI\", \"ip\": \"192.168.0.29\", \"category\": \"Virtualização / Hypervisor\", \"icon\": \"server\", \"x\": 1410, \"y\": 720, \"r\": 28, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"401\", \"name\": \"JAVASCRIPT\", \"label\": \"JAVASCRIPT\", \"host\": \"JAVASCRIPT\", \"ip\": \"192.168.0.48\", \"category\": \"Servidor / VM\", \"icon\": \"server\", \"x\": 1590, \"y\": 720, \"r\": 26, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"402\", \"name\": \"NGINX-SRV\", \"label\": \"NGINX-SRV\", \"host\": \"NGINX-SRV\", \"ip\": \"192.168.0.10\", \"category\": \"Servidor / VM\", \"icon\": \"server\", \"x\": 1770, \"y\": 720, \"r\": 26, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"403\", \"name\": \"PASCAL\", \"label\": \"PASCAL\", \"host\": \"PASCAL\", \"ip\": \"192.168.0.32\", \"category\": \"Virtualização / Hypervisor\", \"icon\": \"server\", \"x\": 1950, \"y\": 720, \"r\": 28, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"404\", \"name\": \"PHP\", \"label\": \"PHP\", \"host\": \"PHP\", \"ip\": \"192.168.0.6\", \"category\": \"Virtualização / Hypervisor\", \"icon\": \"server\", \"x\": 1050, \"y\": 940, \"r\": 28, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"405\", \"name\": \"srv-cs01\", \"label\": \"srv-cs01\", \"host\": \"srv-cs01\", \"ip\": \"192.168.0.15\", \"category\": \"Servidor / VM\", \"icon\": \"server\", \"x\": 1230, \"y\": 940, \"r\": 26, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"406\", \"name\": \"SRV-AD01\", \"label\": \"SRV-AD01\", \"host\": \"SRV-AD01\", \"ip\": \"192.168.0.5\", \"category\": \"Servidor / VM\", \"icon\": \"server\", \"x\": 1410, \"y\": 940, \"r\": 26, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"407\", \"name\": \"SRV-AD02\", \"label\": \"SRV-AD02\", \"host\": \"SRV-AD02\", \"ip\": \"192.168.0.8\", \"category\": \"Servidor / VM\", \"icon\": \"server\", \"x\": 1590, \"y\": 940, \"r\": 26, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"408\", \"name\": \"srv-dc02\", \"label\": \"srv-dc02\", \"host\": \"srv-dc02\", \"ip\": \"192.168.0.2\", \"category\": \"Servidor / VM\", \"icon\": \"server\", \"x\": 1770, \"y\": 940, \"r\": 26, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"409\", \"name\": \"GEQ10-IMPDIR\", \"label\": \"IMPDIR\", \"host\": \"GEQ10-IMPDIR\", \"ip\": \"192.168.0.70\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 2130, \"y\": 500, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"410\", \"name\": \"GEQ10-IMPFIN\", \"label\": \"IMPFIN\", \"host\": \"GEQ10-IMPFIN\", \"ip\": \"192.168.0.181\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 2310, \"y\": 500, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"411\", \"name\": \"Nobreak-SP\", \"label\": \"Nobreak-SP\", \"host\": \"Nobreak-SP\", \"ip\": \"192.168.0.3\", \"category\": \"Nobreak UPS\", \"icon\": \"battery\", \"x\": 2490, \"y\": 500, \"r\": 26, \"color\": \"#f59e0b\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"412\", \"name\": \"NPI5695D5\", \"label\": \"HP-569-SP\", \"host\": \"NPI5695D5\", \"ip\": \"192.168.0.202\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 2670, \"y\": 500, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"413\", \"name\": \"NPI5D37FB\", \"label\": \"HP-5D3-SP\", \"host\": \"NPI5D37FB\", \"ip\": \"192.168.0.175\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 2850, \"y\": 500, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"inet-sp-1\", \"name\": \"AmericaNet 50M\", \"label\": \"AmericaNet 50M\", \"host\": \"FW-SP\", \"ip\": \"wan2\", \"category\": \"Internet\", \"icon\": \"internet\", \"x\": 1320, \"y\": 50, \"r\": 28, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"Barueri\"}, {\"id\": \"inet-sp-2\", \"name\": \"Megatelecom 50M\", \"label\": \"Megatelecom 50M\", \"host\": \"FW-SP\", \"ip\": \"wan1\", \"category\": \"Internet\", \"icon\": \"internet\", \"x\": 1680, \"y\": 50, \"r\": 28, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"Barueri\"}], \"links\": [{\"source\": \"382\", \"target\": \"383\", \"color\": \"#10b981\", \"width\": 3.2, \"glow\": 10, \"curveness\": 0.05}, {\"source\": \"382\", \"target\": \"384\", \"color\": \"#10b981\", \"width\": 3.2, \"glow\": 10, \"curveness\": 0.05}, {\"source\": \"382\", \"target\": \"385\", \"color\": \"#10b981\", \"width\": 3.2, \"glow\": 10, \"curveness\": 0.05}, {\"source\": \"382\", \"target\": \"386\", \"color\": \"#10b981\", \"width\": 3.2, \"glow\": 10, \"curveness\": 0.05}, {\"source\": \"382\", \"target\": \"387\", \"color\": \"#10b981\", \"width\": 3.2, \"glow\": 10, \"curveness\": 0.05}, {\"source\": \"383\", \"target\": \"388\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"383\", \"target\": \"389\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"383\", \"target\": \"390\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"384\", \"target\": \"391\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"384\", \"target\": \"392\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"384\", \"target\": \"393\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"385\", \"target\": \"394\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"385\", \"target\": \"395\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"385\", \"target\": \"396\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"386\", \"target\": \"397\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"386\", \"target\": \"409\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"386\", \"target\": \"410\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"387\", \"target\": \"411\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"387\", \"target\": \"412\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"387\", \"target\": \"413\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"393\", \"target\": \"398\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"393\", \"target\": \"399\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"394\", \"target\": \"400\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"395\", \"target\": \"401\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"396\", \"target\": \"402\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"397\", \"target\": \"403\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"393\", \"target\": \"404\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"393\", \"target\": \"405\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"394\", \"target\": \"406\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"395\", \"target\": \"407\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"396\", \"target\": \"408\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"inet-sp-1\", \"target\": \"382\", \"color\": \"#38bdf8\", \"width\": 2.5, \"glow\": 10, \"curveness\": 0.05}, {\"source\": \"inet-sp-2\", \"target\": \"382\", \"color\": \"#38bdf8\", \"width\": 2.5, \"glow\": 10, \"curveness\": 0.05}]}, \"PR\": {\"siteKey\": \"PR\", \"title\": \"Filial PR\", \"width\": 480, \"height\": 560, \"nodes\": [{\"id\": \"414\", \"name\": \"FW-PR\", \"label\": \"FW-PR\", \"host\": \"FW-PR\", \"ip\": \"192.168.1.2\", \"category\": \"Firewall\", \"icon\": \"firewall\", \"x\": 150, \"y\": 150, \"r\": 36, \"color\": \"#e879f9\", \"core\": true, \"siteKey\": \"PR\"}, {\"id\": \"415\", \"name\": \"BRN001BA9F4C5A5\", \"label\": \"Brother-PR\", \"host\": \"BRN001BA9F4C5A5\", \"ip\": \"192.168.1.69\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 60, \"y\": 280, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"PR\"}, {\"id\": \"416\", \"name\": \"HP5FFB5E\", \"label\": \"HP-PR\", \"host\": \"HP5FFB5E\", \"ip\": \"192.168.1.103\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 240, \"y\": 280, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"PR\"}, {\"id\": \"inet-pr-1\", \"name\": \"WAN 2\", \"label\": \"WAN 2\", \"host\": \"FW-PR\", \"ip\": \"wan2\", \"category\": \"Internet\", \"icon\": \"internet\", \"x\": 10, \"y\": 50, \"r\": 28, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"PR\"}, {\"id\": \"inet-pr-2\", \"name\": \"LIGGA\", \"label\": \"LIGGA\", \"host\": \"FW-PR\", \"ip\": \"wan1\", \"category\": \"Internet\", \"icon\": \"internet\", \"x\": 290, \"y\": 50, \"r\": 28, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"PR\"}], \"links\": [{\"source\": \"414\", \"target\": \"415\", \"color\": \"#10b981\", \"width\": 3.2, \"glow\": 10, \"curveness\": 0.05}, {\"source\": \"414\", \"target\": \"416\", \"color\": \"#10b981\", \"width\": 3.2, \"glow\": 10, \"curveness\": 0.05}, {\"source\": \"inet-pr-1\", \"target\": \"414\", \"color\": \"#38bdf8\", \"width\": 2.5, \"glow\": 10, \"curveness\": 0.05}, {\"source\": \"inet-pr-2\", \"target\": \"414\", \"color\": \"#38bdf8\", \"width\": 2.5, \"glow\": 10, \"curveness\": 0.05}]}, \"BA\": {\"siteKey\": \"BA\", \"title\": \"Filial BA\", \"width\": 2280, \"height\": 940, \"nodes\": [{\"id\": \"417\", \"name\": \"FW-BA\", \"label\": \"FW-BA\", \"host\": \"FW-BA\", \"ip\": \"192.168.2.244\", \"category\": \"Firewall\", \"icon\": \"firewall\", \"x\": 1140, \"y\": 150, \"r\": 36, \"color\": \"#e879f9\", \"core\": true, \"siteKey\": \"BA\"}, {\"id\": \"418\", \"name\": \"SWCORE - BA\", \"label\": \"SWCORE\", \"host\": \"SWCORE - BA\", \"ip\": \"192.168.2.144\", \"category\": \"Switch\", \"icon\": \"switch\", \"x\": 1140, \"y\": 280, \"r\": 32, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"BA\"}, {\"id\": \"419\", \"name\": \"AP ADM - BAHIA\", \"label\": \"AP ADM\", \"host\": \"AP ADM - BAHIA\", \"ip\": \"192.168.2.51\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 150, \"y\": 500, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"420\", \"name\": \"AP ARMAZEM - BAHIA\", \"label\": \"AP-ARMAZ\", \"host\": \"AP ARMAZEM - BAHIA\", \"ip\": \"192.168.2.49\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 330, \"y\": 500, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"421\", \"name\": \"AP EXPEDIÇÃO - BAHIA\", \"label\": \"AP-EXPED\", \"host\": \"AP EXPEDICAO - BAHIA\", \"ip\": \"192.168.2.48\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 510, \"y\": 500, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"422\", \"name\": \"AP FABRICA - BAHIA\", \"label\": \"AP-FABRICA\", \"host\": \"AP FABRICA - BAHIA\", \"ip\": \"192.168.2.50\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 690, \"y\": 500, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"423\", \"name\": \"AP LENTILHA - BAHIA\", \"label\": \"AP-LENTILHA\", \"host\": \"AP LENTILHA - BAHIA\", \"ip\": \"192.168.2.47\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 870, \"y\": 500, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"424\", \"name\": \"AP RESERVA - BAHIA\", \"label\": \"AP-RESERVA\", \"host\": \"AP RESERVA - BAHIA\", \"ip\": \"192.168.2.52\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 1050, \"y\": 500, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"425\", \"name\": \"i-DRAC - BA\", \"label\": \"iDRAC-BA\", \"host\": \"i-DRAC - BA\", \"ip\": \"192.168.2.14\", \"category\": \"Hardware Servidor\", \"icon\": \"chip\", \"x\": 1230, \"y\": 500, \"r\": 25, \"color\": \"#a855f7\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"426\", \"name\": \"SRV-AD03\", \"label\": \"SRV-AD03\", \"host\": \"SRV-AD03\", \"ip\": \"192.168.2.4\", \"category\": \"Virtualização / Hypervisor\", \"icon\": \"server\", \"x\": 1230, \"y\": 720, \"r\": 28, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"427\", \"name\": \"HPA9D24F\", \"label\": \"HP-A9D-BA\", \"host\": \"HPA9D24F\", \"ip\": \"192.168.2.113\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 1410, \"y\": 500, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"428\", \"name\": \"HPE1206C\", \"label\": \"HP-E12-BA\", \"host\": \"HPE1206C\", \"ip\": \"192.168.2.53\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 1590, \"y\": 500, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"429\", \"name\": \"NPI301581\", \"label\": \"HP-301-BA\", \"host\": \"NPI301581\", \"ip\": \"192.168.2.245\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 1770, \"y\": 500, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"430\", \"name\": \"NPI30A61D\", \"label\": \"HP-30A-BA\", \"host\": \"NPI30A61D\", \"ip\": \"192.168.2.154\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 1950, \"y\": 500, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"431\", \"name\": \"NPI5645C9\", \"label\": \"HP-564-BA\", \"host\": \"NPI5645C9\", \"ip\": \"192.168.2.54\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 2130, \"y\": 500, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"inet-ba-1\", \"name\": \"NET FIBER 30M\", \"label\": \"NET FIBER 30M\", \"host\": \"FW-BA\", \"ip\": \"wan2\", \"category\": \"Internet\", \"icon\": \"internet\", \"x\": 960, \"y\": 50, \"r\": 28, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"BA\"}, {\"id\": \"inet-ba-2\", \"name\": \"ITS 40M\", \"label\": \"ITS 40M\", \"host\": \"FW-BA\", \"ip\": \"wan1\", \"category\": \"Internet\", \"icon\": \"internet\", \"x\": 1320, \"y\": 50, \"r\": 28, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"BA\"}], \"links\": [{\"source\": \"417\", \"target\": \"418\", \"color\": \"#10b981\", \"width\": 3.2, \"glow\": 10, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"419\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"420\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"421\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"422\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"423\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"424\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"425\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"427\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"428\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"429\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"430\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"431\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"425\", \"target\": \"426\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"inet-ba-1\", \"target\": \"417\", \"color\": \"#38bdf8\", \"width\": 2.5, \"glow\": 10, \"curveness\": 0.05}, {\"source\": \"inet-ba-2\", \"target\": \"417\", \"color\": \"#38bdf8\", \"width\": 2.5, \"glow\": 10, \"curveness\": 0.05}]}, \"RJ\": {\"siteKey\": \"RJ\", \"title\": \"Filial RJ\", \"width\": 2460, \"height\": 940, \"nodes\": [{\"id\": \"432\", \"name\": \"FW-RJ\", \"label\": \"FW-RJ\", \"host\": \"FW-RJ\", \"ip\": \"192.168.3.21\", \"category\": \"Firewall\", \"icon\": \"firewall\", \"x\": 1230, \"y\": 150, \"r\": 36, \"color\": \"#e879f9\", \"core\": true, \"siteKey\": \"RJ\"}, {\"id\": \"433\", \"name\": \"BRA30-SW_MikroTi\", \"label\": \"SW-MikroTik\", \"host\": \"BRA30-SW_MikroTi\", \"ip\": \"192.168.3.19\", \"category\": \"Switch\", \"icon\": \"switch\", \"x\": 1230, \"y\": 280, \"r\": 32, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"RJ\"}, {\"id\": \"434\", \"name\": \"AP-ADM\", \"label\": \"AP-ADM\", \"host\": \"AP-ADM\", \"ip\": \"192.168.3.111\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 150, \"y\": 500, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"435\", \"name\": \"AP-BALANCA\", \"label\": \"AP-BALANÇA\", \"host\": \"AP-BALANCA\", \"ip\": \"192.168.3.116\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 330, \"y\": 500, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"436\", \"name\": \"AP-GALPAO1FRENTE\", \"label\": \"AP-GALP1-FR\", \"host\": \"AP-GALPAO1FRENTE\", \"ip\": \"192.168.3.107\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 510, \"y\": 500, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"437\", \"name\": \"AP-GALPAO1FUNDO\", \"label\": \"AP-GALP1-FD\", \"host\": \"AP-GALPAO1FUNDO\", \"ip\": \"192.168.3.109\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 690, \"y\": 500, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"438\", \"name\": \"AP-GALPAO3\", \"label\": \"AP-GALP3\", \"host\": \"AP-GALPAO3\", \"ip\": \"192.168.3.113\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 870, \"y\": 500, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"439\", \"name\": \"iDRAC-JXH2XG3\", \"label\": \"iDRAC-RJ\", \"host\": \"iDRAC-JXH2XG3\", \"ip\": \"192.168.3.22\", \"category\": \"Hardware Servidor\", \"icon\": \"chip\", \"x\": 1050, \"y\": 500, \"r\": 25, \"color\": \"#a855f7\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"440\", \"name\": \"SRV-DC01\", \"label\": \"SRV-DC01\", \"host\": \"SRV-DC01\", \"ip\": \"192.168.3.1\", \"category\": \"Servidor / VM\", \"icon\": \"server\", \"x\": 1050, \"y\": 720, \"r\": 26, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"441\", \"name\": \"BRA30-IMPADM\", \"label\": \"IMPADM\", \"host\": \"BRA30-IMPADM\", \"ip\": \"192.168.3.53\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 1230, \"y\": 500, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"442\", \"name\": \"BRA30-IMPALMOX\", \"label\": \"IMPALMOX\", \"host\": \"BRA30-IMPALMOX\", \"ip\": \"192.168.3.52\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 1410, \"y\": 500, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"443\", \"name\": \"BRA30-IMPBAL\", \"label\": \"IMPBAL\", \"host\": \"BRA30-IMPBAL\", \"ip\": \"192.168.3.57\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 1590, \"y\": 500, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"444\", \"name\": \"BRA30-IMPLAB\", \"label\": \"IMPLAB\", \"host\": \"BRA30-IMPLAB\", \"ip\": \"192.168.3.55\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 1770, \"y\": 500, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"445\", \"name\": \"BRA30-IMPRH\", \"label\": \"IMPRH\", \"host\": \"BRA30-IMPRH\", \"ip\": \"192.168.3.50\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 1950, \"y\": 500, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"446\", \"name\": \"NPIA9A017\", \"label\": \"HP-Lab-RJ\", \"host\": \"NPIA9A017\", \"ip\": \"192.168.3.51\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 2130, \"y\": 500, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"447\", \"name\": \"NXE3841CF\", \"label\": \"Xerox-RJ\", \"host\": \"NXE3841CF\", \"ip\": \"192.168.3.150\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 2310, \"y\": 500, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"inet-rj-1\", \"name\": \"Internet10 50M\", \"label\": \"Internet10 50M\", \"host\": \"FW-RJ\", \"ip\": \"wan2\", \"category\": \"Internet\", \"icon\": \"internet\", \"x\": 1050, \"y\": 50, \"r\": 28, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"RJ\"}, {\"id\": \"inet-rj-2\", \"name\": \"Easy Net 50M\", \"label\": \"Easy Net 50M\", \"host\": \"FW-RJ\", \"ip\": \"wan1\", \"category\": \"Internet\", \"icon\": \"internet\", \"x\": 1410, \"y\": 50, \"r\": 28, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"RJ\"}], \"links\": [{\"source\": \"432\", \"target\": \"433\", \"color\": \"#10b981\", \"width\": 3.2, \"glow\": 10, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"434\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"435\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"436\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"437\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"438\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"439\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"441\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"442\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"443\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"444\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"445\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"446\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"447\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"439\", \"target\": \"440\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"inet-rj-1\", \"target\": \"432\", \"color\": \"#38bdf8\", \"width\": 2.5, \"glow\": 10, \"curveness\": 0.05}, {\"source\": \"inet-rj-2\", \"target\": \"432\", \"color\": \"#38bdf8\", \"width\": 2.5, \"glow\": 10, \"curveness\": 0.05}]}, \"__all__\": {\"siteKey\": \"__all__\", \"title\": \"Topologia Corporativa Multifilial\", \"width\": 3600, \"height\": 950, \"nodes\": [{\"id\": \"432\", \"name\": \"FW-RJ\", \"label\": \"FW-RJ\", \"host\": \"FW-RJ\", \"ip\": \"192.168.3.21\", \"category\": \"Firewall\", \"icon\": \"firewall\", \"x\": 420, \"y\": 210, \"r\": 36, \"color\": \"#e879f9\", \"core\": true, \"siteKey\": \"RJ\"}, {\"id\": \"433\", \"name\": \"BRA30-SW_MikroTi\", \"label\": \"SW-MikroTik\", \"host\": \"BRA30-SW_MikroTi\", \"ip\": \"192.168.3.19\", \"category\": \"Switch\", \"icon\": \"switch\", \"x\": 420, \"y\": 320, \"r\": 32, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"RJ\"}, {\"id\": \"434\", \"name\": \"AP-ADM\", \"label\": \"AP-ADM\", \"host\": \"AP-ADM\", \"ip\": \"192.168.3.111\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 120, \"y\": 440, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"435\", \"name\": \"AP-BALANCA\", \"label\": \"AP-BALANÇA\", \"host\": \"AP-BALANCA\", \"ip\": \"192.168.3.116\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 230, \"y\": 530, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"436\", \"name\": \"AP-GALPAO1FRENTE\", \"label\": \"AP-GALP1-FR\", \"host\": \"AP-GALPAO1FRENTE\", \"ip\": \"192.168.3.107\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 340, \"y\": 440, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"437\", \"name\": \"AP-GALPAO1FUNDO\", \"label\": \"AP-GALP1-FD\", \"host\": \"AP-GALPAO1FUNDO\", \"ip\": \"192.168.3.109\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 450, \"y\": 530, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"438\", \"name\": \"AP-GALPAO3\", \"label\": \"AP-GALP3\", \"host\": \"AP-GALPAO3\", \"ip\": \"192.168.3.113\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 560, \"y\": 440, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"439\", \"name\": \"iDRAC-JXH2XG3\", \"label\": \"iDRAC-RJ\", \"host\": \"iDRAC-JXH2XG3\", \"ip\": \"192.168.3.22\", \"category\": \"Hardware Servidor\", \"icon\": \"chip\", \"x\": 710, \"y\": 440, \"r\": 25, \"color\": \"#a855f7\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"440\", \"name\": \"SRV-DC01\", \"label\": \"SRV-DC01\", \"host\": \"SRV-DC01\", \"ip\": \"192.168.3.1\", \"category\": \"Servidor / VM\", \"icon\": \"server\", \"x\": 710, \"y\": 560, \"r\": 26, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"441\", \"name\": \"BRA30-IMPADM\", \"label\": \"IMPADM\", \"host\": \"BRA30-IMPADM\", \"ip\": \"192.168.3.53\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 140, \"y\": 700, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"442\", \"name\": \"BRA30-IMPALMOX\", \"label\": \"IMPALMOX\", \"host\": \"BRA30-IMPALMOX\", \"ip\": \"192.168.3.52\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 700, \"y\": 700, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"443\", \"name\": \"BRA30-IMPBAL\", \"label\": \"IMPBAL\", \"host\": \"BRA30-IMPBAL\", \"ip\": \"192.168.3.57\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 280, \"y\": 700, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"444\", \"name\": \"BRA30-IMPLAB\", \"label\": \"IMPLAB\", \"host\": \"BRA30-IMPLAB\", \"ip\": \"192.168.3.55\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 350, \"y\": 800, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"445\", \"name\": \"BRA30-IMPRH\", \"label\": \"IMPRH\", \"host\": \"BRA30-IMPRH\", \"ip\": \"192.168.3.50\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 420, \"y\": 700, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"446\", \"name\": \"NPIA9A017\", \"label\": \"HP-Lab-RJ\", \"host\": \"NPIA9A017\", \"ip\": \"192.168.3.51\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 490, \"y\": 800, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"447\", \"name\": \"NXE3841CF\", \"label\": \"Xerox-RJ\", \"host\": \"NXE3841CF\", \"ip\": \"192.168.3.150\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 560, \"y\": 700, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"RJ\"}, {\"id\": \"inet-rj-1\", \"name\": \"Internet10 50M\", \"label\": \"Internet10 50M\", \"host\": \"FW-RJ\", \"ip\": \"wan2 (50M)\", \"category\": \"Internet\", \"icon\": \"internet\", \"x\": 330, \"y\": 85, \"r\": 28, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"RJ\"}, {\"id\": \"inet-rj-2\", \"name\": \"Easy Net 50M\", \"label\": \"Easy Net 50M\", \"host\": \"FW-RJ\", \"ip\": \"wan1 (50M)\", \"category\": \"Internet\", \"icon\": \"internet\", \"x\": 510, \"y\": 85, \"r\": 28, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"RJ\"}, {\"id\": \"382\", \"name\": \"FW-SP\", \"label\": \"FW-SP\", \"host\": \"FW-SP\", \"ip\": \"192.168.0.4\", \"category\": \"Firewall\", \"icon\": \"firewall\", \"x\": 1620, \"y\": 210, \"r\": 36, \"color\": \"#e879f9\", \"core\": true, \"siteKey\": \"Barueri\"}, {\"id\": \"383\", \"name\": \"switch-192.168.0.17\", \"label\": \"SW-17\", \"host\": \"switch-192.168.0.17\", \"ip\": \"192.168.0.17\", \"category\": \"Switch\", \"icon\": \"switch\", \"x\": 980, \"y\": 310, \"r\": 32, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"Barueri\"}, {\"id\": \"384\", \"name\": \"switch-192.168.0.19\", \"label\": \"SW-19\", \"host\": \"switch-192.168.0.19\", \"ip\": \"192.168.0.19\", \"category\": \"Switch\", \"icon\": \"switch\", \"x\": 1300, \"y\": 310, \"r\": 32, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"Barueri\"}, {\"id\": \"385\", \"name\": \"switch-192.168.0.20\", \"label\": \"SW-20\", \"host\": \"switch-192.168.0.20\", \"ip\": \"192.168.0.20\", \"category\": \"Switch\", \"icon\": \"switch\", \"x\": 1620, \"y\": 310, \"r\": 32, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"Barueri\"}, {\"id\": \"386\", \"name\": \"switch-192.168.0.21\", \"label\": \"SW-21\", \"host\": \"switch-192.168.0.21\", \"ip\": \"192.168.0.21\", \"category\": \"Switch\", \"icon\": \"switch\", \"x\": 1940, \"y\": 310, \"r\": 32, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"Barueri\"}, {\"id\": \"387\", \"name\": \"Switch-Aruba 192.168.0.22\", \"label\": \"SW-Aruba\", \"host\": \"Switch-Aruba 192.168.0.22\", \"ip\": \"192.168.0.22\", \"category\": \"Switch\", \"icon\": \"switch\", \"x\": 2260, \"y\": 310, \"r\": 32, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"Barueri\"}, {\"id\": \"388\", \"name\": \"AP01 - FINANCEIRO\", \"label\": \"AP01\", \"host\": \"AP01 - FINANCEIRO\", \"ip\": \"192.168.0.40\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 900, \"y\": 430, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"389\", \"name\": \"AP02 - Kleber\", \"label\": \"AP02\", \"host\": \"AP02 - Kleber\", \"ip\": \"192.168.0.42\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 980, \"y\": 510, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"390\", \"name\": \"AP03 - RECEPÇÃO\", \"label\": \"AP03\", \"host\": \"AP03 - RECEPCAO\", \"ip\": \"192.168.0.41\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 1060, \"y\": 430, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"391\", \"name\": \"AP04 - COMERCIAL\", \"label\": \"AP04\", \"host\": \"AP04 - COMERCIAL\", \"ip\": \"192.168.0.43\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 1230, \"y\": 430, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"392\", \"name\": \"AP05 - TI\", \"label\": \"AP05\", \"host\": \"AP05 - TI\", \"ip\": \"192.168.0.44\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 1330, \"y\": 510, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"393\", \"name\": \"idrac-66FCHZ3\", \"label\": \"iDRAC-01\", \"host\": \"idrac-66FCHZ3\", \"ip\": \"192.168.0.228\", \"category\": \"Hardware Servidor\", \"icon\": \"chip\", \"x\": 1460, \"y\": 430, \"r\": 25, \"color\": \"#a855f7\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"394\", \"name\": \"idrac-6VW02H2\", \"label\": \"iDRAC-02\", \"host\": \"idrac-6VW02H2\", \"ip\": \"192.168.0.226\", \"category\": \"Hardware Servidor\", \"icon\": \"chip\", \"x\": 1540, \"y\": 510, \"r\": 25, \"color\": \"#a855f7\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"395\", \"name\": \"idrac-6VW22H2\", \"label\": \"iDRAC-03\", \"host\": \"idrac-6VW22H2\", \"ip\": \"192.168.0.225\", \"category\": \"Hardware Servidor\", \"icon\": \"chip\", \"x\": 1620, \"y\": 430, \"r\": 25, \"color\": \"#a855f7\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"396\", \"name\": \"idrac-6VW42H2\", \"label\": \"iDRAC-04\", \"host\": \"idrac-6VW42H2\", \"ip\": \"192.168.0.227\", \"category\": \"Hardware Servidor\", \"icon\": \"chip\", \"x\": 1700, \"y\": 510, \"r\": 25, \"color\": \"#a855f7\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"397\", \"name\": \"RAC_8LK39R1\", \"label\": \"iDRAC-05\", \"host\": \"RAC_8LK39R1\", \"ip\": \"192.168.0.224\", \"category\": \"Hardware Servidor\", \"icon\": \"chip\", \"x\": 1780, \"y\": 430, \"r\": 25, \"color\": \"#a855f7\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"398\", \"name\": \"ASSEMBLY\", \"label\": \"ASSEMBLY\", \"host\": \"ASSEMBLY\", \"ip\": \"192.168.0.31\", \"category\": \"Virtualização / Hypervisor\", \"icon\": \"server\", \"x\": 1220, \"y\": 650, \"r\": 28, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"399\", \"name\": \"CLIPPER\", \"label\": \"CLIPPER\", \"host\": \"CLIPPER\", \"ip\": \"192.168.0.33\", \"category\": \"Virtualização / Hypervisor\", \"icon\": \"server\", \"x\": 1380, \"y\": 650, \"r\": 28, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"400\", \"name\": \"DELPHI\", \"label\": \"DELPHI\", \"host\": \"DELPHI\", \"ip\": \"192.168.0.29\", \"category\": \"Virtualização / Hypervisor\", \"icon\": \"server\", \"x\": 1540, \"y\": 650, \"r\": 28, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"401\", \"name\": \"JAVASCRIPT\", \"label\": \"JAVASCRIPT\", \"host\": \"JAVASCRIPT\", \"ip\": \"192.168.0.48\", \"category\": \"Servidor / VM\", \"icon\": \"server\", \"x\": 1700, \"y\": 650, \"r\": 26, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"402\", \"name\": \"NGINX-SRV\", \"label\": \"NGINX-SRV\", \"host\": \"NGINX-SRV\", \"ip\": \"192.168.0.10\", \"category\": \"Servidor / VM\", \"icon\": \"server\", \"x\": 1860, \"y\": 650, \"r\": 26, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"403\", \"name\": \"PASCAL\", \"label\": \"PASCAL\", \"host\": \"PASCAL\", \"ip\": \"192.168.0.32\", \"category\": \"Virtualização / Hypervisor\", \"icon\": \"server\", \"x\": 2020, \"y\": 650, \"r\": 28, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"404\", \"name\": \"PHP\", \"label\": \"PHP\", \"host\": \"PHP\", \"ip\": \"192.168.0.6\", \"category\": \"Virtualização / Hypervisor\", \"icon\": \"server\", \"x\": 1300, \"y\": 790, \"r\": 28, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"405\", \"name\": \"srv-cs01\", \"label\": \"srv-cs01\", \"host\": \"srv-cs01\", \"ip\": \"192.168.0.15\", \"category\": \"Servidor / VM\", \"icon\": \"server\", \"x\": 1460, \"y\": 790, \"r\": 26, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"406\", \"name\": \"SRV-AD01\", \"label\": \"SRV-AD01\", \"host\": \"SRV-AD01\", \"ip\": \"192.168.0.5\", \"category\": \"Servidor / VM\", \"icon\": \"server\", \"x\": 1580, \"y\": 790, \"r\": 26, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"407\", \"name\": \"SRV-AD02\", \"label\": \"SRV-AD02\", \"host\": \"SRV-AD02\", \"ip\": \"192.168.0.8\", \"category\": \"Servidor / VM\", \"icon\": \"server\", \"x\": 1740, \"y\": 790, \"r\": 26, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"408\", \"name\": \"srv-dc02\", \"label\": \"srv-dc02\", \"host\": \"srv-dc02\", \"ip\": \"192.168.0.2\", \"category\": \"Servidor / VM\", \"icon\": \"server\", \"x\": 1900, \"y\": 790, \"r\": 26, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"409\", \"name\": \"GEQ10-IMPDIR\", \"label\": \"IMPDIR\", \"host\": \"GEQ10-IMPDIR\", \"ip\": \"192.168.0.70\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 1910, \"y\": 430, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"410\", \"name\": \"GEQ10-IMPFIN\", \"label\": \"IMPFIN\", \"host\": \"GEQ10-IMPFIN\", \"ip\": \"192.168.0.181\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 2010, \"y\": 510, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"411\", \"name\": \"Nobreak-SP\", \"label\": \"Nobreak-SP\", \"host\": \"Nobreak-SP\", \"ip\": \"192.168.0.3\", \"category\": \"Nobreak UPS\", \"icon\": \"battery\", \"x\": 2120, \"y\": 430, \"r\": 26, \"color\": \"#f59e0b\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"412\", \"name\": \"NPI5695D5\", \"label\": \"HP-569-SP\", \"host\": \"NPI5695D5\", \"ip\": \"192.168.0.202\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 2230, \"y\": 510, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"413\", \"name\": \"NPI5D37FB\", \"label\": \"HP-5D3-SP\", \"host\": \"NPI5D37FB\", \"ip\": \"192.168.0.175\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 2330, \"y\": 430, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"Barueri\"}, {\"id\": \"inet-sp-1\", \"name\": \"AmericaNet 50M\", \"label\": \"AmericaNet 50M\", \"host\": \"FW-SP\", \"ip\": \"wan2 (50M)\", \"category\": \"Internet\", \"icon\": \"internet\", \"x\": 1510, \"y\": 85, \"r\": 28, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"Barueri\"}, {\"id\": \"inet-sp-2\", \"name\": \"Megatelecom 50M\", \"label\": \"Megatelecom 50M\", \"host\": \"FW-SP\", \"ip\": \"wan1 (50M)\", \"category\": \"Internet\", \"icon\": \"internet\", \"x\": 1730, \"y\": 85, \"r\": 28, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"Barueri\"}, {\"id\": \"417\", \"name\": \"FW-BA\", \"label\": \"FW-BA\", \"host\": \"FW-BA\", \"ip\": \"192.168.2.244\", \"category\": \"Firewall\", \"icon\": \"firewall\", \"x\": 2820, \"y\": 210, \"r\": 36, \"color\": \"#e879f9\", \"core\": true, \"siteKey\": \"BA\"}, {\"id\": \"418\", \"name\": \"SWCORE - BA\", \"label\": \"SWCORE\", \"host\": \"SWCORE - BA\", \"ip\": \"192.168.2.144\", \"category\": \"Switch\", \"icon\": \"switch\", \"x\": 2820, \"y\": 310, \"r\": 32, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"BA\"}, {\"id\": \"419\", \"name\": \"AP ADM - BAHIA\", \"label\": \"AP ADM\", \"host\": \"AP ADM - BAHIA\", \"ip\": \"192.168.2.51\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 2490, \"y\": 440, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"420\", \"name\": \"AP ARMAZEM - BAHIA\", \"label\": \"AP-ARMAZ\", \"host\": \"AP ARMAZEM - BAHIA\", \"ip\": \"192.168.2.49\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 2590, \"y\": 530, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"421\", \"name\": \"AP EXPEDIÇÃO - BAHIA\", \"label\": \"AP-EXPED\", \"host\": \"AP EXPEDICAO - BAHIA\", \"ip\": \"192.168.2.48\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 2690, \"y\": 440, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"422\", \"name\": \"AP FABRICA - BAHIA\", \"label\": \"AP-FABRICA\", \"host\": \"AP FABRICA - BAHIA\", \"ip\": \"192.168.2.50\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 2790, \"y\": 530, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"423\", \"name\": \"AP LENTILHA - BAHIA\", \"label\": \"AP-LENTILHA\", \"host\": \"AP LENTILHA - BAHIA\", \"ip\": \"192.168.2.47\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 2890, \"y\": 440, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"424\", \"name\": \"AP RESERVA - BAHIA\", \"label\": \"AP-RESERVA\", \"host\": \"AP RESERVA - BAHIA\", \"ip\": \"192.168.2.52\", \"category\": \"Access Point\", \"icon\": \"wifi\", \"x\": 2990, \"y\": 530, \"r\": 25, \"color\": \"#f43f5e\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"425\", \"name\": \"i-DRAC - BA\", \"label\": \"iDRAC-BA\", \"host\": \"i-DRAC - BA\", \"ip\": \"192.168.2.14\", \"category\": \"Hardware Servidor\", \"icon\": \"chip\", \"x\": 3120, \"y\": 440, \"r\": 25, \"color\": \"#a855f7\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"426\", \"name\": \"SRV-AD03\", \"label\": \"SRV-AD03\", \"host\": \"SRV-AD03\", \"ip\": \"192.168.2.4\", \"category\": \"Virtualização / Hypervisor\", \"icon\": \"server\", \"x\": 3120, \"y\": 560, \"r\": 28, \"color\": \"#8b5cf6\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"427\", \"name\": \"HPA9D24F\", \"label\": \"HP-A9D-BA\", \"host\": \"HPA9D24F\", \"ip\": \"192.168.2.113\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 2540, \"y\": 700, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"428\", \"name\": \"HPE1206C\", \"label\": \"HP-E12-BA\", \"host\": \"HPE1206C\", \"ip\": \"192.168.2.53\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 2630, \"y\": 800, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"429\", \"name\": \"NPI301581\", \"label\": \"HP-301-BA\", \"host\": \"NPI301581\", \"ip\": \"192.168.2.245\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 2720, \"y\": 700, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"430\", \"name\": \"NPI30A61D\", \"label\": \"HP-30A-BA\", \"host\": \"NPI30A61D\", \"ip\": \"192.168.2.154\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 2810, \"y\": 800, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"431\", \"name\": \"NPI5645C9\", \"label\": \"HP-564-BA\", \"host\": \"NPI5645C9\", \"ip\": \"192.168.2.54\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 2900, \"y\": 700, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"BA\"}, {\"id\": \"inet-ba-1\", \"name\": \"NET FIBER 30M\", \"label\": \"NET FIBER 30M\", \"host\": \"FW-BA\", \"ip\": \"wan2 (30M)\", \"category\": \"Internet\", \"icon\": \"internet\", \"x\": 2730, \"y\": 85, \"r\": 28, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"BA\"}, {\"id\": \"inet-ba-2\", \"name\": \"ITS 40M\", \"label\": \"ITS 40M\", \"host\": \"FW-BA\", \"ip\": \"wan1 (40M)\", \"category\": \"Internet\", \"icon\": \"internet\", \"x\": 2910, \"y\": 85, \"r\": 28, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"BA\"}, {\"id\": \"414\", \"name\": \"FW-PR\", \"label\": \"FW-PR\", \"host\": \"FW-PR\", \"ip\": \"192.168.1.2\", \"category\": \"Firewall\", \"icon\": \"firewall\", \"x\": 3400, \"y\": 210, \"r\": 36, \"color\": \"#e879f9\", \"core\": true, \"siteKey\": \"PR\"}, {\"id\": \"415\", \"name\": \"BRN001BA9F4C5A5\", \"label\": \"Brother-PR\", \"host\": \"BRN001BA9F4C5A5\", \"ip\": \"192.168.1.69\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 3310, \"y\": 360, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"PR\"}, {\"id\": \"416\", \"name\": \"HP5FFB5E\", \"label\": \"HP-PR\", \"host\": \"HP5FFB5E\", \"ip\": \"192.168.1.103\", \"category\": \"Impressora\", \"icon\": \"printer\", \"x\": 3490, \"y\": 360, \"r\": 22, \"color\": \"#06b6d4\", \"core\": false, \"siteKey\": \"PR\"}, {\"id\": \"inet-pr-1\", \"name\": \"WAN 2\", \"label\": \"WAN 2\", \"host\": \"FW-PR\", \"ip\": \"wan2\", \"category\": \"Internet\", \"icon\": \"internet\", \"x\": 3330, \"y\": 85, \"r\": 28, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"PR\"}, {\"id\": \"inet-pr-2\", \"name\": \"LIGGA\", \"label\": \"LIGGA\", \"host\": \"FW-PR\", \"ip\": \"wan1\", \"category\": \"Internet\", \"icon\": \"internet\", \"x\": 3470, \"y\": 85, \"r\": 28, \"color\": \"#38bdf8\", \"core\": true, \"siteKey\": \"PR\"}], \"links\": [{\"source\": \"432\", \"target\": \"433\", \"color\": \"#10b981\", \"width\": 3.2, \"glow\": 10, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"434\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"435\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"436\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"437\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"438\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"439\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"441\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"442\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"443\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"444\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"445\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"446\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"433\", \"target\": \"447\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"439\", \"target\": \"440\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"inet-rj-1\", \"target\": \"432\", \"color\": \"#38bdf8\", \"width\": 2.5, \"glow\": 10, \"curveness\": 0.05, \"label\": \"\"}, {\"source\": \"inet-rj-2\", \"target\": \"432\", \"color\": \"#38bdf8\", \"width\": 2.5, \"glow\": 10, \"curveness\": -0.05, \"label\": \"\"}, {\"source\": \"382\", \"target\": \"383\", \"color\": \"#10b981\", \"width\": 3.2, \"glow\": 10, \"curveness\": 0.05}, {\"source\": \"382\", \"target\": \"384\", \"color\": \"#10b981\", \"width\": 3.2, \"glow\": 10, \"curveness\": 0.05}, {\"source\": \"382\", \"target\": \"385\", \"color\": \"#10b981\", \"width\": 3.2, \"glow\": 10, \"curveness\": 0.05}, {\"source\": \"382\", \"target\": \"386\", \"color\": \"#10b981\", \"width\": 3.2, \"glow\": 10, \"curveness\": 0.05}, {\"source\": \"382\", \"target\": \"387\", \"color\": \"#10b981\", \"width\": 3.2, \"glow\": 10, \"curveness\": 0.05}, {\"source\": \"383\", \"target\": \"388\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"383\", \"target\": \"389\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"383\", \"target\": \"390\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"384\", \"target\": \"391\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"384\", \"target\": \"392\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"384\", \"target\": \"393\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"385\", \"target\": \"394\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"385\", \"target\": \"395\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"385\", \"target\": \"396\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"386\", \"target\": \"397\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"386\", \"target\": \"409\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"386\", \"target\": \"410\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"387\", \"target\": \"411\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"387\", \"target\": \"412\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"387\", \"target\": \"413\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"393\", \"target\": \"398\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"393\", \"target\": \"399\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"394\", \"target\": \"400\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"395\", \"target\": \"401\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"396\", \"target\": \"402\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"397\", \"target\": \"403\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"393\", \"target\": \"404\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"393\", \"target\": \"405\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"394\", \"target\": \"406\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"395\", \"target\": \"407\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"396\", \"target\": \"408\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"inet-sp-1\", \"target\": \"382\", \"color\": \"#38bdf8\", \"width\": 2.5, \"glow\": 10, \"curveness\": 0.05, \"label\": \"\"}, {\"source\": \"inet-sp-2\", \"target\": \"382\", \"color\": \"#38bdf8\", \"width\": 2.5, \"glow\": 10, \"curveness\": -0.05, \"label\": \"\"}, {\"source\": \"417\", \"target\": \"418\", \"color\": \"#10b981\", \"width\": 3.2, \"glow\": 10, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"419\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"420\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"421\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"422\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"423\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"424\", \"color\": \"#f43f5e\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"425\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"427\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"428\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"429\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"430\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"418\", \"target\": \"431\", \"color\": \"#64748b\", \"width\": 1.8, \"glow\": 0, \"curveness\": 0.05}, {\"source\": \"425\", \"target\": \"426\", \"color\": \"#a855f7\", \"width\": 2.2, \"glow\": 6, \"curveness\": 0.05}, {\"source\": \"inet-ba-1\", \"target\": \"417\", \"color\": \"#38bdf8\", \"width\": 2.5, \"glow\": 10, \"curveness\": 0.05, \"label\": \"\"}, {\"source\": \"inet-ba-2\", \"target\": \"417\", \"color\": \"#38bdf8\", \"width\": 2.5, \"glow\": 10, \"curveness\": -0.05, \"label\": \"\"}, {\"source\": \"414\", \"target\": \"415\", \"color\": \"#10b981\", \"width\": 3.2, \"glow\": 10, \"curveness\": 0.05}, {\"source\": \"414\", \"target\": \"416\", \"color\": \"#10b981\", \"width\": 3.2, \"glow\": 10, \"curveness\": 0.05}, {\"source\": \"inet-pr-1\", \"target\": \"414\", \"color\": \"#38bdf8\", \"width\": 2.5, \"glow\": 10, \"curveness\": 0.05, \"label\": \"\"}, {\"source\": \"inet-pr-2\", \"target\": \"414\", \"color\": \"#38bdf8\", \"width\": 2.5, \"glow\": 10, \"curveness\": -0.05, \"label\": \"\"}, {\"source\": \"382\", \"target\": \"432\", \"color\": \"#00ffd5\", \"width\": 3.8, \"glow\": 18, \"curveness\": -0.22}, {\"source\": \"382\", \"target\": \"417\", \"color\": \"#00ffd5\", \"width\": 3.8, \"glow\": 18, \"curveness\": -0.2}, {\"source\": \"382\", \"target\": \"414\", \"color\": \"#00ffd5\", \"width\": 3.2, \"glow\": 16, \"curveness\": -0.32}, {\"source\": \"417\", \"target\": \"414\", \"color\": \"#00e5ff\", \"width\": 2.5, \"glow\": 12, \"curveness\": -0.15}, {\"source\": \"432\", \"target\": \"417\", \"color\": \"#38bdf8\", \"width\": 2.2, \"glow\": 10, \"curveness\": -0.38}], \"pods\": [[{\"name\": \"FILIAL RIO DE JANEIRO · RJ (16 Ativos + 2 Links WAN)\", \"coord\": [50, 40], \"itemStyle\": {\"color\": \"rgba(56, 189, 248, 0.03)\", \"borderColor\": \"rgba(56, 189, 248, 0.35)\", \"borderWidth\": 1.5, \"borderType\": \"dashed\"}, \"label\": {\"show\": true, \"position\": \"top\", \"color\": \"#38bdf8\", \"fontSize\": 12, \"fontWeight\": \"bold\", \"padding\": [5, 10], \"backgroundColor\": \"rgba(15, 23, 42, 0.85)\", \"borderRadius\": 4, \"borderColor\": \"rgba(56, 189, 248, 0.5)\", \"borderWidth\": 1}}, {\"coord\": [780, 880]}], [{\"name\": \"FILIAL BARUERI · MATRIZ SP (32 Ativos + 2 Links WAN)\", \"coord\": [840, 40], \"itemStyle\": {\"color\": \"rgba(16, 185, 129, 0.03)\", \"borderColor\": \"rgba(16, 185, 129, 0.35)\", \"borderWidth\": 1.5, \"borderType\": \"dashed\"}, \"label\": {\"show\": true, \"position\": \"top\", \"color\": \"#10b981\", \"fontSize\": 12, \"fontWeight\": \"bold\", \"padding\": [5, 10], \"backgroundColor\": \"rgba(15, 23, 42, 0.85)\", \"borderRadius\": 4, \"borderColor\": \"rgba(16, 185, 129, 0.5)\", \"borderWidth\": 1}}, {\"coord\": [2400, 880]}], [{\"name\": \"FILIAL BAHIA · BA (15 Ativos + 2 Links WAN)\", \"coord\": [2460, 40], \"itemStyle\": {\"color\": \"rgba(232, 121, 249, 0.03)\", \"borderColor\": \"rgba(232, 121, 249, 0.35)\", \"borderWidth\": 1.5, \"borderType\": \"dashed\"}, \"label\": {\"show\": true, \"position\": \"top\", \"color\": \"#e879f9\", \"fontSize\": 12, \"fontWeight\": \"bold\", \"padding\": [5, 10], \"backgroundColor\": \"rgba(15, 23, 42, 0.85)\", \"borderRadius\": 4, \"borderColor\": \"rgba(232, 121, 249, 0.5)\", \"borderWidth\": 1}}, {\"coord\": [3180, 880]}], [{\"name\": \"FILIAL PARANÁ · PR (3 Ativos + 2 Links WAN)\", \"coord\": [3240, 40], \"itemStyle\": {\"color\": \"rgba(245, 158, 11, 0.03)\", \"borderColor\": \"rgba(245, 158, 11, 0.35)\", \"borderWidth\": 1.5, \"borderType\": \"dashed\"}, \"label\": {\"show\": true, \"position\": \"top\", \"color\": \"#f59e0b\", \"fontSize\": 12, \"fontWeight\": \"bold\", \"padding\": [5, 10], \"backgroundColor\": \"rgba(15, 23, 42, 0.85)\", \"borderRadius\": 4, \"borderColor\": \"rgba(245, 158, 11, 0.5)\", \"borderWidth\": 1}}, {\"coord\": [3560, 880]}]]}};\n\nlet selectedSite = '$__all';\ntry {\n  if (context && context.grafana && typeof context.grafana.replaceVariables === 'function') {\n    const rawSite = context.grafana.replaceVariables('$site');\n    if (rawSite && rawSite !== '.*' && rawSite !== '$site' && rawSite !== '$__all' && rawSite !== 'Todas' && rawSite !== 'All') {\n      for (const k of Object.keys(MAPS)) {\n        if (k !== '__all__' && (rawSite === k || rawSite.indexOf(k) >= 0)) {\n          selectedSite = k;\n          break;\n        }\n      }\n    }\n  }\n} catch (e) { selectedSite = '$__all'; }\n\nconst isMulti = (selectedSite === '$__all' || selectedSite === '.*' || !selectedSite || selectedSite === 'Todas' || selectedSite === 'All');\nconst activeMap = isMulti ? (MAPS['__all__'] || Object.values(MAPS)[0]) : (MAPS[selectedSite] || MAPS['__all__']);\nconst allNodes = activeMap.nodes || [];\nconst allLinks = activeMap.links || [];\nconst sitePods = activeMap.pods || [];\n\nconst COLORS = { up: '#10b981', down: '#ef4444', partial: '#f59e0b', unknown: '#64748b' };\nconst LABELS = { up: 'ONLINE', down: 'OFFLINE', partial: 'PARCIAL', unknown: 'SEM DADOS' };\n\nconst lastValue = (field) => {\n  const raw = field && field.values ? field.values : [];\n  const vals = typeof raw.toArray === 'function' ? raw.toArray() : raw;\n  for (let i = vals.length - 1; i >= 0; i--) {\n    if (vals[i] !== null && vals[i] !== undefined) return Number(vals[i]);\n  }\n  return null;\n};\n\n// Robust normalizer for matching visible names, technical names, and unaccented names\nconst norm = (s) => (s || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');\n\nconst hostChecks = {};\nconst mergeOk = (prev, ok) => (prev === undefined || prev === null || ok === false ? ok : prev);\n\nfor (const frame of seriesData) {\n  const valueField = (frame.fields || []).find((f) => f.type === 'number');\n  if (!valueField) continue;\n  \n  let host = (valueField.labels && valueField.labels.host) || '';\n  if (!host && frame.name && frame.name.indexOf(':') > 0) {\n    host = frame.name.split(':')[0].trim();\n  }\n  if (!host) continue;\n\n  const key = (valueField.labels && valueField.labels.item_key) || '';\n  const item = (valueField.labels && valueField.labels.item) || frame.name || key;\n  const last = lastValue(valueField);\n\n  const ok = last === null ? null : (key === 'icmpping' || item.indexOf('ICMP ping') >= 0 ? last === 1 : (last === 1 ? true : last === 0 ? false : null));\n  const kind = (key === 'icmpping' || item.indexOf('ICMP ping') >= 0) ? 'ping'\n    : (key.indexOf(',agent,') >= 0 || item === 'Zabbix agent availability' ? 'agent' : 'snmp');\n\n  const c = hostChecks[host] = hostChecks[host] || {};\n  hostChecks[norm(host)] = c;\n  if (host.indexOf(' - ') >= 0) {\n    hostChecks[norm(host.split(' - ')[0])] = c;\n  }\n\n  if (item.indexOf('Connected clients') >= 0 || key.indexOf('clients.total') >= 0) {\n    c.clients = last;\n  } else {\n    c[kind] = mergeOk(c[kind], ok);\n  }\n}\n\nconst hostStatus = (n) => {\n  const c = hostChecks[n.host] ||\n            hostChecks[n.name] ||\n            hostChecks[norm(n.host)] ||\n            hostChecks[norm(n.name)] ||\n            (n.name && hostChecks[norm(n.name.split(' - ')[0])]) ||\n            (n.host && hostChecks[norm(n.host.split(' - ')[0])]) ||\n            {};\n\n  const hasPing = c.ping !== undefined && c.ping !== null;\n  const reach = hasPing ? c.ping : (c.snmp === undefined ? null : c.snmp);\n  const agentDown = c.agent === false || (hasPing && c.snmp === false);\n  let state = 'unknown';\n  if (reach === false) state = 'down';\n  else if (reach === true) state = agentDown ? 'partial' : 'up';\n  else if (c.agent === true) state = 'up';\n  else if (c.agent === false) state = 'down';\n  return { state, clients: c.clients };\n};\n\nconst byId = {};\nconst discs = [], alarms = [], iconItems = [], textItems = [];\nconst linesStatic = [], linesFlowing = [];\n\nallNodes.forEach((n) => {\n  const isInet = n.category === 'Internet';\n  const check = isInet ? { state: 'up' } : hostStatus(n);\n  const st = check.state;\n  const col = isInet ? '#38bdf8' : (COLORS[st] || COLORS.up);\n  const isDown = st === 'down';\n  const isLoud = isDown || (n.core && st === 'up');\n\n  const nodeObj = Object.assign({}, n, { state: st, color: col, clients: check.clients });\n  byId[n.id] = nodeObj;\n\n  if (isLoud) {\n    alarms.push({\n      value: [n.x, n.y],\n      symbolSize: Math.round(n.r * (isDown ? 1.6 : 1.35)),\n      itemStyle: {\n        color: isDown ? 'rgba(239, 68, 68, 0.4)' : (isInet ? 'rgba(56, 189, 248, 0.22)' : 'rgba(16, 185, 129, 0.22)'),\n        shadowBlur: isDown ? 24 : 14,\n        shadowColor: col\n      },\n      tipData: nodeObj\n    });\n  }\n\n  const shortName = n.label || (n.name.length > 11 ? n.name.slice(0, 10) + '…' : n.name);\n  const isAp = n.category === 'Access Point';\n  const showSub = !isMulti || isAp || isInet;\n  const subText = isAp && check.clients !== undefined && check.clients !== null\n    ? check.clients + ' cli'\n    : (isInet ? n.ip : (!isMulti ? (n.ip || '') : ''));\n\n  discs.push({\n    value: [n.x, n.y],\n    symbolSize: n.r,\n    itemStyle: {\n      color: isDown ? 'rgba(38, 12, 18, 0.95)' : (st === 'up' ? 'rgba(10, 25, 22, 0.92)' : 'rgba(20, 24, 39, 0.92)'),\n      borderColor: col,\n      borderWidth: isDown ? 3 : 2,\n      shadowBlur: isDown ? 24 : 12,\n      shadowColor: col\n    },\n    label: {\n      show: true,\n      position: 'bottom',\n      distance: 6,\n      formatter: showSub && subText\n        ? ['{name|' + shortName + '}', '{sub|' + subText + '}'].join(String.fromCharCode(10))\n        : '{name|' + shortName + '}',\n      rich: {\n        name: {\n          color: '#f8fafc',\n          fontSize: isMulti ? 8.5 : 10,\n          fontWeight: 'bold',\n          lineHeight: isMulti ? 10 : 13,\n          align: 'center',\n          textBorderColor: 'rgba(0,0,0,0.85)',\n          textBorderWidth: 2\n        },\n        sub: {\n          color: isAp ? '#f43f5e' : (isInet ? '#38bdf8' : '#94a3b8'),\n          fontSize: isMulti ? 8 : 9,\n          fontFamily: isAp ? 'sans-serif' : 'monospace',\n          fontWeight: isAp ? 'bold' : 'normal',\n          lineHeight: isMulti ? 10 : 12,\n          align: 'center',\n          textBorderColor: 'rgba(0,0,0,0.85)',\n          textBorderWidth: 2\n        }\n      }\n    },\n    tipData: nodeObj\n  });\n\n  iconItems.push({\n    value: [n.x, n.y],\n    symbol: iconUri(n.icon || (isInet ? 'internet' : 'server'), col),\n    symbolSize: Math.round(n.r * (isInet ? 0.60 : 0.52)),\n    silent: true\n  });\n});\n\nallLinks.forEach((l) => {\n  const n1 = byId[l.source];\n  const n2 = byId[l.target];\n  if (!n1 || !n2) return;\n\n  const isDown = n1.state === 'down' || n2.state === 'down';\n  const linkColor = isDown ? '#ef4444' : (l.color || '#38bdf8');\n  const curve = l.curveness || 0;\n\n  linesStatic.push({\n    coords: [[n1.x, n1.y], [n2.x, n2.y]],\n    lineStyle: {\n      color: linkColor,\n      width: l.width || (isDown ? 3 : 2),\n      opacity: isDown ? 0.9 : 0.75,\n      curveness: curve,\n      type: l.type || 'solid',\n      shadowBlur: l.glow || 0,\n      shadowColor: linkColor\n    },\n    label: { show: false }\n  });\n\n  if (!isDown) {\n    linesFlowing.push({\n      coords: [[n1.x, n1.y], [n2.x, n2.y]],\n      lineStyle: {\n        curveness: curve\n      }\n    });\n  }\n});\n\nreturn {\n  backgroundColor: 'transparent',\n  grid: { left: 10, right: 10, top: 10, bottom: 10, containLabel: false },\n  dataZoom: [\n    {\n      type: 'inside',\n      xAxisIndex: [0],\n      filterMode: 'none',\n      zoomOnMouseWheel: true,\n      moveOnMouseMove: true,\n      preventDefaultMouseMove: false\n    },\n    {\n      type: 'inside',\n      yAxisIndex: [0],\n      filterMode: 'none',\n      zoomOnMouseWheel: true,\n      moveOnMouseMove: true,\n      preventDefaultMouseMove: false\n    }\n  ],\n  toolbox: {\n    show: true,\n    right: 20,\n    top: 15,\n    itemSize: 14,\n    itemGap: 10,\n    iconStyle: {\n      borderColor: '#94a3b8'\n    },\n    emphasis: {\n      iconStyle: {\n        borderColor: '#38bdf8'\n      }\n    },\n    feature: {\n      restore: { title: 'Resetar Zoom' },\n      saveAsImage: { title: 'Salvar Topologia', pixelRatio: 2 }\n    }\n  },\n  xAxis: {\n    type: 'value',\n    min: 0,\n    max: activeMap.width || 3600,\n    show: false\n  },\n  yAxis: {\n    type: 'value',\n    min: 0,\n    max: activeMap.height || 950,\n    inverse: true,\n    show: false\n  },\n  tooltip: {\n    trigger: 'item',\n    backgroundColor: 'rgba(15, 23, 42, 0.96)',\n    borderColor: '#38bdf8',\n    borderWidth: 1.5,\n    padding: [10, 14],\n    textStyle: { color: '#f8fafc', fontSize: 12 },\n    formatter: (params) => {\n      const d = params.data && params.data.tipData;\n      if (!d) return '';\n      const col = COLORS[d.state] || COLORS.up;\n      const lbl = LABELS[d.state] || 'ONLINE';\n      let rows = `\n        <div style=\"font-weight:bold;font-size:14px;color:#38bdf8;margin-bottom:6px;\">${d.name}</div>\n        <table style=\"font-size:11px;line-height:1.6;border-collapse:collapse;\">\n          <tr><td><b>Categoria:</b></td><td style=\"padding-left:10px;\">${d.category}</td></tr>\n          <tr><td><b>IP:</b></td><td style=\"padding-left:10px;font-family:monospace;color:#00ffd5;\">${d.ip || 'DHCP'}</td></tr>\n          <tr><td><b>Filial:</b></td><td style=\"padding-left:10px;\">${d.siteKey}</td></tr>\n          <tr><td><b>Status:</b></td><td style=\"padding-left:10px;\"><span style=\"color:${col};font-weight:bold;\">● ${lbl}</span></td></tr>\n      `;\n      if (d.clients !== undefined && d.clients !== null) {\n        rows += `<tr><td><b>Clientes Wi-Fi:</b></td><td style=\"padding-left:10px;color:#f43f5e;font-weight:bold;\">📶 ${d.clients} conectados</td></tr>`;\n      }\n      if (d.role) {\n        rows += `<tr><td><b>Papel:</b></td><td style=\"padding-left:10px;\">${d.role}</td></tr>`;\n      }\n      rows += `</table>`;\n      if (isMulti) {\n        rows += `<div style=\"margin-top:8px;font-size:10px;color:#38bdf8;border-top:1px solid #334155;padding-top:4px;\">🖱️ Clique para filtrar esta filial</div>`;\n      }\n      return rows;\n    }\n  },\n  series: [\n    {\n      name: 'pods',\n      type: 'scatter',\n      data: [],\n      markArea: {\n        silent: true,\n        data: sitePods\n      }\n    },\n    {\n      name: 'alarms',\n      type: 'scatter',\n      coordinateSystem: 'cartesian2d',\n      data: alarms,\n      silent: false\n    },\n    {\n      name: 'discs',\n      type: 'scatter',\n      coordinateSystem: 'cartesian2d',\n      data: discs,\n      silent: false\n    },\n    {\n      name: 'icons',\n      type: 'scatter',\n      coordinateSystem: 'cartesian2d',\n      data: iconItems,\n      silent: true\n    },\n\n    {\n      name: 'linesStatic',\n      type: 'lines',\n      coordinateSystem: 'cartesian2d',\n      polyline: false,\n      data: linesStatic,\n      silent: true\n    },\n    {\n      name: 'linesFlowing',\n      type: 'lines',\n      coordinateSystem: 'cartesian2d',\n      polyline: false,\n      effect: {\n        show: true,\n        period: 4.5,\n        trailLength: 0.25,\n        symbol: 'circle',\n        symbolSize: isMulti ? 4 : 5,\n        color: '#00ffd5'\n      },\n      lineStyle: {\n        color: 'transparent',\n        width: 2,\n        opacity: 0\n      },\n      data: linesFlowing,\n      silent: true\n    }\n  ]\n};\n",
+        "renderer": "canvas"
+      }
+    },
+    {
+      "id": 5,
+      "title": "INVENTÁRIO DE ATIVOS",
+      "type": "table",
+      "gridPos": {
+        "x": 19,
+        "y": 3,
+        "w": 5,
+        "h": 8
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "inspect": false
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#10b981",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "Last.*|Value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Status"
+              },
+              {
+                "id": "custom.width",
+                "value": 90
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "1": {
+                        "text": "ONLINE",
+                        "color": "#10b981",
+                        "index": 0
+                      },
+                      "0": {
+                        "text": "OFFLINE",
+                        "color": "#ef4444",
+                        "index": 1
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "Field|Metric|Servidor"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Dispositivo"
+              },
+              {
+                "id": "custom.width",
+                "value": 180
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "enablePagination": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Dispositivo",
+            "desc": false
+          }
+        ]
+      },
+      "targets": [
+        {
+          "application": {
+            "filter": ""
+          },
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "functions": [
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [],
+                "name": "setAlias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "$__zbx_host_name"
+              ],
+              "text": "setAlias($__zbx_host_name)"
+            }
+          ],
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "item": {
+            "filter": "/^(Zabbix agent availability|ICMP ping)$/"
+          },
+          "options": {
+            "disableDataAlignment": true,
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "useTrends": "false"
+          },
+          "queryType": "0",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "reducers": [
+              "lastNotNull"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "TRÁFEGO DE REDE WAN (LIVE BPS)",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 19,
+        "y": 11,
+        "w": 5,
+        "h": 8
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 1.8,
+            "fillOpacity": 8,
+            "gradientMode": "opacity",
+            "spanNulls": true
+          },
+          "unit": "bps"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "application": {
+            "filter": ""
+          },
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "functions": [
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [],
+                "name": "setAlias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "$__zbx_host: Download"
+              ],
+              "text": "setAlias($__zbx_host: Download)"
+            }
+          ],
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/^FW-/i"
+          },
+          "item": {
+            "filter": "/Bits received/i"
+          },
+          "options": {
+            "disableDataAlignment": true,
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "useTrends": "false"
+          },
+          "queryType": "0",
+          "refId": "A"
+        },
+        {
+          "application": {
+            "filter": ""
+          },
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "functions": [
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [],
+                "name": "setAlias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "$__zbx_host: Upload"
+              ],
+              "text": "setAlias($__zbx_host: Upload)"
+            }
+          ],
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/^FW-/i"
+          },
+          "item": {
+            "filter": "/Bits sent/i"
+          },
+          "options": {
+            "disableDataAlignment": true,
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "useTrends": "false"
+          },
+          "queryType": "0",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "FEED DE ALARMES NOC (TEMPO REAL)",
+      "type": "alexanderzobnin-zabbix-triggers-panel",
+      "gridPos": {
+        "x": 0,
+        "y": 19,
+        "w": 24,
+        "h": 6
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "options": {
+        "ageField": true,
+        "countBadge": true,
+        "customLastChangeFormat": true,
+        "dailyRibbon": true,
+        "descriptionAtOk": false,
+        "descriptionAtProblem": true,
+        "fontSize": "100%",
+        "highlightBackground": false,
+        "highlightSeverity": true,
+        "hostField": true,
+        "hostProxy": false,
+        "hostTechNameField": false,
+        "lastChangeFormat": "DD/MM HH:mm",
+        "layout": "table",
+        "limit": 15,
+        "markAckEvents": true,
+        "opdataField": false,
+        "order": 1,
+        "page": 1,
+        "pageSize": 10,
+        "problemField": true,
+        "resizedColumns": [],
+        "severityField": true,
+        "showAck": true,
+        "showAge": true,
+        "showCountBadge": true,
+        "showDescription": true,
+        "showDuration": true,
+        "showEscalations": true,
+        "showEventId": false,
+        "showHost": true,
+        "showHostGroups": true,
+        "showLastChange": true,
+        "showOpdata": false,
+        "showProxy": false,
+        "showSeverity": true,
+        "showStatus": true,
+        "showTags": true,
+        "showTechName": false,
+        "showTimeline": true,
+        "sortProblems": "default",
+        "statusField": true,
+        "tagsField": true,
+        "timeline": true
+      },
+      "targets": [
+        {
+          "application": {
+            "filter": ""
+          },
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "options": {
+            "acknowledged": 2,
+            "minSeverity": 2,
+            "sortProblems": "default"
+          },
+          "proxy": {
+            "filter": ""
+          },
+          "queryType": "5",
+          "refId": "A",
+          "tags": {
+            "filter": ""
+          }
+        }
+      ]
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 39,
+  "tags": [
+    "autodiscovery",
+    "autodiscovery-v3",
+    "noc",
+    "maps",
+    "topology"
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "label": "Data Source",
+        "query": "alexanderzobnin-zabbix-datasource",
+        "current": {
+          "selected": true,
+          "text": "zabbix",
+          "value": "zabbix"
+        },
+        "hide": 0
+      },
+      {
+        "name": "site",
+        "type": "custom",
+        "label": "Filial / Unidade",
+        "query": "Filial BA : BA, Filial Barueri : Barueri, Filial PR : PR, Filial RJ : RJ",
+        "options": [
+          {
+            "text": "All",
+            "value": "$__all",
+            "selected": true
+          },
+          {
+            "text": "Filial BA",
+            "value": "BA",
+            "selected": false
+          },
+          {
+            "text": "Filial Barueri",
+            "value": "Barueri",
+            "selected": false
+          },
+          {
+            "text": "Filial PR",
+            "value": "PR",
+            "selected": false
+          },
+          {
+            "text": "Filial RJ",
+            "value": "RJ",
+            "selected": false
+          }
+        ],
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": false,
+        "hide": 0
+      },
+      {
+        "name": "site_hosts",
+        "type": "query",
+        "label": "Hosts da Filial",
+        "datasource": {
+          "type": "alexanderzobnin-zabbix-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "application": "",
+          "group": "/^Filiais\\/$site$/",
+          "host": "/.*/",
+          "item": "",
+          "itemTag": "",
+          "queryType": "host"
+        },
+        "includeAll": true,
+        "multi": true,
+        "hide": 2,
+        "refresh": 1,
+        "sort": 1
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ]
+  },
+  "timezone": "browser",
+  "title": "AutoDiscovery v3 - Mapas de Rede (Zabbix Maps)",
+  "uid": "autodiscovery-maps-v3",
+  "version": 1
+}

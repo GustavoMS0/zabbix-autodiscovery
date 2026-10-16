@@ -146,7 +146,7 @@ elif [ "$MODE" = "native" ]; then
     sudo grafana-cli plugins install alexanderzobnin-zabbix-app || true
 
     # Provisionamento do Datasource Zabbix e ativação do App Plugin
-    sudo mkdir -p /etc/grafana/provisioning/datasources /etc/grafana/provisioning/dashboards /etc/grafana/provisioning/plugins /var/lib/grafana/dashboards
+    sudo mkdir -p /etc/grafana/provisioning/datasources /etc/grafana/provisioning/dashboards /etc/grafana/provisioning/plugins /var/lib/grafana/dashboards /var/lib/grafana/dashboards-v3
     cat <<EOF | sudo tee /etc/grafana/provisioning/plugins/zabbix.yaml > /dev/null
 apiVersion: 1
 apps:
@@ -178,21 +178,33 @@ EOF
 apiVersion: 1
 providers:
   - name: autodiscovery
-    folder: Zabbix AutoDiscovery
+    folder: AutoDiscovery v2
+    folderUid: autodiscovery-v2
     type: file
     allowUiUpdates: true
     options:
       path: /var/lib/grafana/dashboards
+  - name: autodiscovery-v3
+    folder: AutoDiscovery v3
+    folderUid: autodiscovery-v3
+    type: file
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards-v3
 EOF
 
-    # Copiar dashboards pré-construídos
-    if [ -d "$SCRIPT_DIR/grafana/dashboards" ]; then
+    # Copiar dashboards pré-construídos (v2 e v3)
+    if [ -d "$SCRIPT_DIR/grafana/dashboards-v2" ]; then
         # Remove JSONs gerados anteriormente: dashboards que não são mais geradas (ex.: autodiscovery-links)
         # seriam recriadas pelo provisioner se o arquivo antigo ficasse na pasta
         sudo rm -f /var/lib/grafana/dashboards/autodiscovery-*.json
-        sudo cp -r "$SCRIPT_DIR/grafana/dashboards/"*.json /var/lib/grafana/dashboards/ 2>/dev/null || true
-        sudo chown -R grafana:grafana /var/lib/grafana/dashboards /etc/grafana/provisioning
+        sudo cp -r "$SCRIPT_DIR/grafana/dashboards-v2/"*.json /var/lib/grafana/dashboards/ 2>/dev/null || true
     fi
+    if [ -d "$SCRIPT_DIR/grafana/dashboards-v3" ]; then
+        sudo rm -f /var/lib/grafana/dashboards-v3/autodiscovery-*.json /var/lib/grafana/dashboards-v3/topologia-*.json
+        sudo cp -r "$SCRIPT_DIR/grafana/dashboards-v3/"*.json /var/lib/grafana/dashboards-v3/ 2>/dev/null || true
+    fi
+    sudo chown -R grafana:grafana /var/lib/grafana/dashboards /var/lib/grafana/dashboards-v3 /etc/grafana/provisioning
 
     # Definir senha do admin do Grafana via CLI
     sudo systemctl daemon-reload

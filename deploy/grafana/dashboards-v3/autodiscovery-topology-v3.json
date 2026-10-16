@@ -1,0 +1,2017 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "id": 1,
+      "title": "HOSTS ONLINE",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 3
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#10b981"
+          },
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#10b981",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true,
+        "text": {
+          "valueSize": 38,
+          "titleSize": 12
+        }
+      },
+      "targets": [
+        {
+          "application": {
+            "filter": ""
+          },
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "functions": [
+            {
+              "def": {
+                "category": "Aggregate",
+                "defaultParams": [],
+                "name": "sumSeries",
+                "params": []
+              },
+              "params": [],
+              "text": "sumSeries()"
+            },
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [],
+                "name": "setAlias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "Disponíveis"
+              ],
+              "text": "setAlias(Disponíveis)"
+            }
+          ],
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "item": {
+            "filter": "ICMP ping"
+          },
+          "options": {
+            "disableDataAlignment": true,
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "useTrends": "false"
+          },
+          "queryType": "0",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 102,
+      "title": "TOTAL MONITORADOS",
+      "type": "stat",
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 3
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#00e5ff"
+          },
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#00e5ff",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true,
+        "text": {
+          "valueSize": 38,
+          "titleSize": 12
+        }
+      },
+      "targets": [
+        {
+          "application": {
+            "filter": ""
+          },
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "functions": [
+            {
+              "def": {
+                "category": "Transform",
+                "defaultParams": [
+                  100
+                ],
+                "name": "scale",
+                "params": [
+                  {
+                    "name": "factor",
+                    "type": "float"
+                  }
+                ]
+              },
+              "params": [
+                0
+              ],
+              "text": "scale(0)"
+            },
+            {
+              "def": {
+                "category": "Transform",
+                "defaultParams": [
+                  100
+                ],
+                "name": "offset",
+                "params": [
+                  {
+                    "name": "delta",
+                    "type": "float"
+                  }
+                ]
+              },
+              "params": [
+                1
+              ],
+              "text": "offset(1)"
+            },
+            {
+              "def": {
+                "category": "Aggregate",
+                "defaultParams": [],
+                "name": "sumSeries",
+                "params": []
+              },
+              "params": [],
+              "text": "sumSeries()"
+            },
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [],
+                "name": "setAlias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "Inventário"
+              ],
+              "text": "setAlias(Inventário)"
+            }
+          ],
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "item": {
+            "filter": "ICMP ping"
+          },
+          "options": {
+            "disableDataAlignment": true,
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "useTrends": "false"
+          },
+          "queryType": "0",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 103,
+      "title": "HOSTS OFFLINE",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 3
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#10b981",
+                "value": 0
+              },
+              {
+                "color": "#ef4444",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true,
+        "text": {
+          "valueSize": 38,
+          "titleSize": 12
+        }
+      },
+      "targets": [
+        {
+          "application": {
+            "filter": ""
+          },
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "functions": [
+            {
+              "def": {
+                "category": "Transform",
+                "defaultParams": [
+                  100
+                ],
+                "name": "scale",
+                "params": [
+                  {
+                    "name": "factor",
+                    "type": "float"
+                  }
+                ]
+              },
+              "params": [
+                -1
+              ],
+              "text": "scale(-1)"
+            },
+            {
+              "def": {
+                "category": "Transform",
+                "defaultParams": [
+                  100
+                ],
+                "name": "offset",
+                "params": [
+                  {
+                    "name": "delta",
+                    "type": "float"
+                  }
+                ]
+              },
+              "params": [
+                1
+              ],
+              "text": "offset(1)"
+            },
+            {
+              "def": {
+                "category": "Aggregate",
+                "defaultParams": [],
+                "name": "sumSeries",
+                "params": []
+              },
+              "params": [],
+              "text": "sumSeries()"
+            },
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [],
+                "name": "setAlias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "Indisponíveis"
+              ],
+              "text": "setAlias(Indisponíveis)"
+            }
+          ],
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "item": {
+            "filter": "ICMP ping"
+          },
+          "options": {
+            "disableDataAlignment": true,
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "useTrends": "false"
+          },
+          "queryType": "0",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 104,
+      "title": "SITES CONECTADOS (SD-WAN)",
+      "type": "stat",
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 3
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#ef4444",
+                "value": 0
+              },
+              {
+                "color": "#10b981",
+                "value": 4
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true,
+        "text": {
+          "valueSize": 38,
+          "titleSize": 12
+        }
+      },
+      "targets": [
+        {
+          "application": {
+            "filter": ""
+          },
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "functions": [
+            {
+              "def": {
+                "category": "Aggregate",
+                "defaultParams": [],
+                "name": "sumSeries",
+                "params": []
+              },
+              "params": [],
+              "text": "sumSeries()"
+            },
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [],
+                "name": "setAlias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "Filiais Ativas"
+              ],
+              "text": "setAlias(Filiais Ativas)"
+            }
+          ],
+          "group": {
+            "filter": "Rede/Firewalls"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "item": {
+            "filter": "ICMP ping"
+          },
+          "options": {
+            "disableDataAlignment": true,
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "useTrends": "false"
+          },
+          "queryType": "0",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "options": {
+                "1": {
+                  "color": "#10b981",
+                  "index": 0,
+                  "text": "● ONLINE"
+                },
+                "2": {
+                  "color": "#ef4444",
+                  "index": 1,
+                  "text": "▲ FORA DO AR"
+                },
+                "3": {
+                  "color": "#f59e0b",
+                  "index": 2,
+                  "text": "TESTE"
+                },
+                "4": {
+                  "color": "#64748b",
+                  "index": 3,
+                  "text": "SEM DADOS"
+                },
+                "5": {
+                  "color": "#00e5ff",
+                  "index": 4,
+                  "text": "DORMENTE"
+                },
+                "6": {
+                  "color": "#475569",
+                  "index": 5,
+                  "text": "AUSENTE"
+                },
+                "7": {
+                  "color": "#ef4444",
+                  "index": 6,
+                  "text": "OFFLINE"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 2
+              }
+            ]
+          }
+        }
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 3,
+        "w": 5,
+        "h": 8
+      },
+      "hideTimeOverride": true,
+      "id": 2,
+      "maxDataPoints": 10,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "text": {
+          "titleSize": 11,
+          "valueSize": 15
+        },
+        "textMode": "value_and_name",
+        "wideLayout": false
+      },
+      "pluginVersion": "13.2.3",
+      "targets": [
+        {
+          "application": {
+            "filter": ""
+          },
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "functions": [
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [],
+                "name": "setAlias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "$__zbx_host_name: $__zbx_item"
+              ],
+              "text": "setAlias($__zbx_host_name: $__zbx_item)"
+            },
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [
+                  "/(.*)/",
+                  "$1"
+                ],
+                "name": "replaceAlias",
+                "params": [
+                  {
+                    "name": "regexp",
+                    "type": "string"
+                  },
+                  {
+                    "name": "newAlias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "/: (?:Interface\\s+)?([^:]+):\\s+Operational status$/i",
+                " - $1"
+              ],
+              "text": "replaceAlias(/: (?:Interface\\s+)?([^:]+):\\s+Operational status$/i,  - $1)"
+            }
+          ],
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "item": {
+            "filter": "/interface\\s+(?!fortilink|loopback)(wan\\d*|uplink\\d*|internet\\d*|a\\([^)]*(wan|internet|net\\s*fiber|mbps|ligga|its|easy|america|mega)[^)]*\\)).*: operational status/i"
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "options": {
+            "disableDataAlignment": true,
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "useTrends": "false"
+          },
+          "queryType": "0",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": "10m",
+      "title": "LINKS DE INTERNET (MULTI-WAN)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 18,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 1.8,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "bps"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*\\(In\\)$"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#00ffd5",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*\\(Out\\)$"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#d946ef",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 11,
+        "w": 5,
+        "h": 8
+      },
+      "id": 3,
+      "maxDataPoints": 500,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "13.2.3",
+      "targets": [
+        {
+          "application": {
+            "filter": ""
+          },
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "functions": [
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [],
+                "name": "setAlias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "$__zbx_host_name: $__zbx_item"
+              ],
+              "text": "setAlias($__zbx_host_name: $__zbx_item)"
+            },
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [
+                  "/(.*)/",
+                  "$1"
+                ],
+                "name": "replaceAlias",
+                "params": [
+                  {
+                    "name": "regexp",
+                    "type": "string"
+                  },
+                  {
+                    "name": "newAlias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "/: (?:Interface\\s+)?([^:]+):\\s+Bits received$/i",
+                " - $1 (In)"
+              ],
+              "text": "replaceAlias(/: (?:Interface\\s+)?([^:]+):\\s+Bits received$/i,  - $1 (In))"
+            }
+          ],
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "item": {
+            "filter": "/interface\\s+(?!fortilink|loopback)(wan\\d*|uplink\\d*|internet\\d*|a\\([^)]*(wan|internet|net\\s*fiber|mbps|ligga|its|easy|america|mega)[^)]*\\)).*: bits received/i"
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "options": {
+            "disableDataAlignment": true,
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "useTrends": "false"
+          },
+          "queryType": "0",
+          "refId": "A"
+        },
+        {
+          "application": {
+            "filter": ""
+          },
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "functions": [
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [],
+                "name": "setAlias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "$__zbx_host_name: $__zbx_item"
+              ],
+              "text": "setAlias($__zbx_host_name: $__zbx_item)"
+            },
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [
+                  "/(.*)/",
+                  "$1"
+                ],
+                "name": "replaceAlias",
+                "params": [
+                  {
+                    "name": "regexp",
+                    "type": "string"
+                  },
+                  {
+                    "name": "newAlias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "/: (?:Interface\\s+)?([^:]+):\\s+Bits sent$/i",
+                " - $1 (Out)"
+              ],
+              "text": "replaceAlias(/: (?:Interface\\s+)?([^:]+):\\s+Bits sent$/i,  - $1 (Out))"
+            }
+          ],
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "item": {
+            "filter": "/interface\\s+(?!fortilink|loopback)(wan\\d*|uplink\\d*|internet\\d*|a\\([^)]*(wan|internet|net\\s*fiber|mbps|ligga|its|easy|america|mega)[^)]*\\)).*: bits sent/i"
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "options": {
+            "disableDataAlignment": true,
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "useTrends": "false"
+          },
+          "queryType": "0",
+          "refId": "B"
+        }
+      ],
+      "title": "TRÁFEGO INTERNET WAN (LIVE BPS)",
+      "type": "timeseries"
+    },
+    {
+      "id": 4,
+      "title": "TOPOLOGIA DA REDE · ARQUITETURA MULTI-SITE (SD-WAN & COMPUTE)",
+      "type": "volkovlabs-echarts-panel",
+      "gridPos": {
+        "x": 5,
+        "y": 3,
+        "w": 14,
+        "h": 16
+      },
+      "targets": [
+        {
+          "application": {
+            "filter": ""
+          },
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "functions": [
+            {
+              "def": {
+                "category": "Transform",
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ],
+                "name": "groupBy",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ],
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "1h",
+                "last"
+              ],
+              "text": "groupBy(1h, last)"
+            }
+          ],
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "item": {
+            "filter": "/^(ICMP ping|SNMP agent availability|Zabbix agent availability)$/"
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "options": {
+            "disableDataAlignment": true,
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "useTrends": "false"
+          },
+          "queryType": "0",
+          "refId": "A"
+        },
+        {
+          "application": {
+            "filter": ""
+          },
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "functions": [
+            {
+              "def": {
+                "category": "Transform",
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ],
+                "name": "groupBy",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ],
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "1h",
+                "last"
+              ],
+              "text": "groupBy(1h, last)"
+            }
+          ],
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "item": {
+            "filter": "/interface\\s+(?!fortilink|loopback)(wan\\d*|uplink\\d*|internet\\d*|a\\([^)]*(wan|internet|net\\s*fiber|mbps|ligga|its|easy|america|mega)[^)]*\\)).*: operational status/i"
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "options": {
+            "disableDataAlignment": true,
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "useTrends": "false"
+          },
+          "queryType": "0",
+          "refId": "B"
+        }
+      ],
+      "options": {
+        "getOption": "\nconst seriesData = (context && context.panel && context.panel.data && context.panel.data.series) || [];\n\nconst ICONS = {\n  internet: '<path d=\"M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm-1-15.93a8 8 0 0 0-5.93 5.93h3.07a12.8 12.8 0 0 1 2.86-5.93zm2 0a12.8 12.8 0 0 1 2.86 5.93h3.07A8 8 0 0 0 13 4.07zM4.07 11a8.1 8.1 0 0 0 0 2h3.93a15.7 15.7 0 0 1 0-2zm5.93 7.93a12.8 12.8 0 0 1-2.86-5.93H4.07a8 8 0 0 0 5.93 5.93zm4 0a8 8 0 0 0 5.93-5.93h-3.07a12.8 12.8 0 0 1-2.86 5.93zM16 13h3.93a8.1 8.1 0 0 0 0-2H16a15.7 15.7 0 0 1 0 2zm-6-2v2h4v-2z\"/>',\n  firewall: '<rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M3 9.3h18M3 14.7h18M9 4v5.3M15 4v5.3M12 9.3v5.4M7 14.7V20M17 14.7V20\"/>',\n  switch: '<rect x=\"2\" y=\"7\" width=\"20\" height=\"10\" rx=\"2\"/><circle cx=\"6\" cy=\"12\" r=\"1.5\"/><circle cx=\"10\" cy=\"12\" r=\"1.5\"/><circle cx=\"14\" cy=\"12\" r=\"1.5\"/><circle cx=\"18\" cy=\"12\" r=\"1.5\"/>',\n  server: '<rect x=\"3\" y=\"3.5\" width=\"18\" height=\"7.5\" rx=\"2\"/><rect x=\"3\" y=\"13\" width=\"18\" height=\"7.5\" rx=\"2\"/><circle cx=\"7\" cy=\"7.25\" r=\"1\"/><circle cx=\"7\" cy=\"16.75\" r=\"1\"/><path d=\"M11 7.25h6M11 16.75h6\"/>',\n  chip: '<rect x=\"6\" y=\"6\" width=\"12\" height=\"12\" rx=\"2\"/><circle cx=\"12\" cy=\"12\" r=\"2.5\"/><path d=\"M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4\"/>',\n  battery: '<rect x=\"2\" y=\"7\" width=\"17\" height=\"10\" rx=\"2\"/><path d=\"M22 10.5v3M11 9l-2.5 3.2h3.4L9.5 15.2\"/>',\n  wifi: '<path d=\"M2.5 9.2a14 14 0 0 1 19 0M5.6 12.6a9.5 9.5 0 0 1 12.8 0M8.8 16a4.8 4.8 0 0 1 6.4 0M12 19.6h.01\"/>'\n};\n\nconst iconUri = (name, color) => 'image://data:image/svg+xml;charset=utf-8,' + encodeURIComponent(\n  '<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"' + color +\n  '\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\">' + (ICONS[name] || ICONS.server) + '</svg>');\n\n// Mathematical coordinate system: min: 0, max: 1200, y: 0 to 780\n// Site 1 (RJ):      center = 130  (range: 20 to 240)\n// Site 2 (Barueri): center = 510  (range: 260 to 760)\n// Site 3 (Bahia):   center = 865  (range: 780 to 950)\n// Site 4 (Paraná):  center = 1055 (range: 970 to 1140)\n\nconst allNodes = [\n  {\n    \"id\": \"inet-ba\",\n    \"name\": \"Internet BA\",\n    \"sub\": \"Multi-WAN Link\",\n    \"category\": \"Internet\",\n    \"icon\": \"internet\",\n    \"x\": 120,\n    \"y\": 85,\n    \"r\": 46,\n    \"ip\": \"Multi-WAN / BGP\",\n    \"site\": \"BAHIA (BA)\",\n    \"siteKey\": \"BA\",\n    \"role\": \"Internet Uplink Multi-WAN\",\n    \"hosts\": [\n      \"FW-BA\"\n    ],\n    \"wan\": true\n  },\n  {\n    \"id\": \"fw-ba\",\n    \"name\": \"FW-BA\",\n    \"sub\": \"FortiGate Spoke\",\n    \"category\": \"Firewall\",\n    \"icon\": \"firewall\",\n    \"x\": 120,\n    \"y\": 200,\n    \"r\": 48,\n    \"ip\": \"192.168.2.244\",\n    \"site\": \"BAHIA (BA)\",\n    \"siteKey\": \"BA\",\n    \"role\": \"Firewall Filial / SD-WAN Spoke\",\n    \"hosts\": [\n      \"FW-BA\"\n    ],\n    \"core\": true\n  },\n  {\n    \"id\": \"sw-core-ba\",\n    \"name\": \"SWCORE - BA\",\n    \"sub\": \"Core Switch\",\n    \"category\": \"Switch\",\n    \"icon\": \"switch\",\n    \"x\": 120,\n    \"y\": 310,\n    \"r\": 44,\n    \"ip\": \"192.168.2.144\",\n    \"site\": \"BAHIA (BA)\",\n    \"siteKey\": \"BA\",\n    \"role\": \"Core Switch / Stacking\",\n    \"hosts\": [\n      \"SWCORE - BA\"\n    ],\n    \"core\": true\n  },\n  {\n    \"id\": \"hw-ba\",\n    \"name\": \"i-DRAC - BA\",\n    \"sub\": \"iDRAC OOB\",\n    \"category\": \"Hardware Servidor\",\n    \"icon\": \"chip\",\n    \"x\": 120,\n    \"y\": 420,\n    \"r\": 34,\n    \"ip\": \"192.168.2.14\",\n    \"site\": \"BAHIA (BA)\",\n    \"siteKey\": \"BA\",\n    \"role\": \"Dell iDRAC Enterprise\",\n    \"hosts\": [\n      \"i-DRAC - BA\"\n    ]\n  },\n  {\n    \"id\": \"srv-ba\",\n    \"name\": \"HPE1206C\",\n    \"sub\": \"Domain Controller\",\n    \"category\": \"Virtualização / Servidor\",\n    \"icon\": \"server\",\n    \"x\": 120,\n    \"y\": 530,\n    \"r\": 36,\n    \"ip\": \"192.168.2.53\",\n    \"site\": \"BAHIA (BA)\",\n    \"siteKey\": \"BA\",\n    \"role\": \"Servidor BA\",\n    \"hosts\": [\n      \"HPE1206C\"\n    ]\n  },\n  {\n    \"id\": \"ap-ba\",\n    \"name\": \"6x APs Wi-Fi\",\n    \"sub\": \"UniFi BA\",\n    \"category\": \"Access Point\",\n    \"icon\": \"wifi\",\n    \"x\": 120,\n    \"y\": 640,\n    \"r\": 40,\n    \"ip\": \"DHCP\",\n    \"site\": \"BAHIA (BA)\",\n    \"siteKey\": \"BA\",\n    \"role\": \"Access Points BA\",\n    \"hosts\": [\n      \"AP RESERVA - BAHIA\",\n      \"AP EXPEDIÇÃO - BAHIA\",\n      \"AP ARMAZEM - BAHIA\",\n      \"AP FABRICA - BAHIA\",\n      \"AP ADM - BAHIA\",\n      \"AP LENTILHA - BAHIA\"\n    ]\n  },\n  {\n    \"id\": \"inet-barueri\",\n    \"name\": \"Internet Barueri\",\n    \"sub\": \"Multi-WAN Link\",\n    \"category\": \"Internet\",\n    \"icon\": \"internet\",\n    \"x\": 480,\n    \"y\": 85,\n    \"r\": 50,\n    \"ip\": \"Multi-WAN / BGP\",\n    \"site\": \"Barueri · HUB MATRIZ\",\n    \"siteKey\": \"Barueri\",\n    \"role\": \"Internet Uplink Multi-WAN\",\n    \"hosts\": [\n      \"FW-SP\"\n    ],\n    \"wan\": true\n  },\n  {\n    \"id\": \"fw-barueri\",\n    \"name\": \"FW-SP\",\n    \"sub\": \"FortiGate Hub SD-WAN\",\n    \"category\": \"Firewall\",\n    \"icon\": \"firewall\",\n    \"x\": 480,\n    \"y\": 200,\n    \"r\": 56,\n    \"ip\": \"192.168.0.4\",\n    \"site\": \"Barueri · HUB MATRIZ\",\n    \"siteKey\": \"Barueri\",\n    \"role\": \"Firewall Core / Hub SD-WAN\",\n    \"hosts\": [\n      \"FW-SP\"\n    ],\n    \"core\": true\n  },\n  {\n    \"id\": \"sw-core-barueri\",\n    \"name\": \"switch-192.168.0.17\",\n    \"sub\": \"Core VLT 10G\",\n    \"category\": \"Switch\",\n    \"icon\": \"switch\",\n    \"x\": 480,\n    \"y\": 310,\n    \"r\": 52,\n    \"ip\": \"192.168.0.17\",\n    \"site\": \"Barueri · HUB MATRIZ\",\n    \"siteKey\": \"Barueri\",\n    \"role\": \"Core Switch / Stacking\",\n    \"hosts\": [\n      \"switch-192.168.0.17\"\n    ],\n    \"core\": true\n  },\n  {\n    \"id\": \"ups-barueri\",\n    \"name\": \"Nobreak-SP\",\n    \"sub\": \"Nobreak Senoidal\",\n    \"category\": \"Nobreak UPS\",\n    \"icon\": \"battery\",\n    \"x\": 300,\n    \"y\": 310,\n    \"r\": 42,\n    \"ip\": \"192.168.0.3\",\n    \"site\": \"Barueri · HUB MATRIZ\",\n    \"siteKey\": \"Barueri\",\n    \"role\": \"Nobreak Senoidal\",\n    \"hosts\": [\n      \"Nobreak-SP\"\n    ]\n  },\n  {\n    \"id\": \"sw-acc-0\",\n    \"name\": \"SW-19\",\n    \"sub\": \"Acesso Dell\",\n    \"category\": \"Switch\",\n    \"icon\": \"switch\",\n    \"x\": 310,\n    \"y\": 410,\n    \"r\": 36,\n    \"ip\": \"192.168.0.19\",\n    \"site\": \"Barueri · HUB MATRIZ\",\n    \"siteKey\": \"Barueri\",\n    \"role\": \"Switch Acesso Dell\",\n    \"hosts\": [\n      \"switch-192.168.0.19\"\n    ]\n  },\n  {\n    \"id\": \"sw-acc-1\",\n    \"name\": \"SW-20\",\n    \"sub\": \"Acesso Dell\",\n    \"category\": \"Switch\",\n    \"icon\": \"switch\",\n    \"x\": 415,\n    \"y\": 410,\n    \"r\": 36,\n    \"ip\": \"192.168.0.20\",\n    \"site\": \"Barueri · HUB MATRIZ\",\n    \"siteKey\": \"Barueri\",\n    \"role\": \"Switch Acesso Dell\",\n    \"hosts\": [\n      \"switch-192.168.0.20\"\n    ]\n  },\n  {\n    \"id\": \"sw-acc-2\",\n    \"name\": \"SW-21\",\n    \"sub\": \"Acesso Dell\",\n    \"category\": \"Switch\",\n    \"icon\": \"switch\",\n    \"x\": 525,\n    \"y\": 410,\n    \"r\": 36,\n    \"ip\": \"192.168.0.21\",\n    \"site\": \"Barueri · HUB MATRIZ\",\n    \"siteKey\": \"Barueri\",\n    \"role\": \"Switch Acesso Dell\",\n    \"hosts\": [\n      \"switch-192.168.0.21\"\n    ]\n  },\n  {\n    \"id\": \"sw-acc-3\",\n    \"name\": \"SW-22\",\n    \"sub\": \"Acesso Dell\",\n    \"category\": \"Switch\",\n    \"icon\": \"switch\",\n    \"x\": 635,\n    \"y\": 410,\n    \"r\": 36,\n    \"ip\": \"192.168.0.22\",\n    \"site\": \"Barueri · HUB MATRIZ\",\n    \"siteKey\": \"Barueri\",\n    \"role\": \"Switch Acesso Dell\",\n    \"hosts\": [\n      \"Switch-Aruba 192.168.0.22\"\n    ]\n  },\n  {\n    \"id\": \"blade-0\",\n    \"name\": \"Blade 01\",\n    \"sub\": \"idrac-6VW\",\n    \"category\": \"Hardware Servidor\",\n    \"icon\": \"chip\",\n    \"x\": 480,\n    \"y\": 480,\n    \"r\": 28,\n    \"ip\": \"192.168.0.225\",\n    \"site\": \"Barueri · HUB MATRIZ\",\n    \"siteKey\": \"Barueri\",\n    \"role\": \"Dell iDRAC Enterprise\",\n    \"hosts\": [\n      \"idrac-6VW22H2\"\n    ]\n  },\n  {\n    \"id\": \"blade-1\",\n    \"name\": \"Blade 02\",\n    \"sub\": \"idrac-6VW\",\n    \"category\": \"Hardware Servidor\",\n    \"icon\": \"chip\",\n    \"x\": 570,\n    \"y\": 480,\n    \"r\": 28,\n    \"ip\": \"192.168.0.226\",\n    \"site\": \"Barueri · HUB MATRIZ\",\n    \"siteKey\": \"Barueri\",\n    \"role\": \"Dell iDRAC Enterprise\",\n    \"hosts\": [\n      \"idrac-6VW02H2\"\n    ]\n  },\n  {\n    \"id\": \"blade-2\",\n    \"name\": \"Blade 03\",\n    \"sub\": \"idrac-6VW\",\n    \"category\": \"Hardware Servidor\",\n    \"icon\": \"chip\",\n    \"x\": 480,\n    \"y\": 544,\n    \"r\": 28,\n    \"ip\": \"192.168.0.227\",\n    \"site\": \"Barueri · HUB MATRIZ\",\n    \"siteKey\": \"Barueri\",\n    \"role\": \"Dell iDRAC Enterprise\",\n    \"hosts\": [\n      \"idrac-6VW42H2\"\n    ]\n  },\n  {\n    \"id\": \"blade-3\",\n    \"name\": \"Blade 04\",\n    \"sub\": \"idrac-66F\",\n    \"category\": \"Hardware Servidor\",\n    \"icon\": \"chip\",\n    \"x\": 570,\n    \"y\": 544,\n    \"r\": 28,\n    \"ip\": \"192.168.0.228\",\n    \"site\": \"Barueri · HUB MATRIZ\",\n    \"siteKey\": \"Barueri\",\n    \"role\": \"Dell iDRAC Enterprise\",\n    \"hosts\": [\n      \"idrac-66FCHZ3\"\n    ]\n  },\n  {\n    \"id\": \"blade-4\",\n    \"name\": \"Blade 05\",\n    \"sub\": \"RAC_8LK39\",\n    \"category\": \"Hardware Servidor\",\n    \"icon\": \"chip\",\n    \"x\": 480,\n    \"y\": 608,\n    \"r\": 28,\n    \"ip\": \"192.168.0.224\",\n    \"site\": \"Barueri · HUB MATRIZ\",\n    \"siteKey\": \"Barueri\",\n    \"role\": \"Dell iDRAC Enterprise\",\n    \"hosts\": [\n      \"RAC_8LK39R1\"\n    ]\n  },\n  {\n    \"id\": \"vm-cluster-sp\",\n    \"name\": \"Cluster Hyper-V\",\n    \"sub\": \"5 Hosts HV\",\n    \"category\": \"Virtualização / Servidor\",\n    \"icon\": \"server\",\n    \"x\": 310,\n    \"y\": 655,\n    \"r\": 46,\n    \"ip\": \"192.168.0.x\",\n    \"site\": \"Barueri · HUB MATRIZ\",\n    \"siteKey\": \"Barueri\",\n    \"role\": \"Cluster de Virtualização Hyper-V\",\n    \"hosts\": [\n      \"srv-dc02\",\n      \"SRV-AD01\",\n      \"GEQ10-IMPDIR\",\n      \"NPI5D37FB\",\n      \"GEQ10-IMPFIN\"\n    ]\n  },\n  {\n    \"id\": \"srv-sp\",\n    \"name\": \"Servidores Matriz\",\n    \"sub\": \"AD / DC / NGINX\",\n    \"category\": \"Virtualização / Servidor\",\n    \"icon\": \"server\",\n    \"x\": 415,\n    \"y\": 655,\n    \"r\": 44,\n    \"ip\": \"192.168.0.x\",\n    \"site\": \"Barueri · HUB MATRIZ\",\n    \"siteKey\": \"Barueri\",\n    \"role\": \"Servidores de Aplicação e Serviços\",\n    \"hosts\": [\n      \"NPI5695D5\",\n      \"ASSEMBLY\",\n      \"CLIPPER\",\n      \"DELPHI\",\n      \"NGINX-SRV\"\n    ]\n  },\n  {\n    \"id\": \"ap-sp\",\n    \"name\": \"5x APs Wi-Fi\",\n    \"sub\": \"UniFi Corporativo\",\n    \"category\": \"Access Point\",\n    \"icon\": \"wifi\",\n    \"x\": 635,\n    \"y\": 655,\n    \"r\": 42,\n    \"ip\": \"192.168.0.x\",\n    \"site\": \"Barueri · HUB MATRIZ\",\n    \"siteKey\": \"Barueri\",\n    \"role\": \"Access Points Corporativos\",\n    \"hosts\": [\n      \"AP05 - TI\",\n      \"AP02 - Kleber\",\n      \"AP01 - FINANCEIRO\",\n      \"AP04 - COMERCIAL\",\n      \"AP03 - RECEPÇÃO\"\n    ]\n  },\n  {\n    \"id\": \"inet-pr\",\n    \"name\": \"Internet PR\",\n    \"sub\": \"Multi-WAN Link\",\n    \"category\": \"Internet\",\n    \"icon\": \"internet\",\n    \"x\": 840,\n    \"y\": 85,\n    \"r\": 46,\n    \"ip\": \"Multi-WAN / BGP\",\n    \"site\": \"PARANÁ (PR)\",\n    \"siteKey\": \"PR\",\n    \"role\": \"Internet Uplink Multi-WAN\",\n    \"hosts\": [\n      \"FW-PR\"\n    ],\n    \"wan\": true\n  },\n  {\n    \"id\": \"fw-pr\",\n    \"name\": \"FW-PR\",\n    \"sub\": \"FortiGate Spoke\",\n    \"category\": \"Firewall\",\n    \"icon\": \"firewall\",\n    \"x\": 840,\n    \"y\": 200,\n    \"r\": 48,\n    \"ip\": \"192.168.1.2\",\n    \"site\": \"PARANÁ (PR)\",\n    \"siteKey\": \"PR\",\n    \"role\": \"Firewall Filial / SD-WAN Spoke\",\n    \"hosts\": [\n      \"FW-PR\"\n    ],\n    \"core\": true\n  },\n  {\n    \"id\": \"srv-pr\",\n    \"name\": \"BRN001BA9F4C5A5\",\n    \"sub\": \"Domain Controller\",\n    \"category\": \"Virtualização / Servidor\",\n    \"icon\": \"server\",\n    \"x\": 840,\n    \"y\": 420,\n    \"r\": 36,\n    \"ip\": \"192.168.1.69\",\n    \"site\": \"PARANÁ (PR)\",\n    \"siteKey\": \"PR\",\n    \"role\": \"Servidor PR\",\n    \"hosts\": [\n      \"BRN001BA9F4C5A5\"\n    ]\n  },\n  {\n    \"id\": \"inet-rj\",\n    \"name\": \"Internet RJ\",\n    \"sub\": \"Multi-WAN Link\",\n    \"category\": \"Internet\",\n    \"icon\": \"internet\",\n    \"x\": 1060,\n    \"y\": 85,\n    \"r\": 46,\n    \"ip\": \"Multi-WAN / BGP\",\n    \"site\": \"RIO DE JANEIRO (RJ)\",\n    \"siteKey\": \"RJ\",\n    \"role\": \"Internet Uplink Multi-WAN\",\n    \"hosts\": [\n      \"FW-RJ\"\n    ],\n    \"wan\": true\n  },\n  {\n    \"id\": \"fw-rj\",\n    \"name\": \"FW-RJ\",\n    \"sub\": \"FortiGate Spoke\",\n    \"category\": \"Firewall\",\n    \"icon\": \"firewall\",\n    \"x\": 1060,\n    \"y\": 200,\n    \"r\": 48,\n    \"ip\": \"192.168.3.21\",\n    \"site\": \"RIO DE JANEIRO (RJ)\",\n    \"siteKey\": \"RJ\",\n    \"role\": \"Firewall Filial / SD-WAN Spoke\",\n    \"hosts\": [\n      \"FW-RJ\"\n    ],\n    \"core\": true\n  },\n  {\n    \"id\": \"sw-core-rj\",\n    \"name\": \"BRA30-SW_MikroTi\",\n    \"sub\": \"Core Switch\",\n    \"category\": \"Switch\",\n    \"icon\": \"switch\",\n    \"x\": 1060,\n    \"y\": 310,\n    \"r\": 44,\n    \"ip\": \"192.168.3.19\",\n    \"site\": \"RIO DE JANEIRO (RJ)\",\n    \"siteKey\": \"RJ\",\n    \"role\": \"Core Switch / Stacking\",\n    \"hosts\": [\n      \"BRA30-SW_MikroTi\"\n    ],\n    \"core\": true\n  },\n  {\n    \"id\": \"hw-rj\",\n    \"name\": \"iDRAC-JXH2XG3\",\n    \"sub\": \"iDRAC OOB\",\n    \"category\": \"Hardware Servidor\",\n    \"icon\": \"chip\",\n    \"x\": 1060,\n    \"y\": 420,\n    \"r\": 34,\n    \"ip\": \"192.168.3.22\",\n    \"site\": \"RIO DE JANEIRO (RJ)\",\n    \"siteKey\": \"RJ\",\n    \"role\": \"Dell iDRAC Enterprise\",\n    \"hosts\": [\n      \"iDRAC-JXH2XG3\"\n    ]\n  },\n  {\n    \"id\": \"srv-rj\",\n    \"name\": \"BRA30-IMPRH\",\n    \"sub\": \"Domain Controller\",\n    \"category\": \"Virtualização / Servidor\",\n    \"icon\": \"server\",\n    \"x\": 1060,\n    \"y\": 530,\n    \"r\": 36,\n    \"ip\": \"192.168.3.50\",\n    \"site\": \"RIO DE JANEIRO (RJ)\",\n    \"siteKey\": \"RJ\",\n    \"role\": \"Servidor RJ\",\n    \"hosts\": [\n      \"BRA30-IMPRH\"\n    ]\n  },\n  {\n    \"id\": \"ap-rj\",\n    \"name\": \"5x APs Wi-Fi\",\n    \"sub\": \"UniFi RJ\",\n    \"category\": \"Access Point\",\n    \"icon\": \"wifi\",\n    \"x\": 1060,\n    \"y\": 640,\n    \"r\": 40,\n    \"ip\": \"DHCP\",\n    \"site\": \"RIO DE JANEIRO (RJ)\",\n    \"siteKey\": \"RJ\",\n    \"role\": \"Access Points RJ\",\n    \"hosts\": [\n      \"AP-GALPAO1FRENTE\",\n      \"AP-GALPAO1FUNDO\",\n      \"AP-ADM\",\n      \"AP-GALPAO3\",\n      \"AP-BALANCA\"\n    ]\n  }\n];\n\nconst allLinks = [\n  {\n    \"source\": \"inet-ba\",\n    \"target\": \"fw-ba\",\n    \"label\": \"WAN Uplink\",\n    \"color\": \"#10b981\",\n    \"width\": 3.0,\n    \"glow\": 8\n  },\n  {\n    \"source\": \"fw-ba\",\n    \"target\": \"sw-core-ba\",\n    \"label\": \"1 Gbps\",\n    \"color\": \"#3b82f6\",\n    \"width\": 3.0,\n    \"glow\": 8\n  },\n  {\n    \"source\": \"sw-core-ba\",\n    \"target\": \"hw-ba\",\n    \"label\": \"\",\n    \"color\": \"#a855f7\",\n    \"width\": 2.0,\n    \"glow\": 6\n  },\n  {\n    \"source\": \"sw-core-ba\",\n    \"target\": \"srv-ba\",\n    \"label\": \"\",\n    \"color\": \"#8b5cf6\",\n    \"width\": 2.2,\n    \"glow\": 6\n  },\n  {\n    \"source\": \"sw-core-ba\",\n    \"target\": \"ap-ba\",\n    \"label\": \"PoE+\",\n    \"color\": \"#f43f5e\",\n    \"width\": 2.2,\n    \"glow\": 6\n  },\n  {\n    \"source\": \"inet-barueri\",\n    \"target\": \"fw-barueri\",\n    \"label\": \"WAN Uplink\",\n    \"color\": \"#10b981\",\n    \"width\": 3.8,\n    \"glow\": 12\n  },\n  {\n    \"source\": \"fw-barueri\",\n    \"target\": \"sw-core-barueri\",\n    \"label\": \"Trunk 10G\",\n    \"color\": \"#38bdf8\",\n    \"width\": 4.5,\n    \"glow\": 14\n  },\n  {\n    \"source\": \"ups-barueri\",\n    \"target\": \"fw-barueri\",\n    \"label\": \"\",\n    \"color\": \"#f59e0b\",\n    \"width\": 1.8,\n    \"dotted\": true,\n    \"glow\": 8\n  },\n  {\n    \"source\": \"ups-barueri\",\n    \"target\": \"sw-core-barueri\",\n    \"label\": \"\",\n    \"color\": \"#f59e0b\",\n    \"width\": 1.8,\n    \"dotted\": true,\n    \"glow\": 8\n  },\n  {\n    \"source\": \"sw-core-barueri\",\n    \"target\": \"sw-acc-0\",\n    \"label\": \"\",\n    \"color\": \"#60a5fa\",\n    \"width\": 2.2,\n    \"glow\": 6\n  },\n  {\n    \"source\": \"sw-core-barueri\",\n    \"target\": \"sw-acc-1\",\n    \"label\": \"\",\n    \"color\": \"#60a5fa\",\n    \"width\": 2.2,\n    \"glow\": 6\n  },\n  {\n    \"source\": \"sw-core-barueri\",\n    \"target\": \"sw-acc-2\",\n    \"label\": \"\",\n    \"color\": \"#60a5fa\",\n    \"width\": 2.2,\n    \"glow\": 6\n  },\n  {\n    \"source\": \"sw-core-barueri\",\n    \"target\": \"sw-acc-3\",\n    \"label\": \"\",\n    \"color\": \"#60a5fa\",\n    \"width\": 2.2,\n    \"glow\": 6\n  },\n  {\n    \"source\": \"sw-acc-2\",\n    \"target\": \"blade-0\",\n    \"label\": \"\",\n    \"color\": \"#a855f7\",\n    \"width\": 1.8,\n    \"glow\": 6\n  },\n  {\n    \"source\": \"sw-acc-2\",\n    \"target\": \"blade-1\",\n    \"label\": \"\",\n    \"color\": \"#a855f7\",\n    \"width\": 1.8,\n    \"glow\": 6\n  },\n  {\n    \"source\": \"sw-acc-2\",\n    \"target\": \"blade-2\",\n    \"label\": \"\",\n    \"color\": \"#a855f7\",\n    \"width\": 1.8,\n    \"glow\": 6\n  },\n  {\n    \"source\": \"sw-acc-2\",\n    \"target\": \"blade-3\",\n    \"label\": \"\",\n    \"color\": \"#a855f7\",\n    \"width\": 1.8,\n    \"glow\": 6\n  },\n  {\n    \"source\": \"sw-acc-2\",\n    \"target\": \"blade-4\",\n    \"label\": \"\",\n    \"color\": \"#a855f7\",\n    \"width\": 1.8,\n    \"glow\": 6\n  },\n  {\n    \"source\": \"sw-acc-0\",\n    \"target\": \"vm-cluster-sp\",\n    \"label\": \"Hyper-V\",\n    \"color\": \"#8b5cf6\",\n    \"width\": 2.6,\n    \"glow\": 8\n  },\n  {\n    \"source\": \"sw-acc-1\",\n    \"target\": \"srv-sp\",\n    \"label\": \"VMs\",\n    \"color\": \"#8b5cf6\",\n    \"width\": 2.6,\n    \"glow\": 8\n  },\n  {\n    \"source\": \"sw-acc-3\",\n    \"target\": \"ap-sp\",\n    \"label\": \"PoE+\",\n    \"color\": \"#f43f5e\",\n    \"width\": 2.4,\n    \"glow\": 8\n  },\n  {\n    \"source\": \"inet-pr\",\n    \"target\": \"fw-pr\",\n    \"label\": \"WAN Uplink\",\n    \"color\": \"#10b981\",\n    \"width\": 3.0,\n    \"glow\": 8\n  },\n  {\n    \"source\": \"fw-pr\",\n    \"target\": \"srv-pr\",\n    \"label\": \"\",\n    \"color\": \"#8b5cf6\",\n    \"width\": 2.2,\n    \"glow\": 6\n  },\n  {\n    \"source\": \"inet-rj\",\n    \"target\": \"fw-rj\",\n    \"label\": \"WAN Uplink\",\n    \"color\": \"#10b981\",\n    \"width\": 3.0,\n    \"glow\": 8\n  },\n  {\n    \"source\": \"fw-rj\",\n    \"target\": \"sw-core-rj\",\n    \"label\": \"1 Gbps\",\n    \"color\": \"#3b82f6\",\n    \"width\": 3.0,\n    \"glow\": 8\n  },\n  {\n    \"source\": \"sw-core-rj\",\n    \"target\": \"hw-rj\",\n    \"label\": \"\",\n    \"color\": \"#a855f7\",\n    \"width\": 2.0,\n    \"glow\": 6\n  },\n  {\n    \"source\": \"sw-core-rj\",\n    \"target\": \"srv-rj\",\n    \"label\": \"\",\n    \"color\": \"#8b5cf6\",\n    \"width\": 2.2,\n    \"glow\": 6\n  },\n  {\n    \"source\": \"sw-core-rj\",\n    \"target\": \"ap-rj\",\n    \"label\": \"PoE+\",\n    \"color\": \"#f43f5e\",\n    \"width\": 2.2,\n    \"glow\": 6\n  },\n  {\n    \"source\": \"fw-barueri\",\n    \"target\": \"fw-ba\",\n    \"label\": \"\",\n    \"color\": \"#00e5ff\",\n    \"width\": 2.2,\n    \"dashed\": true,\n    \"curveness\": 0.12,\n    \"glow\": 10\n  },\n  {\n    \"source\": \"fw-barueri\",\n    \"target\": \"fw-pr\",\n    \"label\": \"\",\n    \"color\": \"#00e5ff\",\n    \"width\": 2.2,\n    \"dashed\": true,\n    \"curveness\": -0.12,\n    \"glow\": 10\n  },\n  {\n    \"source\": \"fw-barueri\",\n    \"target\": \"fw-rj\",\n    \"label\": \"\",\n    \"color\": \"#00e5ff\",\n    \"width\": 2.2,\n    \"dashed\": true,\n    \"curveness\": -0.18,\n    \"glow\": 10\n  }\n];\n\nconst COLORS = { up: '#10b981', down: '#ef4444', partial: '#f59e0b', unknown: '#64748b' };\nconst LABELS = { up: 'ONLINE', down: 'OFFLINE', partial: 'PARCIAL', unknown: 'SEM DADOS' };\nconst CATEGORY_COLORS = {\n  'Internet': '#38bdf8', 'Firewall': '#e879f9', 'Switch': '#3b82f6', 'Hardware Servidor': '#a855f7',\n  'Virtualização / Servidor': '#8b5cf6', 'Access Point': '#f43f5e', 'Nobreak UPS': '#f59e0b'\n};\n\nconst lastValue = (field) => {\n  const raw = field && field.values ? field.values : [];\n  const vals = typeof raw.toArray === 'function' ? raw.toArray() : raw;\n  for (let i = vals.length - 1; i >= 0; i--) {\n    if (vals[i] !== null && vals[i] !== undefined) return Number(vals[i]);\n  }\n  return null;\n};\n\nconst hostChecks = {};\nconst wanStatus = {};\nconst mergeOk = (prev, ok) => (prev === undefined || prev === null || ok === false ? ok : prev);\n\nfor (const frame of seriesData) {\n  const valueField = (frame.fields || []).find((f) => f.type === 'number');\n  if (!valueField || !valueField.labels || !valueField.labels.host) continue;\n  const host = valueField.labels.host;\n  const key = valueField.labels.item_key || '';\n  const item = valueField.labels.item || key;\n  const last = lastValue(valueField);\n  if (frame.refId === 'B') {\n    (wanStatus[host] = wanStatus[host] || []).push({ name: item, ok: last === null ? null : last === 1 });\n    continue;\n  }\n  const ok = last === null ? null : (key === 'icmpping' ? last === 1 : (last === 1 ? true : last === 0 ? false : null));\n  const kind = key === 'icmpping' ? 'ping'\n    : (key.indexOf(',agent,') >= 0 || item === 'Zabbix agent availability' ? 'agent' : 'snmp');\n  const c = hostChecks[host] = hostChecks[host] || {};\n  c[kind] = mergeOk(c[kind], ok);\n}\n\nconst CHECK_NAMES = { ping: 'ping', snmp: 'SNMP', agent: 'agente' };\nconst hostMember = (h) => {\n  const c = hostChecks[h] || {};\n  const hasPing = c.ping !== undefined && c.ping !== null;\n  const reach = hasPing ? c.ping : (c.snmp === undefined ? null : c.snmp);\n  const agentDown = c.agent === false || (hasPing && c.snmp === false);\n  let state = 'unknown';\n  if (reach === false) state = 'down';\n  else if (reach === true) state = agentDown ? 'partial' : 'up';\n  else if (c.agent === true) state = 'up';\n  else if (c.agent === false) state = 'down';\n  const checks = Object.keys(CHECK_NAMES).filter((k) => c[k] !== undefined)\n    .map((k) => ({ name: CHECK_NAMES[k], state: c[k] === null ? 'unknown' : (c[k] ? 'up' : 'down') }));\n  return { name: h, state: state, checks: checks };\n};\n\nlet site = '.*';\ntry {\n  if (context && context.grafana && typeof context.grafana.replaceVariables === 'function') {\n    site = context.grafana.replaceVariables('$site');\n  }\n} catch (e) { site = '.*'; }\nconst allSites = !site || site === '.*' || site === '$site' || site === '$__all';\n\nconst byId = {};\nconst activeNodes = allNodes.filter((n) => allSites || n.siteKey === site).map((n) => {\n  const members = n.wan\n    ? n.hosts.flatMap((h) => (wanStatus[h] || []).map((w) => ({\n        name: h + ': ' + w.name, state: w.ok === null ? 'unknown' : (w.ok ? 'up' : 'down'), checks: [] })))\n    : n.hosts.map(hostMember);\n\n  const known = members.filter((m) => m.state !== 'unknown');\n  const up = known.filter((m) => m.state === 'up').length;\n  const down = known.filter((m) => m.state === 'down').length;\n  let state = 'unknown';\n  if (known.length) state = up === known.length ? 'up' : (down === known.length ? 'down' : 'partial');\n\n  const nodeObj = Object.assign({}, n, {\n    members: members,\n    state: state,\n    up: up,\n    total: members.length\n  });\n  byId[n.id] = nodeObj;\n  return nodeObj;\n});\n\nconst discs = [], alarms = [], iconItems = [], textItems = [];\nconst linesStatic = [], linesFlowing = [];\n\nactiveNodes.forEach((n) => {\n  const st = n.state;\n  const col = COLORS[st];\n  const isDown = st === 'down';\n  const isLoud = isDown || (n.core && st === 'up');\n\n  // Pulse effect\n  if (isLoud) {\n    alarms.push({\n      value: [n.x, n.y],\n      symbolSize: n.r * (isDown ? 1.6 : 1.35),\n      itemStyle: {\n        color: isDown ? 'rgba(239, 68, 68, 0.4)' : 'rgba(0, 229, 255, 0.25)',\n        shadowBlur: isDown ? 24 : 14,\n        shadowColor: col\n      },\n      tipData: n\n    });\n  }\n\n  // Neon Glass Disc\n  discs.push({\n    value: [n.x, n.y],\n    symbolSize: n.r,\n    itemStyle: {\n      color: isDown ? 'rgba(38, 12, 18, 0.95)' : (st === 'up' ? 'rgba(10, 25, 22, 0.92)' : 'rgba(36, 24, 10, 0.92)'),\n      borderColor: col,\n      borderWidth: isDown ? 3.5 : 2.5,\n      shadowBlur: isDown ? 28 : (st === 'up' ? 16 : 12),\n      shadowColor: col\n    },\n    tipData: n\n  });\n\n  // SVG Line Icon centered\n  iconItems.push({\n    value: [n.x, n.y],\n    symbol: iconUri(n.icon || 'server', col),\n    symbolSize: Math.round(n.r * 0.52),\n    silent: true\n  });\n\n  // Compact Non-overlapping Label Plate\n  textItems.push({\n    value: [n.x, n.y + n.r / 2 + 12],\n    tipData: n,\n    label: {\n      show: true,\n      position: 'inside',\n      formatter: '{pip|●} {name|' + n.name + '}\\n{sub|' + (n.sub || '') + '}',\n      rich: {\n        pip: { color: col, fontSize: 9.5, fontWeight: 900 },\n        name: { color: '#f8fafc', fontSize: 10, fontWeight: 700, lineHeight: 13 },\n        sub: { color: '#38bdf8', fontSize: 9, fontWeight: 600, lineHeight: 12 }\n      },\n      backgroundColor: 'rgba(15, 23, 42, 0.92)',\n      borderColor: col,\n      borderWidth: 1,\n      borderRadius: 4,\n      padding: [3, 6],\n      shadowBlur: 6,\n      shadowColor: 'rgba(0,0,0,0.6)'\n    }\n  });\n});\n\nallLinks.forEach((l) => {\n  const src = byId[l.source];\n  const tgt = byId[l.target];\n  if (!src || !tgt) return;\n\n  const isBad = src.state === 'down' || tgt.state === 'down';\n  const edgeColor = isBad ? COLORS.down : l.color;\n  const curveness = l.curveness || 0;\n\n  const coords = [[src.x, src.y], [tgt.x, tgt.y]];\n  const tipText = '<b>' + src.name + '</b> ➔ <b>' + tgt.name + '</b>' +\n    (l.label ? '<br><span style=\"color:#38bdf8;\">' + l.label + '</span>' : '');\n\n  linesStatic.push({\n    coords: coords,\n    lineStyle: {\n      color: edgeColor,\n      width: isBad ? 2.8 : l.width,\n      type: isBad ? 'dashed' : (l.dashed ? [6, 4] : (l.dotted ? [3, 3] : 'solid')),\n      curveness: curveness,\n      shadowBlur: isBad ? 16 : l.glow,\n      shadowColor: edgeColor\n    },\n    tipText: tipText\n  });\n\n  if (!isBad) {\n    linesFlowing.push({\n      coords: coords,\n      lineStyle: {\n        curveness: curveness,\n        opacity: 0,\n        width: 1\n      }\n    });\n  }\n});\n\n// Perfectly centered Site Pods using markArea labels (100% responsive and coordinate-pinned)\nconst siteAreas = [\n  [\n    {\n      \"name\": \"BAHIA (BA)\",\n      \"coord\": [\n        20,\n        20\n      ],\n      \"label\": {\n        \"show\": true,\n        \"position\": \"insideTop\",\n        \"offset\": [\n          0,\n          8\n        ],\n        \"color\": \"#94a3b8\",\n        \"fontSize\": 11,\n        \"fontWeight\": \"bold\",\n        \"letterSpacing\": 1.2\n      },\n      \"itemStyle\": {\n        \"color\": \"rgba(15, 23, 42, 0.38)\",\n        \"borderColor\": \"rgba(56, 189, 248, 0.22)\",\n        \"borderWidth\": 1,\n        \"shadowBlur\": 0,\n        \"shadowColor\": \"transparent\"\n      }\n    },\n    {\n      \"coord\": [\n        220,\n        740\n      ]\n    }\n  ],\n  [\n    {\n      \"name\": \"Barueri · HUB MATRIZ\",\n      \"coord\": [\n        240,\n        20\n      ],\n      \"label\": {\n        \"show\": true,\n        \"position\": \"insideTop\",\n        \"offset\": [\n          0,\n          8\n        ],\n        \"color\": \"#00ffd5\",\n        \"fontSize\": 12,\n        \"fontWeight\": \"bold\",\n        \"letterSpacing\": 1.5\n      },\n      \"itemStyle\": {\n        \"color\": \"rgba(15, 23, 42, 0.52)\",\n        \"borderColor\": \"rgba(0, 229, 255, 0.40)\",\n        \"borderWidth\": 1.5,\n        \"shadowBlur\": 14,\n        \"shadowColor\": \"rgba(0, 229, 255, 0.22)\"\n      }\n    },\n    {\n      \"coord\": [\n        720,\n        740\n      ]\n    }\n  ],\n  [\n    {\n      \"name\": \"PARANÁ (PR)\",\n      \"coord\": [\n        740,\n        20\n      ],\n      \"label\": {\n        \"show\": true,\n        \"position\": \"insideTop\",\n        \"offset\": [\n          0,\n          8\n        ],\n        \"color\": \"#94a3b8\",\n        \"fontSize\": 11,\n        \"fontWeight\": \"bold\",\n        \"letterSpacing\": 1.2\n      },\n      \"itemStyle\": {\n        \"color\": \"rgba(15, 23, 42, 0.38)\",\n        \"borderColor\": \"rgba(56, 189, 248, 0.22)\",\n        \"borderWidth\": 1,\n        \"shadowBlur\": 0,\n        \"shadowColor\": \"transparent\"\n      }\n    },\n    {\n      \"coord\": [\n        940,\n        740\n      ]\n    }\n  ],\n  [\n    {\n      \"name\": \"RIO DE JANEIRO (RJ)\",\n      \"coord\": [\n        960,\n        20\n      ],\n      \"label\": {\n        \"show\": true,\n        \"position\": \"insideTop\",\n        \"offset\": [\n          0,\n          8\n        ],\n        \"color\": \"#94a3b8\",\n        \"fontSize\": 11,\n        \"fontWeight\": \"bold\",\n        \"letterSpacing\": 1.2\n      },\n      \"itemStyle\": {\n        \"color\": \"rgba(15, 23, 42, 0.38)\",\n        \"borderColor\": \"rgba(56, 189, 248, 0.22)\",\n        \"borderWidth\": 1,\n        \"shadowBlur\": 0,\n        \"shadowColor\": \"transparent\"\n      }\n    },\n    {\n      \"coord\": [\n        1160,\n        740\n      ]\n    }\n  ]\n];\n\nreturn {\n  backgroundColor: 'transparent',\n  animation: false,\n  grid: { left: 0, right: 0, top: 0, bottom: 0 },\n  xAxis: { type: 'value', min: 0, max: 1200, show: false },\n  yAxis: { type: 'value', min: 0, max: 760, show: false, inverse: true },\n  tooltip: {\n    trigger: 'item',\n    backgroundColor: 'rgba(13, 17, 23, 0.96)',\n    borderColor: '#334155',\n    borderWidth: 1,\n    padding: [10, 14],\n    textStyle: { color: '#f8fafc', fontSize: 12 },\n    extraCssText: 'box-shadow: 0 10px 30px rgba(0,0,0,0.7); backdrop-filter: blur(8px);',\n    formatter: function(params) {\n      if (params.data && params.data.tipData) {\n        const d = params.data.tipData;\n        const rows = (d.members || []).map((m) => {\n          const checks = (m.checks || []).map((c) =>\n            `<span style=\\\"color:${COLORS[c.state]};\\\">${c.name} ●</span>`).join(', ');\n          return `<div><span style=\\\"color:${COLORS[m.state]};\\\">●</span> <b>${m.name}</b>` +\n            (checks ? ` <span style=\\\"color:#94a3b8;\\\">(${checks})</span>` : '') + `</div>`;\n        }).join('') || '<div style=\\\"color:#94a3b8;\\\">Sem item de disponibilidade no Zabbix</div>';\n        return `\n          <div style=\\\"font-weight:bold;font-size:14px;color:${COLORS[d.state]};margin-bottom:6px;border-bottom:1px solid #334155;padding-bottom:4px;\\\">\n            ${d.name} (${d.sub || ''})\n          </div>\n          <table style=\\\"font-size:12px;line-height:1.6;color:#cbd5e1;margin-bottom:6px;\\\">\n            <tr><td><b>Categoria:</b></td><td style=\\\"padding-left:8px;\\\"><span style=\\\"color:${CATEGORY_COLORS[d.category] || '#94a3b8'};font-weight:700;\\\">● ${d.category}</span></td></tr>\n            <tr><td><b>Endereço IP:</b></td><td style=\\\"padding-left:8px;font-family:monospace;color:#38bdf8;\\\">${d.ip}</td></tr>\n            <tr><td><b>Localidade:</b></td><td style=\\\"padding-left:8px;\\\">${d.site}</td></tr>\n            <tr><td><b>Papel / Detalhe:</b></td><td style=\\\"padding-left:8px;\\\">${d.role}</td></tr>\n            <tr><td><b>Status:</b></td><td style=\\\"padding-left:8px;\\\"><span style=\\\"color:${COLORS[d.state]};font-weight:bold;\\\">● ${LABELS[d.state]}</span> (${d.up}/${d.total} online)</td></tr>\n          </table>\n          <div style=\\\"font-size:11px;line-height:1.5;border-top:1px solid #334155;padding-top:4px;\\\">${rows}</div>\n        `;\n      } else if (params.data && params.data.tipText) {\n        return params.data.tipText;\n      }\n      return '';\n    }\n  },\n  series: [\n    // Static Lines\n    {\n      type: 'lines',\n      coordinateSystem: 'cartesian2d',\n      z: 2,\n      data: linesStatic,\n      markArea: {\n        silent: true,\n        data: siteAreas\n      }\n    },\n    // Animated Packet Flow\n    {\n      type: 'lines',\n      coordinateSystem: 'cartesian2d',\n      z: 3,\n      effect: {\n        show: true,\n        period: 4.5,\n        trailLength: 0.25,\n        symbol: 'circle',\n        symbolSize: 4.5,\n        color: '#00ffd5'\n      },\n      data: linesFlowing,\n      silent: true\n    },\n    // Radar Pulse on Active Nodes\n    {\n      type: 'effectScatter',\n      coordinateSystem: 'cartesian2d',\n      z: 4,\n      rippleEffect: { scale: 1.7, brushType: 'stroke', period: 3 },\n      data: alarms,\n      silent: false\n    },\n    // Glowing Node Discs\n    {\n      type: 'scatter',\n      coordinateSystem: 'cartesian2d',\n      z: 5,\n      data: discs,\n      silent: false\n    },\n    // Device Icons\n    {\n      type: 'scatter',\n      coordinateSystem: 'cartesian2d',\n      z: 6,\n      data: iconItems,\n      silent: true\n    },\n    // Name Plates\n    {\n      type: 'scatter',\n      coordinateSystem: 'cartesian2d',\n      z: 7,\n      data: textItems,\n      silent: false\n    }\n  ]\n};\n",
+        "renderer": "canvas"
+      }
+    },
+    {
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "inspect": false
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#10b981",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "Last.*|Value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Status"
+              },
+              {
+                "id": "custom.width",
+                "value": 95
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "1": {
+                        "text": "ONLINE",
+                        "color": "#10b981",
+                        "index": 0
+                      },
+                      "0": {
+                        "text": "OFFLINE",
+                        "color": "#ef4444",
+                        "index": 1
+                      },
+                      "2": {
+                        "text": "DESCONHECIDO",
+                        "color": "#64748b",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "Field|Metric|Servidor"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Servidor / VM"
+              },
+              {
+                "id": "custom.width",
+                "value": 235
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 19,
+        "y": 3,
+        "w": 5,
+        "h": 5
+      },
+      "hideTimeOverride": true,
+      "id": 5,
+      "maxDataPoints": 10,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "enablePagination": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Servidor / VM",
+            "desc": false
+          }
+        ]
+      },
+      "pluginVersion": "13.2.3",
+      "targets": [
+        {
+          "application": {
+            "filter": ""
+          },
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "functions": [
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [],
+                "name": "setAlias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "$__zbx_host_name: $__zbx_item"
+              ],
+              "text": "setAlias($__zbx_host_name: $__zbx_item)"
+            },
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [
+                  "/(.*)/",
+                  "$1"
+                ],
+                "name": "replaceAlias",
+                "params": [
+                  {
+                    "name": "regexp",
+                    "type": "string"
+                  },
+                  {
+                    "name": "newAlias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "/: Zabbix agent availability$/",
+                " (agente)"
+              ],
+              "text": "replaceAlias(/: Zabbix agent availability$/,  (agente))"
+            },
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [
+                  "/(.*)/",
+                  "$1"
+                ],
+                "name": "replaceAlias",
+                "params": [
+                  {
+                    "name": "regexp",
+                    "type": "string"
+                  },
+                  {
+                    "name": "newAlias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "/: ICMP ping$/",
+                " (ping)"
+              ],
+              "text": "replaceAlias(/: ICMP ping$/,  (ping))"
+            }
+          ],
+          "group": {
+            "filter": "/^Servidores\\/.*$/"
+          },
+          "host": {
+            "filter": "/^$site_hosts$/"
+          },
+          "item": {
+            "filter": "/^(Zabbix agent availability|ICMP ping)$/"
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "options": {
+            "disableDataAlignment": true,
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "useTrends": "false"
+          },
+          "queryType": "0",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": "5m",
+      "title": "COMPUTE · SERVIDORES & HYPERVISORS",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "reducers": [
+              "lastNotNull"
+            ]
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#10b981",
+                "value": 0
+              },
+              {
+                "color": "#f59e0b",
+                "value": 70
+              },
+              {
+                "color": "#ef4444",
+                "value": 85
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "Last.*|Value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Métrica Atual"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "Field|Metric"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Firewall / Indicador"
+              },
+              {
+                "id": "custom.width",
+                "value": 220
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 19,
+        "y": 8,
+        "w": 5,
+        "h": 5
+      },
+      "hideTimeOverride": true,
+      "id": 6,
+      "maxDataPoints": 10,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "enablePagination": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "13.2.3",
+      "targets": [
+        {
+          "application": {
+            "filter": ""
+          },
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "functions": [
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [],
+                "name": "setAlias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "$__zbx_host_name: CPU"
+              ],
+              "text": "setAlias($__zbx_host_name: CPU)"
+            }
+          ],
+          "group": {
+            "filter": "/^Rede\\/Firewalls$/"
+          },
+          "host": {
+            "filter": "/^$site_hosts$/"
+          },
+          "item": {
+            "filter": "/^CPU utilization$/"
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "options": {
+            "disableDataAlignment": true,
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "useTrends": "false"
+          },
+          "queryType": "0",
+          "refId": "A"
+        },
+        {
+          "application": {
+            "filter": ""
+          },
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "functions": [
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [],
+                "name": "setAlias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "$__zbx_host_name: Sessões"
+              ],
+              "text": "setAlias($__zbx_host_name: Sessões)"
+            }
+          ],
+          "group": {
+            "filter": "/^Rede\\/Firewalls$/"
+          },
+          "host": {
+            "filter": "/^$site_hosts$/"
+          },
+          "item": {
+            "filter": "/^IPv4 Active sessions$/"
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "options": {
+            "disableDataAlignment": true,
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "useTrends": "false"
+          },
+          "queryType": "0",
+          "refId": "B"
+        }
+      ],
+      "timeFrom": "10m",
+      "title": "FIREWALLS · CPU & SESSÕES IPV4",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "reducers": [
+              "lastNotNull"
+            ]
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#10b981",
+                "value": 0
+              },
+              {
+                "color": "#f59e0b",
+                "value": 28
+              },
+              {
+                "color": "#ef4444",
+                "value": 35
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "Last.*|Value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Temperatura"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "Field|Metric"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Equipamento"
+              },
+              {
+                "id": "custom.width",
+                "value": 220
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 19,
+        "y": 13,
+        "w": 5,
+        "h": 6
+      },
+      "hideTimeOverride": true,
+      "id": 7,
+      "maxDataPoints": 100,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "enablePagination": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "13.2.3",
+      "targets": [
+        {
+          "application": {
+            "filter": ""
+          },
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "functions": [
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [],
+                "name": "setAlias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "$__zbx_host_name: $__zbx_item"
+              ],
+              "text": "setAlias($__zbx_host_name: $__zbx_item)"
+            },
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [
+                  "/(.*)/",
+                  "$1"
+                ],
+                "name": "replaceAlias",
+                "params": [
+                  {
+                    "name": "regexp",
+                    "type": "string"
+                  },
+                  {
+                    "name": "newAlias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "/: Probe \\[.*Inlet Temp\\]: Value$/",
+                ": Inlet"
+              ],
+              "text": "replaceAlias(/: Probe \\[.*Inlet Temp\\]: Value$/, : Inlet)"
+            },
+            {
+              "def": {
+                "category": "Alias",
+                "defaultParams": [
+                  "/(.*)/",
+                  "$1"
+                ],
+                "name": "replaceAlias",
+                "params": [
+                  {
+                    "name": "regexp",
+                    "type": "string"
+                  },
+                  {
+                    "name": "newAlias",
+                    "type": "string"
+                  }
+                ]
+              },
+              "params": [
+                "/: Bateria: Temperatura$/",
+                ": Bateria"
+              ],
+              "text": "replaceAlias(/: Bateria: Temperatura$/, : Bateria)"
+            }
+          ],
+          "group": {
+            "filter": "/^Infra\\/.*$/"
+          },
+          "host": {
+            "filter": "/^$site_hosts$/"
+          },
+          "item": {
+            "filter": "/^(Probe \\[(System Board )?Inlet Temp\\]: Value|Bateria: Temperatura)$/"
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "options": {
+            "disableDataAlignment": true,
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "useTrends": "false"
+          },
+          "queryType": "0",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": "7h",
+      "title": "TELEMETRIA TÉRMICA · IDRAC & UPS",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "reducers": [
+              "lastNotNull"
+            ]
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 19,
+        "w": 24,
+        "h": 6
+      },
+      "id": 8,
+      "options": {
+        "ackEventColor": "rgb(56, 219, 156)",
+        "ackField": true,
+        "ageField": true,
+        "allowDangerousHTML": false,
+        "customLastChangeFormat": true,
+        "customTagColumns": "",
+        "dataLinks": [],
+        "descriptionAtNewLine": false,
+        "descriptionField": true,
+        "fontSize": "105%",
+        "highlightBackground": false,
+        "highlightNewEvents": false,
+        "highlightNewerThan": "1h",
+        "hostField": true,
+        "hostGroups": true,
+        "hostIpField": false,
+        "hostProxy": false,
+        "hostTechNameField": false,
+        "lastChangeFormat": "DD/MM HH:mm",
+        "layout": "table",
+        "markAckEvents": false,
+        "okEventColor": "rgb(56, 189, 113)",
+        "opdataField": false,
+        "pageSize": 8,
+        "problemTimeline": false,
+        "severityField": true,
+        "showDatasourceName": false,
+        "showSearchFilter": false,
+        "showTags": true,
+        "sortProblems": "lastchange",
+        "statusField": true,
+        "statusIcon": false,
+        "triggerSeverity": [
+          {
+            "color": "rgb(108, 108, 108)",
+            "priority": 0,
+            "severity": "Not classified",
+            "show": true
+          },
+          {
+            "color": "rgb(120, 158, 183)",
+            "priority": 1,
+            "severity": "Information",
+            "show": true
+          },
+          {
+            "color": "rgb(175, 180, 36)",
+            "priority": 2,
+            "severity": "Warning",
+            "show": true
+          },
+          {
+            "color": "rgb(255, 137, 30)",
+            "priority": 3,
+            "severity": "Average",
+            "show": true
+          },
+          {
+            "color": "rgb(255, 101, 72)",
+            "priority": 4,
+            "severity": "High",
+            "show": true
+          },
+          {
+            "color": "rgb(215, 0, 0)",
+            "priority": 5,
+            "severity": "Disaster",
+            "show": true
+          }
+        ]
+      },
+      "pluginVersion": "6.9.1",
+      "targets": [
+        {
+          "application": {
+            "filter": ""
+          },
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "options": {
+            "acknowledged": 2,
+            "hostsInMaintenance": false,
+            "limit": 100,
+            "minSeverity": 2,
+            "sortProblems": "priority"
+          },
+          "proxy": {
+            "filter": ""
+          },
+          "queryType": "5",
+          "refId": "A",
+          "showProblems": "problems",
+          "tags": {
+            "filter": ""
+          },
+          "trigger": {
+            "filter": ""
+          }
+        }
+      ],
+      "title": "FEED DE ALARMES NOC · TEMPO REAL (MÉDIA OU SUPERIOR)",
+      "type": "alexanderzobnin-zabbix-triggers-panel"
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 39,
+  "tags": [
+    "autodiscovery",
+    "autodiscovery-v3",
+    "noc",
+    "topologia"
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "label": "Data Source",
+        "query": "alexanderzobnin-zabbix-datasource",
+        "current": {
+          "selected": true,
+          "text": "zabbix",
+          "value": "zabbix"
+        },
+        "hide": 0
+      },
+      {
+        "name": "site",
+        "type": "custom",
+        "label": "Filial / Unidade",
+        "query": "BAHIA (BA) : BA, Barueri · HUB MATRIZ : Barueri, PARANÁ (PR) : PR, RIO DE JANEIRO (RJ) : RJ",
+        "options": [
+          {
+            "text": "Todas",
+            "value": "$__all",
+            "selected": true
+          },
+          {
+            "text": "BAHIA (BA)",
+            "value": "BA",
+            "selected": false
+          },
+          {
+            "text": "Barueri · HUB MATRIZ",
+            "value": "Barueri",
+            "selected": false
+          },
+          {
+            "text": "PARANÁ (PR)",
+            "value": "PR",
+            "selected": false
+          },
+          {
+            "text": "RIO DE JANEIRO (RJ)",
+            "value": "RJ",
+            "selected": false
+          }
+        ],
+        "current": {
+          "selected": true,
+          "text": "Todas",
+          "value": "$__all"
+        },
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": false,
+        "hide": 0
+      },
+      {
+        "name": "site_hosts",
+        "type": "query",
+        "label": "Hosts da Filial",
+        "datasource": {
+          "type": "alexanderzobnin-zabbix-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "application": "",
+          "group": "/^Filiais\\/$site$/",
+          "host": "/.*/",
+          "item": "",
+          "itemTag": "",
+          "queryType": "host"
+        },
+        "includeAll": true,
+        "multi": true,
+        "hide": 2,
+        "refresh": 1,
+        "sort": 1
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m"
+    ]
+  },
+  "timezone": "browser",
+  "title": "AutoDiscovery v3 - Topologia da Rede",
+  "uid": "autodiscovery-topology-v3",
+  "version": 1
+}

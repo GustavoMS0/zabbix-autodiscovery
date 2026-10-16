@@ -60,11 +60,13 @@ UPLINK_IN_RE = r"/^Interface (eth0|vwiresta\d+)\(\): Bits received$/"
 UPLINK_OUT_RE = r"/^Interface (eth0|vwiresta\d+)\(\): Bits sent$/"
 RADIO_IFACES = r"(eth0|wifi\d|ra\d|rai\d)"
 RADIO_SENT_RE = r"/^Interface (wifi\d|ra\d|rai\d)\(\): Bits sent$/"
+CLIENTS_RE = r"/^Wireless: Connected clients$/"
 # UniFi load average counts kernel/IO threads: the Barueri APs sit at a flat ~2.0 all day while healthy
 # (Zabbix: 1m 2.04 / 5m 2.03 / 15m 2.00), so v1's 1.5 / 3 painted them amber forever. Amber from 3,
 # red from 4, gauge scale 0-5.
 LOAD_UNIFI = S.steps(S.OK, (3, S.WARN), (4, S.CRIT))
 LOAD_MAX = 5
+CLIENTS_STEPS = S.steps(S.TEXT, (50, S.WARN), (80, S.CRIT))
 
 
 def uplink_kpi():
@@ -105,34 +107,36 @@ def _inventory(cfg):
         matrix_target("ICMP ping", "Ping", ref="A"),
         matrix_target("ICMP response time", "Latência", _scale(1000), ref="B"),
         matrix_target("ICMP loss", "Perda", ref="C"),
-        matrix_target(S.LOAD_1M_RE, "Carga CPU (1 min)", ref="D"),
-        matrix_target(S.MEM_RE, "Memória", ref="E"),
-        matrix_target(CABLE_IN_RE, "eth0 recebido", ref="F"),
-        matrix_target(CABLE_OUT_RE, "eth0 enviado", ref="G"),
-        matrix_target(MESH_IN_RE, "Mesh recebido", ref="H"),
-        matrix_target(MESH_OUT_RE, "Mesh enviado", ref="I"),
-        uptime_target("J"),
-        *site_targets(cfg, "K"),
+        matrix_target(CLIENTS_RE, "Clientes", ref="D"),
+        matrix_target(S.LOAD_1M_RE, "Carga CPU (1 min)", ref="E"),
+        matrix_target(S.MEM_RE, "Memória", ref="F"),
+        matrix_target(CABLE_IN_RE, "eth0 recebido", ref="G"),
+        matrix_target(CABLE_OUT_RE, "eth0 enviado", ref="H"),
+        matrix_target(MESH_IN_RE, "Mesh recebido", ref="I"),
+        matrix_target(MESH_OUT_RE, "Mesh enviado", ref="J"),
+        uptime_target("K"),
+        *site_targets(cfg, "L"),
     ]
-    order = ["Filial", "Ping", "Latência", "Perda", "Carga CPU (1 min)", "Memória", "Mesh recebido",
+    order = ["Filial", "Ping", "Latência", "Perda", "Clientes", "Carga CPU (1 min)", "Memória", "Mesh recebido",
              "Uplink recebido", "Uplink enviado", "Uptime"]
     mesh = [{"type": "range", "options": {"from": -1e18, "to": 1e18, "result": {"text": "MESH", "color": S.ACCENT}}}]
-    # ~1060 px fixed: at 1440 the table fits without a horizontal scrollbar; the two gauges take the rest
+    # ~1110 px fixed: at 1440 the table fits without a horizontal scrollbar; the two gauges take the rest
     columns = [
-        S._col("Access Point", ("links", host_link(KEY, "Access Point")), ("custom.width", 215)),
-        S._col("Filial", ("mappings", site_mapping(cfg)), ("custom.width", 125), ("custom.align", "left")),
-        status_col("Ping", width=100),
-        text_col("Latência", LATENCY_MS, unit="ms", decimals=1, width=92),
-        text_col("Perda", S.LOSS_PCT, unit="percent", decimals=0, width=70),
+        S._col("Access Point", ("links", host_link(KEY, "Access Point")), ("custom.width", 205)),
+        S._col("Filial", ("mappings", site_mapping(cfg)), ("custom.width", 115), ("custom.align", "left")),
+        status_col("Ping", width=95),
+        text_col("Latência", LATENCY_MS, unit="ms", decimals=1, width=88),
+        text_col("Perda", S.LOSS_PCT, unit="percent", decimals=0, width=68),
+        text_col("Clientes", CLIENTS_STEPS, decimals=0, width=78, no_value="—"),
         gauge_col("Carga CPU (1 min)", LOAD_UNIFI, unit="none", max=LOAD_MAX, decimals=2),
         gauge_col("Memória", S.PCT),
         # the mesh station value doubles as the uplink type: any value = MESH, none = CABO
-        S._col("Mesh recebido", ("displayName", "Uplink"), ("custom.width", 82), ("custom.align", "center"),
+        S._col("Mesh recebido", ("displayName", "Uplink"), ("custom.width", 78), ("custom.align", "center"),
                ("custom.cellOptions", {"type": "color-text"}), ("color", {"mode": "fixed", "fixedColor": S.MUTED}),
                ("mappings", mesh + S.no_data_map("CABO", color=S.MUTED))),
-        text_col("Uplink recebido", S.NEUTRAL, unit="bps", decimals=1, width=125),
-        text_col("Uplink enviado", S.steps(S.ACCENT_2), unit="bps", decimals=1, width=125),
-        uptime_col(width=95),
+        text_col("Uplink recebido", S.NEUTRAL, unit="bps", decimals=1, width=120),
+        text_col("Uplink enviado", S.steps(S.ACCENT_2), unit="bps", decimals=1, width=120),
+        uptime_col(width=90),
     ]
     return S.table(
         "INVENTÁRIO E ESTADO ATUAL", targets, id=TABLE_ID, columns=columns, cell_height="sm",
@@ -141,7 +145,8 @@ def _inventory(cfg):
                          S.organize(exclude=["eth0 recebido", "eth0 enviado", "Mesh enviado"],
                                     order=["Access Point", *order])],
         time_from=S.STAT_WINDOW, mdp=S.STAT_MDP,
-        description="Último valor (15 min) por access point. Carga CPU = load average de 1 min (o template "
+        description="Último valor (15 min) por access point. Clientes = estações Wi-Fi conectadas aos SSIDs "
+                    "(template AutoDiscovery - UniFi wireless). Carga CPU = load average de 1 min (o template "
                     "UniFi/AirOS não expõe CPU em % via SNMP; os UniFi ficam perto de 2 normalmente, então "
                     "atenção a partir de 3 e crítico a partir de 4). Uplink: CABO = eth0; MESH = o AP chega à "
                     "rede pelo Wi-Fi de outro AP (interface vwiresta), e o tráfego mostrado é o do enlace mesh. "

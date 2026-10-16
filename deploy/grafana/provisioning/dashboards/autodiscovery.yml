@@ -2,8 +2,16 @@ apiVersion: 1
 
 providers:
   - name: autodiscovery
-    folder: Zabbix AutoDiscovery
+    folder: AutoDiscovery v2
+    folderUid: autodiscovery-v2
     type: file
     allowUiUpdates: true
     options:
       path: /var/lib/grafana/dashboards
+  - name: autodiscovery-v3
+    folder: AutoDiscovery v3
+    folderUid: autodiscovery-v3
+    type: file
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards-v3

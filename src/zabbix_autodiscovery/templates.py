@@ -11,11 +11,18 @@ from .provision import PREFIX, TEMPLATE_GROUP
 
 PRINTER_TEMPLATE = f"{PREFIX}Printer by SNMP"
 SWITCH_TEMPLATE = f"{PREFIX}Switch port usage"
+UNIFI_TEMPLATE = f"{PREFIX}UniFi wireless"
+WALK_TEMPLATES = (SWITCH_TEMPLATE, UNIFI_TEMPLATE)
 
 # Skip waste containers (they fill up instead of running out). Matched by name because the supply
 # class is unreliable: HP reports toner cartridges as "receptacleThatIsFilled" (3) instead of 4.
 SUPPLY_FILTER = {"evaltype": 0, "conditions": [
     {"macro": "{#SUPPLY.NAME}", "value": "(?i)waste|res[ií]duo|residual|collect|recolh", "operator": 9}]}
+
+# Skip internal UniFi wireless uplinks (vwire*) and hidden adoption SSIDs (element-*)
+VAP_FILTER = {"evaltype": 1, "conditions": [
+    {"macro": "{#VAP.NAME}", "value": "(?i)^vwire", "operator": 9},
+    {"macro": "{#VAP.ESSID}", "value": "(?i)^(vwire-|element-)", "operator": 9}]}
 
 # Printer-MIB uses negative levels as codes (-2 unknown, -3 "some remaining") and may report an unknown
 # capacity (-2). Raw values are kept; the % formula divides by the comparisons, so it becomes unsupported
@@ -53,6 +60,23 @@ Object.keys(t).forEach(function (i) {
 });
 return JSON.stringify({total: total, up: up, down_enabled: down_enabled,
                        usage: total ? Math.round(1000 * up / total) / 10 : 0});"""
+
+# Connected Wi-Fi clients from UBNT-UniFi-MIB::unifiVapTable (.7 = unifiVapName, .8 = unifiVapNumStations).
+# Wireless mesh backhaul interfaces (vwire*) are excluded from client counts.
+UNIFI_CLIENTS_JS = """var name = {}, clients = {};
+value.split('\\n').forEach(function (line) {
+    var m = line.match(/\\.1\\.3\\.6\\.1\\.4\\.1\\.41112\\.1\\.6\\.1\\.2\\.1\\.(\\d+)\\.(\\d+) = [^:]+: (.*)/);
+    if (!m) { return; }
+    var col = m[1], idx = m[2], val = m[3].replace(/^"|"$/g, '').trim();
+    if (col === '7') { name[idx] = val; }
+    if (col === '8') { clients[idx] = parseInt(val, 10) || 0; }
+});
+var total = 0;
+Object.keys(clients).forEach(function (i) {
+    if (name[i] && /^vwire/i.test(name[i])) { return; }
+    total += clients[i];
+});
+return JSON.stringify({clients: total});"""
 
 
 def _template(api, name, description, macros):
@@ -170,12 +194,77 @@ def ensure_printer_template(api, log=print):
     return tid
 
 
+FASTPATH_JS = r"""
+var free = null, total = null, cpu = null, temp = null, name = {}, pct = {};
+value.split('\n').forEach(function (line) {
+    var m = line.match(/\.1\.3\.6\.1\.4\.1\.674\.10895\.5000\.2\.6132\.1\.1\.(\S+) = [^:]+: (.*)/);
+    if (!m) return;
+    var oid = m[1], val = m[2].replace(/^"|"$/g, '').trim();
+    if (oid === '1.1.4.1.0') free = parseFloat(val);
+    else if (oid === '1.1.4.2.0') total = parseFloat(val);
+    else if (oid === '1.1.4.4.0') {
+        var c = val.match(/1\s*Min\s*\(\s*([\d.]+)%\)/i) || val.match(/5\s*Sec\s*\(\s*([\d.]+)%\)/i);
+        if (c) cpu = parseFloat(c[1]);
+    } else if (oid.indexOf('1.1.4.3.1.2.') === 0) name[oid.slice(12)] = val;
+    else if (oid.indexOf('1.1.4.3.1.3.') === 0) pct[oid.slice(12)] = val;
+    else if (oid === '43.1.8.1.4.0') {
+        var t = parseFloat(val);
+        if (t > 0) temp = t;
+    }
+});
+if (cpu === null) {
+    Object.keys(name).forEach(function (i) {
+        if (/Idle/i.test(name[i]) && pct[i] !== undefined) {
+            var p = parseFloat(pct[i]);
+            if (!isNaN(p)) cpu = Math.round((100 - p) * 100) / 100;
+        }
+    });
+}
+var out = {};
+if (cpu !== null && !isNaN(cpu)) out.cpu = cpu;
+if (total && total > 0 && free !== null && !isNaN(free)) out.mem = Math.round((total - free) / total * 1000) / 10;
+if (temp !== null && !isNaN(temp)) out.temp = temp;
+return JSON.stringify(out);
+""".strip()
+
+
+def _ensure_fastpath_items(api, tid):
+    existing = api.call("item.get", {"hostids": [tid], "filter": {"key_": "switch.fastpath.walk"},
+                                     "output": ["itemid"]})
+    if existing:
+        return
+    htag = [{"tag": "component", "value": "health"}]
+    fp_master = api.call("item.create", _snmp(
+        tid, "Switch: FastPath health walk", "switch.fastpath.walk",
+        "walk[1.3.6.1.4.1.674.10895.5000.2.6132.1.1.1.1.4.1,"
+        "1.3.6.1.4.1.674.10895.5000.2.6132.1.1.1.1.4.2,"
+        "1.3.6.1.4.1.674.10895.5000.2.6132.1.1.1.1.4.3.1.2,"
+        "1.3.6.1.4.1.674.10895.5000.2.6132.1.1.1.1.4.3.1.3,"
+        "1.3.6.1.4.1.674.10895.5000.2.6132.1.1.1.1.4.4,"
+        "1.3.6.1.4.1.674.10895.5000.2.6132.1.1.43.1.8.1.4]",
+        4, "5m", history="1h", tags=htag,
+        preprocessing=[{"type": 21, "params": FASTPATH_JS, "error_handler": 0, "error_handler_params": ""}],
+    ))["itemids"][0]
+
+    def fp_dep(name, key, path, units):
+        return {"hostid": tid, "type": 18, "master_itemid": fp_master, "name": name, "key_": key,
+                "value_type": 0, "units": units, "tags": htag,
+                "preprocessing": [{"type": 12, "params": path, "error_handler": 1, "error_handler_params": ""}]}
+
+    api.call("item.create", [
+        fp_dep("Switch: CPU utilization", "switch.cpu.util", "$.cpu", "%"),
+        fp_dep("Switch: Memory utilization", "switch.memory.util", "$.mem", "%"),
+        fp_dep("Switch: Temperature", "switch.temperature", "$.temp", "°C"),
+    ])
+
+
 def ensure_switch_template(api, log=print):
     tid, created = _template(api, SWITCH_TEMPLATE,
                              "Created by zabbix-autodiscovery. Physical port usage of a switch (ports in use, "
                              "total, %), from one SNMP walk of the IF-MIB. Requires Zabbix 7.0+ (walk[]).",
                              {"{$SWITCH.PORT.USAGE.WARN}": "90"})
     if not created:
+        _ensure_fastpath_items(api, tid)
         return tid
     tag = [{"tag": "component", "value": "ports"}]
     master = api.call("item.create", _snmp(
@@ -195,6 +284,7 @@ def ensure_switch_template(api, log=print):
         dep("Switch: Enabled ports without link", "switch.ports.down_enabled", "$.down_enabled"),
         dep("Switch: Port usage", "switch.ports.usage", "$.usage", "%"),
     ])
+    _ensure_fastpath_items(api, tid)
     api.call("trigger.create", {
         "description": "Switch port usage above {$SWITCH.PORT.USAGE.WARN}%", "priority": 2, "tags": tag,
         "expression": f"min(/{SWITCH_TEMPLATE}/switch.ports.usage,1h)>{{$SWITCH.PORT.USAGE.WARN}}",
@@ -204,11 +294,58 @@ def ensure_switch_template(api, log=print):
     return tid
 
 
-ENSURE = {PRINTER_TEMPLATE: ensure_printer_template, SWITCH_TEMPLATE: ensure_switch_template}
+def ensure_unifi_template(api, log=print):
+    tid, created = _template(api, UNIFI_TEMPLATE,
+                             "Created by zabbix-autodiscovery. Ubiquiti UniFi access points through "
+                             "UBNT-UniFi-MIB (1.3.6.1.4.1.41112.1.6): total connected wireless clients, "
+                             "per-SSID clients, hardware model and firmware version. Requires Zabbix 7.0+.",
+                             {"{$UNIFI.CLIENTS.WARN}": "80"})
+    if not created:
+        return tid
+    tag = [{"tag": "component", "value": "wireless"}]
+    master = api.call("item.create", _snmp(
+        tid, "Wireless: UniFi VAP table", "unifi.vap.walk",
+        "walk[1.3.6.1.4.1.41112.1.6.1.2.1.7,1.3.6.1.4.1.41112.1.6.1.2.1.8]", 4, "3m", history="1h", tags=tag,
+        preprocessing=[{"type": 21, "params": UNIFI_CLIENTS_JS, "error_handler": 0, "error_handler_params": ""}],
+    ))["itemids"][0]
+    api.call("item.create", [
+        {"hostid": tid, "type": 18, "master_itemid": master, "name": "Wireless: Connected clients",
+         "key_": "unifi.clients.total", "value_type": 3, "tags": tag,
+         "preprocessing": [{"type": 12, "params": "$.clients", "error_handler": 0, "error_handler_params": ""}]},
+        _snmp(tid, "Wireless: Model", "unifi.model", "1.3.6.1.4.1.41112.1.6.3.3.0", 1, "1d", tags=tag),
+        _snmp(tid, "Wireless: Firmware version", "unifi.firmware", "1.3.6.1.4.1.41112.1.6.3.6.0", 1, "1d", tags=tag),
+    ])
+    api.call("trigger.create", {
+        "description": "UniFi AP connected clients above {$UNIFI.CLIENTS.WARN}", "priority": 2, "tags": tag,
+        "expression": f"min(/{UNIFI_TEMPLATE}/unifi.clients.total,15m)>{{$UNIFI.CLIENTS.WARN}}",
+        "comments": "High client density on a single access point.",
+    })
+    rule = api.call("discoveryrule.create", {
+        "hostid": tid, "type": 20, "name": "UniFi VAP discovery", "key_": "unifi.vap.discovery",
+        "snmp_oid": "discovery[{#VAP.ESSID},1.3.6.1.4.1.41112.1.6.1.2.1.6,{#VAP.NAME},1.3.6.1.4.1.41112.1.6.1.2.1.7]",
+        "delay": "1h", "lifetime": "7d",
+        "filter": VAP_FILTER,
+    })["itemids"][0]
+    vtag = [{"tag": "component", "value": "wireless"}, {"tag": "ssid", "value": "{#VAP.ESSID}"}]
+    api.call("itemprototype.create", [
+        _snmp(tid, "SSID [{#VAP.ESSID} ({#VAP.NAME})]: Connected clients",
+              "unifi.vap.clients[{#SNMPINDEX}]", "1.3.6.1.4.1.41112.1.6.1.2.1.8.{#SNMPINDEX}", 3, "3m",
+              ruleid=rule, tags=vtag),
+    ])
+    log(f"- template '{UNIFI_TEMPLATE}' created")
+    return tid
+
+
+ENSURE = {
+    PRINTER_TEMPLATE: ensure_printer_template,
+    SWITCH_TEMPLATE: ensure_switch_template,
+    UNIFI_TEMPLATE: ensure_unifi_template,
+}
 
 
 def ensure_addons(api, names, log=print):
     """Create the add-on templates referenced by the config (only the ones this module knows)."""
     for name in names:
-        if name in ENSURE and (name != SWITCH_TEMPLATE or api.version >= (7, 0)):
+        if name in ENSURE and (name not in WALK_TEMPLATES or api.version >= (7, 0)):
             ENSURE[name](api, log)
+

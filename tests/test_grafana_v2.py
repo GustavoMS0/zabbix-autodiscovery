@@ -116,3 +116,28 @@ def test_cli_v2_writes_own_directory(example_config, tmp_path):
     assert "autodiscovery-overview-v2.json" in names and len(names) == 10
     assert json.loads((out / "autodiscovery-overview-v2.json").read_text(encoding="utf-8"))["uid"] \
         == "autodiscovery-overview-v2"
+
+
+def test_v3_dashboards_and_cli(example_config, tmp_path):
+    from zabbix_autodiscovery.grafana_v3 import build_all as build_all_v3
+    v3_set = build_all_v3(example_config, api=None, log=lambda *_: None)
+    uids = {d["uid"] for d in v3_set.values()}
+    assert "autodiscovery-overview-v3" in uids
+    assert "autodiscovery-topology-v3" in uids
+    assert "autodiscovery-maps-v3" in uids
+    assert len(uids) == 10
+    for d in v3_set.values():
+        assert d["uid"].startswith("autodiscovery-") and d["uid"].endswith("-v3")
+        assert d["title"].startswith("AutoDiscovery v3 - ")
+        assert {"autodiscovery", "autodiscovery-v3"} <= set(d["tags"])
+        text = json.dumps(d)
+        for target in re.findall(r"/d/([\w-]+)", text):
+            assert target in uids, (d["uid"], target)
+
+    out = tmp_path / "v3"
+    out.mkdir()
+    cli.cmd_grafana_dashboards(example_config, cli.build_parser().parse_args(
+        ["grafana-dashboards", "--v3", "-o", str(out), "--include-empty"]))
+    names = {p.name for p in out.glob("*.json")}
+    assert "autodiscovery-topology-v3.json" in names and "autodiscovery-maps-v3.json" in names and len(names) == 10
+
