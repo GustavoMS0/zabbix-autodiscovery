@@ -1,0 +1,3323 @@
+{
+  "uid": "autodiscovery-overview-v3",
+  "title": "AutoDiscovery v3 - Visão Geral",
+  "description": "Painel NOC v3 para TV 1920x1080: saúde global, clientes Wi-Fi, filiais, categorias e problemas ativos.",
+  "tags": [
+    "autodiscovery",
+    "autodiscovery-v3"
+  ],
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 1,
+  "refresh": "1m",
+  "schemaVersion": 41,
+  "fiscalYearStartMonth": 0,
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {
+    "hidden": true
+  },
+  "links": [],
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "label": "Zabbix",
+        "type": "datasource",
+        "query": "alexanderzobnin-zabbix-datasource",
+        "current": {
+          "text": "zabbix",
+          "value": "zabbix"
+        },
+        "hide": 2
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "type": "text",
+      "title": "",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"border-left:4px solid #22D3EE;padding:2px 0 2px 14px;text-align:left;\"><div style=\"color:#8B98AD;font-size:12px;letter-spacing:3px;text-transform:uppercase;\">NOC v3 · Zabbix</div><div style=\"color:#E6EDF7;font-size:26px;font-weight:700;letter-spacing:1px;line-height:1.2;\">VISÃO GERAL</div><div style=\"margin-top:6px;\"><span style=\"display:inline-block;margin-right:14px;color:#8B98AD;font-size:12px;\"><span style=\"color:#22E58A;font-size:14px;\">&#9679;</span> ONLINE</span><span style=\"display:inline-block;margin-right:14px;color:#8B98AD;font-size:12px;\"><span style=\"color:#FFB224;font-size:14px;\">&#9679;</span> ATENÇÃO</span><span style=\"display:inline-block;margin-right:14px;color:#8B98AD;font-size:12px;\"><span style=\"color:#FF4D5E;font-size:14px;\">&#9679;</span> OFFLINE / CRÍTICO</span><span style=\"display:inline-block;margin-right:14px;color:#8B98AD;font-size:12px;\"><span style=\"color:#7B8794;font-size:14px;\">&#9679;</span> SEM DADOS</span></div></div>",
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        }
+      },
+      "transparent": true,
+      "links": [
+        [
+          "/d/autodiscovery-overview-v3&kiosk",
+          "Visão Geral"
+        ],
+        [
+          "/d/autodiscovery-topology-v3&kiosk",
+          "Topologia da Rede"
+        ]
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 5,
+        "h": 4
+      },
+      "id": 1
+    },
+    {
+      "type": "stat",
+      "title": "HOSTS ONLINE",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 10,
+          "withTransforms": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#22E58A",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Online"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "${__data.fields.Total} monitorados"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": true,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": false,
+        "showPercentChange": false,
+        "text": {
+          "valueSize": 54,
+          "titleSize": 14
+        }
+      },
+      "transparent": false,
+      "description": "Hosts das filiais alcançáveis agora (ping, SNMP ou agente).",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "seriesToRows",
+            "reducers": [
+              "lastNotNull"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "extractFields",
+          "options": {
+            "source": "Field",
+            "format": "json",
+            "replace": false,
+            "keepTime": false
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "dim": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "link": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "host": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "Last *": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "max"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "dim": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "link": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "Last * (max)": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "sum",
+                  "count"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Last * (max) (sum)": "Online",
+              "Last * (max) (count)": "Total"
+            },
+            "excludeByName": {},
+            "indexByName": {}
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Offline",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Total"
+                }
+              },
+              "operator": "-",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Online"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Disponibilidade",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Online"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Total"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "reduceFields",
+            "reducers": [
+              "sum"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "^(Online|Total)$"
+            }
+          }
+        },
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Total",
+                "destinationType": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 5,
+        "y": 0,
+        "w": 3,
+        "h": 4
+      },
+      "id": 2
+    },
+    {
+      "type": "stat",
+      "title": "HOSTS OFFLINE",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 10,
+          "withTransforms": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#22E58A",
+                "value": null
+              },
+              {
+                "color": "#FF4D5E",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Offline"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "de ${__data.fields.Total} hosts"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": true,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": false,
+        "showPercentChange": false,
+        "text": {
+          "valueSize": 54,
+          "titleSize": 14
+        }
+      },
+      "transparent": false,
+      "description": "Hosts das filiais sem nenhuma verificação de disponibilidade OK.",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "seriesToRows",
+            "reducers": [
+              "lastNotNull"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "extractFields",
+          "options": {
+            "source": "Field",
+            "format": "json",
+            "replace": false,
+            "keepTime": false
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "dim": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "link": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "host": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "Last *": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "max"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "dim": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "link": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "Last * (max)": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "sum",
+                  "count"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Last * (max) (sum)": "Online",
+              "Last * (max) (count)": "Total"
+            },
+            "excludeByName": {},
+            "indexByName": {}
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Offline",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Total"
+                }
+              },
+              "operator": "-",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Online"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Disponibilidade",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Online"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Total"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "reduceFields",
+            "reducers": [
+              "sum"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "^(Offline|Total)$"
+            }
+          }
+        },
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Total",
+                "destinationType": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 2,
+        "h": 4
+      },
+      "id": 3
+    },
+    {
+      "type": "stat",
+      "title": "DISPONIBILIDADE",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 10,
+          "withTransforms": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 1,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#FF4D5E",
+                "value": null
+              },
+              {
+                "color": "#FFB224",
+                "value": 0.9
+              },
+              {
+                "color": "#22E58A",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "text": {
+          "valueSize": 54
+        }
+      },
+      "transparent": false,
+      "description": "Hosts online / hosts monitorados nas filiais.",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "seriesToRows",
+            "reducers": [
+              "lastNotNull"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "extractFields",
+          "options": {
+            "source": "Field",
+            "format": "json",
+            "replace": false,
+            "keepTime": false
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "dim": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "link": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "host": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "Last *": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "max"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "dim": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "link": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "Last * (max)": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "sum",
+                  "count"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Last * (max) (sum)": "Online",
+              "Last * (max) (count)": "Total"
+            },
+            "excludeByName": {},
+            "indexByName": {}
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Offline",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Total"
+                }
+              },
+              "operator": "-",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Online"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Disponibilidade",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Online"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Total"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "reduceFields",
+            "reducers": [
+              "sum"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Global",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Online"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Total"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "^Global$"
+            }
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 10,
+        "y": 0,
+        "w": 3,
+        "h": 4
+      },
+      "id": 4
+    },
+    {
+      "type": "stat",
+      "title": "CLIENTES WI-FI",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^Filiais\\/.*$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Wireless: Connected clients$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "$__zbx_host_name"
+              ],
+              "text": "setAlias($__zbx_host_name)"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "displayName": "nos 16 APs",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#22D3EE",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#22D3EE"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": false,
+        "showPercentChange": false,
+        "text": {
+          "valueSize": 54,
+          "titleSize": 14
+        }
+      },
+      "transparent": false,
+      "description": "Total de dispositivos conectados aos Access Points UniFi agora.",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "seriesToRows",
+            "reducers": [
+              "lastNotNull"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "reduceFields",
+            "reducers": [
+              "sum"
+            ],
+            "includeTimeField": false
+          }
+        }
+      ],
+      "timeFrom": "15m",
+      "hideTimeOverride": true,
+      "maxDataPoints": 100,
+      "gridPos": {
+        "x": 13,
+        "y": 0,
+        "w": 3,
+        "h": 4
+      },
+      "id": 5
+    },
+    {
+      "type": "stat",
+      "title": "PROBLEMAS ATIVOS POR SEVERIDADE",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "4",
+          "countTriggersBy": "",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "schema": 13,
+          "group": {
+            "filter": "/^Filiais\\/.*$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "proxy": {
+            "filter": ""
+          },
+          "trigger": {
+            "filter": ""
+          },
+          "tags": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "options": {
+            "minSeverity": 2,
+            "acknowledged": 2,
+            "count": false,
+            "useTimeRange": false,
+            "showDisabledItems": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#7B8794",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "DESASTRE"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#3A4250",
+                      "value": null
+                    },
+                    {
+                      "color": "#FF1F5A",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ALTA"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#3A4250",
+                      "value": null
+                    },
+                    {
+                      "color": "#FF5A3C",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "MÉDIA"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#3A4250",
+                      "value": null
+                    },
+                    {
+                      "color": "#FF9F1C",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ATENÇÃO"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#3A4250",
+                      "value": null
+                    },
+                    {
+                      "color": "#FFD23F",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "text": {
+          "titleSize": 13,
+          "valueSize": 46
+        }
+      },
+      "transparent": false,
+      "description": "Triggers em problema agora nos hosts das filiais (sem dependentes), por severidade.",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "reduceFields",
+            "reducers": [
+              "sum"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Disaster": "DESASTRE",
+              "High": "ALTA",
+              "Average": "MÉDIA",
+              "Warning": "ATENÇÃO"
+            },
+            "excludeByName": {
+              "Host group": true,
+              "Not classified": true,
+              "Information": true
+            },
+            "indexByName": {
+              "Disaster": 0,
+              "High": 1,
+              "Average": 2,
+              "Warning": 3
+            }
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 8,
+        "h": 4
+      },
+      "id": 6
+    },
+    {
+      "type": "stat",
+      "title": "SAÚDE POR FILIAL",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^Filiais\\/Matriz$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^(ICMP ping|SNMP agent availability|Zabbix agent availability)$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "groupBy",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ]
+              },
+              "params": [
+                "1h",
+                "last"
+              ],
+              "text": "groupBy(1h, last)"
+            },
+            {
+              "def": {
+                "name": "removeAboveValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                1
+              ],
+              "text": "removeAboveValue(1)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"dim\": \"Matriz - Sede Principal\", \"link\": \"/d/autodiscovery-topology-v3?var-site=Matriz\", \"host\": \"$__zbx_host_name\"}"
+              ],
+              "text": "setAlias({\"dim\": \"Matriz - Sede Principal\", \"link\": \"/d/autodiscovery-topology-v3?var-site=Matriz\", \"host\": \"$__zbx_host_name\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "B",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^Filiais\\/PR$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^(ICMP ping|SNMP agent availability|Zabbix agent availability)$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "groupBy",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ]
+              },
+              "params": [
+                "1h",
+                "last"
+              ],
+              "text": "groupBy(1h, last)"
+            },
+            {
+              "def": {
+                "name": "removeAboveValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                1
+              ],
+              "text": "removeAboveValue(1)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"dim\": \"Paraná\", \"link\": \"/d/autodiscovery-topology-v3?var-site=PR\", \"host\": \"$__zbx_host_name\"}"
+              ],
+              "text": "setAlias({\"dim\": \"Paraná\", \"link\": \"/d/autodiscovery-topology-v3?var-site=PR\", \"host\": \"$__zbx_host_name\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "C",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^Filiais\\/BA$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^(ICMP ping|SNMP agent availability|Zabbix agent availability)$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "groupBy",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ]
+              },
+              "params": [
+                "1h",
+                "last"
+              ],
+              "text": "groupBy(1h, last)"
+            },
+            {
+              "def": {
+                "name": "removeAboveValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                1
+              ],
+              "text": "removeAboveValue(1)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"dim\": \"Bahia\", \"link\": \"/d/autodiscovery-topology-v3?var-site=BA\", \"host\": \"$__zbx_host_name\"}"
+              ],
+              "text": "setAlias({\"dim\": \"Bahia\", \"link\": \"/d/autodiscovery-topology-v3?var-site=BA\", \"host\": \"$__zbx_host_name\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "D",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^Filiais\\/RJ$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^(ICMP ping|SNMP agent availability|Zabbix agent availability)$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "groupBy",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ]
+              },
+              "params": [
+                "1h",
+                "last"
+              ],
+              "text": "groupBy(1h, last)"
+            },
+            {
+              "def": {
+                "name": "removeAboveValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                1
+              ],
+              "text": "removeAboveValue(1)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"dim\": \"Rio de Janeiro\", \"link\": \"/d/autodiscovery-topology-v3?var-site=RJ\", \"host\": \"$__zbx_host_name\"}"
+              ],
+              "text": "setAlias({\"dim\": \"Rio de Janeiro\", \"link\": \"/d/autodiscovery-topology-v3?var-site=RJ\", \"host\": \"$__zbx_host_name\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "links": [
+            {
+              "title": "Abrir Topologia · ${__data.fields.dim}",
+              "url": "${__data.fields.link}",
+              "targetBlank": false
+            }
+          ],
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "text": "SEM DADOS",
+                  "color": "#3A4250",
+                  "index": 99
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#C0132F",
+                "value": null
+              },
+              {
+                "color": "#A15C00",
+                "value": 0.9
+              },
+              {
+                "color": "#0E6B45",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Disponibilidade"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "displayName",
+                "value": "${__data.fields.dim} · ${__data.fields.Online}/${__data.fields.Total}"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": true,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": false,
+        "showPercentChange": false,
+        "text": {
+          "titleSize": 14,
+          "valueSize": 34
+        },
+        "minVizWidth": 170,
+        "minVizHeight": 70
+      },
+      "transparent": false,
+      "id": 10,
+      "description": "Hosts online / total por filial. Clique para abrir a Topologia da Rede v3 filtrada na filial.",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "seriesToRows",
+            "reducers": [
+              "lastNotNull"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "extractFields",
+          "options": {
+            "source": "Field",
+            "format": "json",
+            "replace": false,
+            "keepTime": false
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "dim": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "link": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "host": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "Last *": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "max"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "dim": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "link": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "Last * (max)": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "sum",
+                  "count"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Last * (max) (sum)": "Online",
+              "Last * (max) (count)": "Total"
+            },
+            "excludeByName": {},
+            "indexByName": {}
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Offline",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Total"
+                }
+              },
+              "operator": "-",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Online"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Disponibilidade",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Online"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Total"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Online",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Total",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Offline",
+                "destinationType": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "timeFrom": "7h",
+      "hideTimeOverride": true,
+      "maxDataPoints": 20,
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 10,
+        "h": 6
+      }
+    },
+    {
+      "type": "stat",
+      "title": "SAÚDE POR CATEGORIA",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^(Rede\\/Firewalls)$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^(ICMP ping|SNMP agent availability|Zabbix agent availability)$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "groupBy",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ]
+              },
+              "params": [
+                "1h",
+                "last"
+              ],
+              "text": "groupBy(1h, last)"
+            },
+            {
+              "def": {
+                "name": "removeAboveValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                1
+              ],
+              "text": "removeAboveValue(1)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"dim\": \"Firewalls\", \"link\": \"/d/autodiscovery-firewalls-v3\", \"host\": \"$__zbx_host_name\"}"
+              ],
+              "text": "setAlias({\"dim\": \"Firewalls\", \"link\": \"/d/autodiscovery-firewalls-v3\", \"host\": \"$__zbx_host_name\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "B",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^(Rede\\/Switches)$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^(ICMP ping|SNMP agent availability|Zabbix agent availability)$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "groupBy",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ]
+              },
+              "params": [
+                "1h",
+                "last"
+              ],
+              "text": "groupBy(1h, last)"
+            },
+            {
+              "def": {
+                "name": "removeAboveValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                1
+              ],
+              "text": "removeAboveValue(1)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"dim\": \"Switches\", \"link\": \"/d/autodiscovery-switches-v3\", \"host\": \"$__zbx_host_name\"}"
+              ],
+              "text": "setAlias({\"dim\": \"Switches\", \"link\": \"/d/autodiscovery-switches-v3\", \"host\": \"$__zbx_host_name\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "C",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^(Rede\\/Access\\ Points)$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^(ICMP ping|SNMP agent availability|Zabbix agent availability)$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "groupBy",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ]
+              },
+              "params": [
+                "1h",
+                "last"
+              ],
+              "text": "groupBy(1h, last)"
+            },
+            {
+              "def": {
+                "name": "removeAboveValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                1
+              ],
+              "text": "removeAboveValue(1)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"dim\": \"Access Points\", \"link\": \"/d/autodiscovery-access-points-v3\", \"host\": \"$__zbx_host_name\"}"
+              ],
+              "text": "setAlias({\"dim\": \"Access Points\", \"link\": \"/d/autodiscovery-access-points-v3\", \"host\": \"$__zbx_host_name\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "D",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^(Servidores\\/Hypervisors|Servidores\\/Linux|Servidores\\/Windows)$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^(ICMP ping|SNMP agent availability|Zabbix agent availability)$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "groupBy",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ]
+              },
+              "params": [
+                "1h",
+                "last"
+              ],
+              "text": "groupBy(1h, last)"
+            },
+            {
+              "def": {
+                "name": "removeAboveValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                1
+              ],
+              "text": "removeAboveValue(1)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"dim\": \"Servidores\", \"link\": \"/d/autodiscovery-servers-v3\", \"host\": \"$__zbx_host_name\"}"
+              ],
+              "text": "setAlias({\"dim\": \"Servidores\", \"link\": \"/d/autodiscovery-servers-v3\", \"host\": \"$__zbx_host_name\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "E",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^(Infra\\/Hardware\\ Servidores)$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^(ICMP ping|SNMP agent availability|Zabbix agent availability)$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "groupBy",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ]
+              },
+              "params": [
+                "1h",
+                "last"
+              ],
+              "text": "groupBy(1h, last)"
+            },
+            {
+              "def": {
+                "name": "removeAboveValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                1
+              ],
+              "text": "removeAboveValue(1)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"dim\": \"Hardware\", \"link\": \"/d/autodiscovery-server-hardware-v3\", \"host\": \"$__zbx_host_name\"}"
+              ],
+              "text": "setAlias({\"dim\": \"Hardware\", \"link\": \"/d/autodiscovery-server-hardware-v3\", \"host\": \"$__zbx_host_name\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "F",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^(Rede\\/Impressoras)$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^(ICMP ping|SNMP agent availability|Zabbix agent availability)$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "groupBy",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ]
+              },
+              "params": [
+                "1h",
+                "last"
+              ],
+              "text": "groupBy(1h, last)"
+            },
+            {
+              "def": {
+                "name": "removeAboveValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                1
+              ],
+              "text": "removeAboveValue(1)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"dim\": \"Impressoras\", \"link\": \"/d/autodiscovery-printers-v3\", \"host\": \"$__zbx_host_name\"}"
+              ],
+              "text": "setAlias({\"dim\": \"Impressoras\", \"link\": \"/d/autodiscovery-printers-v3\", \"host\": \"$__zbx_host_name\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "G",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^(Infra\\/Nobreaks)$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^(ICMP ping|SNMP agent availability|Zabbix agent availability)$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "groupBy",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ]
+              },
+              "params": [
+                "1h",
+                "last"
+              ],
+              "text": "groupBy(1h, last)"
+            },
+            {
+              "def": {
+                "name": "removeAboveValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                1
+              ],
+              "text": "removeAboveValue(1)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"dim\": \"Nobreaks\", \"link\": \"/d/autodiscovery-ups-v3\", \"host\": \"$__zbx_host_name\"}"
+              ],
+              "text": "setAlias({\"dim\": \"Nobreaks\", \"link\": \"/d/autodiscovery-ups-v3\", \"host\": \"$__zbx_host_name\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "links": [
+            {
+              "title": "Abrir ${__data.fields.dim}",
+              "url": "${__data.fields.link}",
+              "targetBlank": false
+            }
+          ],
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "text": "SEM DADOS",
+                  "color": "#3A4250",
+                  "index": 99
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#C0132F",
+                "value": null
+              },
+              {
+                "color": "#A15C00",
+                "value": 0.9
+              },
+              {
+                "color": "#0E6B45",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Disponibilidade"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "displayName",
+                "value": "${__data.fields.dim} · ${__data.fields.Online}/${__data.fields.Total}"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": true,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": false,
+        "showPercentChange": false,
+        "text": {
+          "titleSize": 14,
+          "valueSize": 34
+        },
+        "minVizWidth": 170,
+        "minVizHeight": 70
+      },
+      "transparent": false,
+      "id": 11,
+      "description": "Hosts online / total por tipo de equipamento. Clique para abrir o dashboard v3 da categoria.",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "seriesToRows",
+            "reducers": [
+              "lastNotNull"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "extractFields",
+          "options": {
+            "source": "Field",
+            "format": "json",
+            "replace": false,
+            "keepTime": false
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "dim": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "link": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "host": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "Last *": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "max"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "dim": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "link": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "Last * (max)": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "sum",
+                  "count"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Last * (max) (sum)": "Online",
+              "Last * (max) (count)": "Total"
+            },
+            "excludeByName": {},
+            "indexByName": {}
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Offline",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Total"
+                }
+              },
+              "operator": "-",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Online"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Disponibilidade",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Online"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Total"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Online",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Total",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Offline",
+                "destinationType": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "timeFrom": "7h",
+      "hideTimeOverride": true,
+      "maxDataPoints": 20,
+      "gridPos": {
+        "x": 10,
+        "y": 4,
+        "w": 14,
+        "h": 6
+      }
+    },
+    {
+      "type": "alexanderzobnin-zabbix-triggers-panel",
+      "title": "PROBLEMAS ATIVOS",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "5",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "schema": 13,
+          "group": {
+            "filter": "/^Filiais\\/.*$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "proxy": {
+            "filter": ""
+          },
+          "trigger": {
+            "filter": ""
+          },
+          "tags": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "showProblems": "problems",
+          "options": {
+            "minSeverity": 2,
+            "severities": [
+              2,
+              3,
+              4,
+              5
+            ],
+            "acknowledged": 2,
+            "sortProblems": "severity",
+            "hostsInMaintenance": false,
+            "hostProxy": false,
+            "limit": 200,
+            "useTimeRange": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "schemaVersion": 8,
+        "layout": "table",
+        "fontSize": "115%",
+        "pageSize": 14,
+        "hostField": true,
+        "hostTechNameField": false,
+        "hostIpField": false,
+        "hostProxy": false,
+        "hostGroups": false,
+        "showTags": false,
+        "statusField": false,
+        "statusIcon": false,
+        "severityField": true,
+        "ackField": false,
+        "ageField": true,
+        "opdataField": false,
+        "descriptionField": false,
+        "descriptionAtNewLine": false,
+        "showDatasourceName": false,
+        "sortProblems": "priority",
+        "problemTimeline": true,
+        "highlightBackground": false,
+        "highlightNewEvents": true,
+        "highlightNewerThan": "1h",
+        "customLastChangeFormat": false,
+        "lastChangeFormat": "",
+        "resizedColumns": [],
+        "allowDangerousHTML": false,
+        "triggerSeverity": [
+          {
+            "priority": 0,
+            "severity": "Não classificado",
+            "color": "#7B8794",
+            "show": true
+          },
+          {
+            "priority": 1,
+            "severity": "Informação",
+            "color": "#4FA3FF",
+            "show": true
+          },
+          {
+            "priority": 2,
+            "severity": "Atenção",
+            "color": "#FFD23F",
+            "show": true
+          },
+          {
+            "priority": 3,
+            "severity": "Média",
+            "color": "#FF9F1C",
+            "show": true
+          },
+          {
+            "priority": 4,
+            "severity": "Alta",
+            "color": "#FF5A3C",
+            "show": true
+          },
+          {
+            "priority": 5,
+            "severity": "Desastre",
+            "color": "#FF1F5A",
+            "show": true
+          }
+        ],
+        "okEventColor": "#22E58A",
+        "ackEventColor": "#22D3EE",
+        "markAckEvents": false,
+        "showSearchFilter": false
+      },
+      "transparent": false,
+      "gridPos": {
+        "x": 0,
+        "y": 10,
+        "w": 14,
+        "h": 17
+      },
+      "id": 7
+    },
+    {
+      "type": "bargauge",
+      "title": "LATÊNCIA ICMP · 8 PIORES (MÉDIA 15 MIN)",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^Filiais\\/.*$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "ICMP response time"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "top",
+                "category": "Filter",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "int"
+                  },
+                  {
+                    "name": "value",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  5,
+                  "avg"
+                ]
+              },
+              "params": [
+                8,
+                "avg"
+              ],
+              "text": "top(8, avg)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "$__zbx_host_name"
+              ],
+              "text": "setAlias($__zbx_host_name)"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 1,
+          "min": 0,
+          "max": 0.15,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#22E58A",
+                "value": null
+              },
+              {
+                "color": "#FFB224",
+                "value": 0.05
+              },
+              {
+                "color": "#FF4D5E",
+                "value": 0.15
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": true,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Mean$/"
+        },
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "valueMode": "color",
+        "namePlacement": "left",
+        "showUnfilled": true,
+        "sizing": "manual",
+        "minVizWidth": 8,
+        "minVizHeight": 26,
+        "maxVizHeight": 26,
+        "text": {
+          "titleSize": 13,
+          "valueSize": 16
+        },
+        "legend": {
+          "showLegend": false
+        }
+      },
+      "transparent": false,
+      "description": "Média dos últimos 15 minutos do tempo de resposta ICMP, maiores primeiro.",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "seriesToRows",
+            "reducers": [
+              "mean"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Mean",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "timeFrom": "15m",
+      "hideTimeOverride": true,
+      "maxDataPoints": 100,
+      "gridPos": {
+        "x": 14,
+        "y": 10,
+        "w": 10,
+        "h": 9
+      },
+      "id": 8
+    },
+    {
+      "type": "timeseries",
+      "title": "PERDA DE PACOTES ICMP · 5 PIORES",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^Filiais\\/.*$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "ICMP loss"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "groupBy",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ]
+              },
+              "params": [
+                "5m",
+                "avg"
+              ],
+              "text": "groupBy(5m, avg)"
+            },
+            {
+              "def": {
+                "name": "top",
+                "category": "Filter",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "int"
+                  },
+                  {
+                    "name": "value",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  5,
+                  "avg"
+                ]
+              },
+              "params": [
+                5,
+                "max"
+              ],
+              "text": "top(5, max)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "$__zbx_host_name"
+              ],
+              "text": "setAlias($__zbx_host_name)"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 25,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "pointSize": 4,
+            "spanNulls": 900000,
+            "axisBorderShow": false,
+            "axisPlacement": "auto",
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "barAlignment": 0,
+            "insertNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "dashed"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "axisSoftMin": 0
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#22E58A",
+                "value": null
+              },
+              {
+                "color": "#FFB224",
+                "value": 5
+              },
+              {
+                "color": "#FF4D5E",
+                "value": 20
+              }
+            ]
+          },
+          "color": {
+            "mode": "shades",
+            "fixedColor": "#22D3EE"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc",
+          "hideZeros": false
+        }
+      },
+      "transparent": false,
+      "description": "Perda de pacotes ICMP (média de 5 min) dos 5 hosts com o maior pico no período.",
+      "maxDataPoints": 500,
+      "gridPos": {
+        "x": 14,
+        "y": 19,
+        "w": 10,
+        "h": 8
+      },
+      "id": 9
+    }
+  ]
+}

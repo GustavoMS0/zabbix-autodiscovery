@@ -1,0 +1,7092 @@
+{
+  "uid": "autodiscovery-server-hardware-v3",
+  "title": "AutoDiscovery v3 - Hardware dos Servidores",
+  "description": "Saúde do hardware dos servidores Dell pelo iDRAC (v3): componentes, fontes, discos, temperaturas, ventoinhas e conectividade ICMP + SNMP.",
+  "tags": [
+    "autodiscovery",
+    "autodiscovery-v3"
+  ],
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 1,
+  "refresh": "5m",
+  "schemaVersion": 41,
+  "fiscalYearStartMonth": 0,
+  "time": {
+    "from": "now-1d",
+    "to": "now"
+  },
+  "timepicker": {
+    "quick_ranges": [
+      {
+        "from": "now-5m",
+        "to": "now",
+        "display": "Últimos 5 minutos"
+      },
+      {
+        "from": "now-15m",
+        "to": "now",
+        "display": "Últimos 15 minutos"
+      },
+      {
+        "from": "now-30m",
+        "to": "now",
+        "display": "Últimos 30 minutos"
+      },
+      {
+        "from": "now-1h",
+        "to": "now",
+        "display": "Última 1 hora"
+      },
+      {
+        "from": "now-3h",
+        "to": "now",
+        "display": "Últimas 3 horas"
+      },
+      {
+        "from": "now-6h",
+        "to": "now",
+        "display": "Últimas 6 horas"
+      },
+      {
+        "from": "now-12h",
+        "to": "now",
+        "display": "Últimas 12 horas"
+      },
+      {
+        "from": "now-1d",
+        "to": "now",
+        "display": "Últimas 24 horas"
+      },
+      {
+        "from": "now-2d",
+        "to": "now",
+        "display": "Últimos 2 dias"
+      },
+      {
+        "from": "now-7d",
+        "to": "now",
+        "display": "Últimos 7 dias"
+      }
+    ]
+  },
+  "links": [
+    {
+      "title": "Dashboards v3",
+      "type": "dashboards",
+      "tags": [
+        "autodiscovery-v3"
+      ],
+      "asDropdown": true,
+      "includeVars": false,
+      "keepTime": true,
+      "icon": "external link",
+      "targetBlank": false
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "label": "Zabbix",
+        "type": "datasource",
+        "query": "alexanderzobnin-zabbix-datasource",
+        "current": {
+          "text": "zabbix",
+          "value": "zabbix"
+        },
+        "hide": 0
+      },
+      {
+        "name": "group",
+        "label": "Grupo",
+        "type": "query",
+        "datasource": {
+          "type": "alexanderzobnin-zabbix-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "queryType": "group",
+          "group": "/^(Infra\\/Hardware\\ Servidores)$/",
+          "host": "",
+          "application": "",
+          "itemTag": "",
+          "item": ""
+        },
+        "multi": true,
+        "includeAll": true,
+        "allValue": "/^(Infra\\/Hardware\\ Servidores)$/",
+        "refresh": 1,
+        "sort": 1,
+        "hide": 0,
+        "current": {
+          "text": "Todos",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "host",
+        "label": "Host",
+        "type": "query",
+        "datasource": {
+          "type": "alexanderzobnin-zabbix-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "queryType": "host",
+          "group": "$group",
+          "host": "/.*/",
+          "application": "",
+          "itemTag": "",
+          "item": ""
+        },
+        "multi": true,
+        "includeAll": true,
+        "allValue": "/.*/",
+        "refresh": 1,
+        "sort": 1,
+        "hide": 0,
+        "current": {
+          "text": "Todos",
+          "value": "$__all"
+        }
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "type": "text",
+      "title": "",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"border-left:4px solid #22D3EE;padding:2px 0 2px 14px;text-align:left;\"><div style=\"color:#8B98AD;font-size:12px;letter-spacing:3px;text-transform:uppercase;\">Infra · Dell iDRAC</div><div style=\"color:#E6EDF7;font-size:26px;font-weight:700;letter-spacing:1px;line-height:1.2;\">HARDWARE</div><div style=\"margin-top:6px;\"><span style=\"display:inline-block;margin-right:14px;color:#8B98AD;font-size:12px;\"><span style=\"color:#22E58A;font-size:14px;\">&#9679;</span> ONLINE</span><span style=\"display:inline-block;margin-right:14px;color:#8B98AD;font-size:12px;\"><span style=\"color:#FFB224;font-size:14px;\">&#9679;</span> ATENÇÃO</span><span style=\"display:inline-block;margin-right:14px;color:#8B98AD;font-size:12px;\"><span style=\"color:#FF4D5E;font-size:14px;\">&#9679;</span> OFFLINE / CRÍTICO</span><span style=\"display:inline-block;margin-right:14px;color:#8B98AD;font-size:12px;\"><span style=\"color:#7B8794;font-size:14px;\">&#9679;</span> SEM DADOS</span></div></div>",
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        }
+      },
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "id": 1
+    },
+    {
+      "type": "stat",
+      "title": "ONLINE",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^(ICMP ping|SNMP agent availability|Zabbix agent availability)$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "groupBy",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ]
+              },
+              "params": [
+                "1h",
+                "last"
+              ],
+              "text": "groupBy(1h, last)"
+            },
+            {
+              "def": {
+                "name": "removeAboveValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                1
+              ],
+              "text": "removeAboveValue(1)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"dim\": \"iDRAC\", \"link\": \"\", \"host\": \"$__zbx_host_name\"}"
+              ],
+              "text": "setAlias({\"dim\": \"iDRAC\", \"link\": \"\", \"host\": \"$__zbx_host_name\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "—",
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "text": "—",
+                  "color": "#7B8794",
+                  "index": 99
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#FF4D5E",
+                "value": null
+              },
+              {
+                "color": "#FFB224",
+                "value": 0.9
+              },
+              {
+                "color": "#22E58A",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Disponibilidade"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "displayName",
+                "value": "${__data.fields.Online} de ${__data.fields.Total} iDRACs"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": true,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": false,
+        "showPercentChange": false,
+        "text": {
+          "titleSize": 14,
+          "valueSize": 48
+        }
+      },
+      "transparent": false,
+      "description": "Disponibilidade: iDRACs que respondem ao SNMP agora sobre os monitorados.",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "seriesToRows",
+            "reducers": [
+              "lastNotNull"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "extractFields",
+          "options": {
+            "source": "Field",
+            "format": "json",
+            "replace": false,
+            "keepTime": false
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "dim": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "link": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "host": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "Last *": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "max"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "dim": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "link": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "Last * (max)": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "sum",
+                  "count"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Last * (max) (sum)": "Online",
+              "Last * (max) (count)": "Total"
+            },
+            "excludeByName": {},
+            "indexByName": {}
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Offline",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Total"
+                }
+              },
+              "operator": "-",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Online"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Disponibilidade",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Online"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Total"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Online",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Total",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Offline",
+                "destinationType": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "timeFrom": "7h",
+      "hideTimeOverride": true,
+      "maxDataPoints": 20,
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 3,
+        "h": 4
+      },
+      "id": 2
+    },
+    {
+      "type": "stat",
+      "title": "SAÚDE",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 20,
+          "withTransforms": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "noValue": "—",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "SEM SUPORTE",
+                  "color": "#7B8794",
+                  "index": 0
+                },
+                "1": {
+                  "text": "OUTRO",
+                  "color": "#7B8794",
+                  "index": 1
+                },
+                "2": {
+                  "text": "DESCONHECIDO",
+                  "color": "#7B8794",
+                  "index": 2
+                },
+                "3": {
+                  "text": "OK",
+                  "color": "#22E58A",
+                  "index": 3
+                },
+                "4": {
+                  "text": "ALERTA",
+                  "color": "#FFB224",
+                  "index": 4
+                },
+                "5": {
+                  "text": "CRÍTICO",
+                  "color": "#FF4D5E",
+                  "index": 5
+                },
+                "6": {
+                  "text": "IRRECUPERÁVEL",
+                  "color": "#FF4D5E",
+                  "index": 6
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "text": "—",
+                  "color": "#7B8794",
+                  "index": 99
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#7B8794",
+                "value": null
+              },
+              {
+                "color": "#22E58A",
+                "value": 3
+              },
+              {
+                "color": "#FFB224",
+                "value": 4
+              },
+              {
+                "color": "#FF4D5E",
+                "value": 5
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Geral"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "${__data.fields.Servidor}"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byValue",
+              "options": {
+                "reducer": "lastNotNull",
+                "op": "eq",
+                "value": 3
+              }
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "todos os servidores"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": true,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": false,
+        "showPercentChange": false,
+        "text": {
+          "titleSize": 14,
+          "valueSize": 32
+        }
+      },
+      "transparent": false,
+      "description": "Pior estado geral (Overall system health) entre os servidores, com o servidor afetado.",
+      "transformations": [
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "include",
+            "match": "all",
+            "filters": [
+              {
+                "fieldName": "Geral",
+                "config": {
+                  "id": "isNotNull",
+                  "options": {}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Geral",
+                "desc": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "limit",
+          "options": {
+            "limitField": 1
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "^(Servidor|Geral)$"
+            }
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 9,
+        "y": 0,
+        "w": 3,
+        "h": 4
+      },
+      "id": 3
+    },
+    {
+      "type": "stat",
+      "title": "FONTES",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 20,
+          "withTransforms": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "noValue": "—",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "SEM SUPORTE",
+                  "color": "#7B8794",
+                  "index": 0
+                },
+                "1": {
+                  "text": "OUTRO",
+                  "color": "#7B8794",
+                  "index": 1
+                },
+                "2": {
+                  "text": "DESCONHECIDO",
+                  "color": "#7B8794",
+                  "index": 2
+                },
+                "3": {
+                  "text": "OK",
+                  "color": "#22E58A",
+                  "index": 3
+                },
+                "4": {
+                  "text": "ALERTA",
+                  "color": "#FFB224",
+                  "index": 4
+                },
+                "5": {
+                  "text": "CRÍTICO",
+                  "color": "#FF4D5E",
+                  "index": 5
+                },
+                "6": {
+                  "text": "IRRECUPERÁVEL",
+                  "color": "#FF4D5E",
+                  "index": 6
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "text": "—",
+                  "color": "#7B8794",
+                  "index": 99
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#7B8794",
+                "value": null
+              },
+              {
+                "color": "#22E58A",
+                "value": 3
+              },
+              {
+                "color": "#FFB224",
+                "value": 4
+              },
+              {
+                "color": "#FF4D5E",
+                "value": 5
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Fontes"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "${__data.fields.Servidor}"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byValue",
+              "options": {
+                "reducer": "lastNotNull",
+                "op": "eq",
+                "value": 3
+              }
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "todas as fontes"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": true,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": false,
+        "showPercentChange": false,
+        "text": {
+          "titleSize": 14,
+          "valueSize": 32
+        }
+      },
+      "transparent": false,
+      "description": "Pior estado entre todas as fontes de alimentação, com o servidor afetado.",
+      "transformations": [
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "include",
+            "match": "all",
+            "filters": [
+              {
+                "fieldName": "Fontes",
+                "config": {
+                  "id": "isNotNull",
+                  "options": {}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Fontes",
+                "desc": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "limit",
+          "options": {
+            "limitField": 1
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "^(Servidor|Fontes)$"
+            }
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 3,
+        "h": 4
+      },
+      "id": 4
+    },
+    {
+      "type": "stat",
+      "title": "DISCOS",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 20,
+          "withTransforms": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "noValue": "—",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "SEM SUPORTE",
+                  "color": "#7B8794",
+                  "index": 0
+                },
+                "1": {
+                  "text": "OUTRO",
+                  "color": "#7B8794",
+                  "index": 1
+                },
+                "2": {
+                  "text": "DESCONHECIDO",
+                  "color": "#7B8794",
+                  "index": 2
+                },
+                "3": {
+                  "text": "OK",
+                  "color": "#22E58A",
+                  "index": 3
+                },
+                "4": {
+                  "text": "ALERTA",
+                  "color": "#FFB224",
+                  "index": 4
+                },
+                "5": {
+                  "text": "CRÍTICO",
+                  "color": "#FF4D5E",
+                  "index": 5
+                },
+                "6": {
+                  "text": "IRRECUPERÁVEL",
+                  "color": "#FF4D5E",
+                  "index": 6
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "text": "—",
+                  "color": "#7B8794",
+                  "index": 99
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#7B8794",
+                "value": null
+              },
+              {
+                "color": "#22E58A",
+                "value": 3
+              },
+              {
+                "color": "#FFB224",
+                "value": 4
+              },
+              {
+                "color": "#FF4D5E",
+                "value": 5
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Discos"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "${__data.fields.Servidor}"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byValue",
+              "options": {
+                "reducer": "lastNotNull",
+                "op": "eq",
+                "value": 3
+              }
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "todos os discos"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": true,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": false,
+        "showPercentChange": false,
+        "text": {
+          "titleSize": 14,
+          "valueSize": 32
+        }
+      },
+      "transparent": false,
+      "description": "Pior estado entre todos os discos físicos, com o servidor afetado.",
+      "transformations": [
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "include",
+            "match": "all",
+            "filters": [
+              {
+                "fieldName": "Discos",
+                "config": {
+                  "id": "isNotNull",
+                  "options": {}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Discos",
+                "desc": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "limit",
+          "options": {
+            "limitField": 1
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "^(Servidor|Discos)$"
+            }
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 15,
+        "y": 0,
+        "w": 3,
+        "h": 4
+      },
+      "id": 5
+    },
+    {
+      "type": "stat",
+      "title": "TEMPERATURA",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 21,
+          "withTransforms": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "noValue": "—",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": {
+                  "text": "OUTRO",
+                  "color": "#7B8794",
+                  "index": 0
+                },
+                "2": {
+                  "text": "DESCONHECIDO",
+                  "color": "#7B8794",
+                  "index": 1
+                },
+                "3": {
+                  "text": "OK",
+                  "color": "#22E58A",
+                  "index": 2
+                },
+                "4": {
+                  "text": "ALERTA",
+                  "color": "#FFB224",
+                  "index": 3
+                },
+                "5": {
+                  "text": "CRÍTICO",
+                  "color": "#FF4D5E",
+                  "index": 4
+                },
+                "6": {
+                  "text": "IRRECUPERÁVEL",
+                  "color": "#FF4D5E",
+                  "index": 5
+                },
+                "7": {
+                  "text": "ALERTA",
+                  "color": "#FFB224",
+                  "index": 6
+                },
+                "8": {
+                  "text": "CRÍTICO",
+                  "color": "#FF4D5E",
+                  "index": 7
+                },
+                "9": {
+                  "text": "IRRECUPERÁVEL",
+                  "color": "#FF4D5E",
+                  "index": 8
+                },
+                "10": {
+                  "text": "FALHA",
+                  "color": "#FF4D5E",
+                  "index": 9
+                },
+                "25": {
+                  "text": "CRÍTICO",
+                  "color": "#FF4D5E",
+                  "index": 10
+                },
+                "26": {
+                  "text": "IRRECUPERÁVEL",
+                  "color": "#FF4D5E",
+                  "index": 11
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "text": "—",
+                  "color": "#7B8794",
+                  "index": 99
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#7B8794",
+                "value": null
+              },
+              {
+                "color": "#22E58A",
+                "value": 3
+              },
+              {
+                "color": "#FFB224",
+                "value": 4
+              },
+              {
+                "color": "#FF4D5E",
+                "value": 5
+              },
+              {
+                "color": "#FFB224",
+                "value": 7
+              },
+              {
+                "color": "#FF4D5E",
+                "value": 8
+              },
+              {
+                "color": "#FF4D5E",
+                "value": 25
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Estado"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "entrada máx ${__data.fields.Entrada} °C"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Entrada"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null+nan",
+                      "result": {
+                        "text": "—",
+                        "color": "#7B8794",
+                        "index": 99
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": true,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": false,
+        "showPercentChange": false,
+        "text": {
+          "valueSize": 32,
+          "titleSize": 14
+        }
+      },
+      "transparent": false,
+      "description": "Pior status dos sensores de temperatura do iDRAC (limites do próprio servidor), com a maior temperatura de entrada de ar.",
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "^(Estado|Entrada)$"
+            }
+          }
+        },
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "reduceFields",
+            "reducers": [
+              "max"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Entrada",
+                "destinationType": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 3,
+        "h": 4
+      },
+      "id": 6
+    },
+    {
+      "type": "stat",
+      "title": "CPU MÁX.",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 21,
+          "withTransforms": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix:°C",
+          "decimals": 0,
+          "noValue": "—",
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "text": "—",
+                  "color": "#7B8794",
+                  "index": 99
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#22D3EE",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CPU"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "${__data.fields.Servidor}"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": true,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": false,
+        "showPercentChange": false,
+        "text": {
+          "titleSize": 14,
+          "valueSize": 48
+        }
+      },
+      "transparent": false,
+      "description": "Processador mais quente agora e o seu servidor. O estado (limites do iDRAC) está no quadro TEMP.",
+      "transformations": [
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "include",
+            "match": "all",
+            "filters": [
+              {
+                "fieldName": "CPU",
+                "config": {
+                  "id": "isNotNull",
+                  "options": {}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "CPU",
+                "desc": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "limit",
+          "options": {
+            "limitField": 1
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "^(Servidor|CPU)$"
+            }
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 21,
+        "y": 0,
+        "w": 3,
+        "h": 4
+      },
+      "id": 7
+    },
+    {
+      "type": "table",
+      "title": "MATRIZ DE SAÚDE DOS COMPONENTES (SNMP + PING ICMP)",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Overall system health status$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"Geral\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"Geral\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "B",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Probe \\[.*\\]: Status$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"Sensores\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"Sensores\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "C",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Probe \\[.*\\]: Status$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "removeBelowValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                5
+              ],
+              "text": "removeBelowValue(5)"
+            },
+            {
+              "def": {
+                "name": "removeAboveValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                6
+              ],
+              "text": "removeAboveValue(6)"
+            },
+            {
+              "def": {
+                "name": "offset",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "delta",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  -100
+                ]
+              },
+              "params": [
+                20
+              ],
+              "text": "offset(20)"
+            },
+            {
+              "def": {
+                "name": "transformNull",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                0
+              ],
+              "text": "transformNull(0)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"Sensores\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"Sensores\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "D",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Power supply \\[.*\\]: State$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"Fontes\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"Fontes\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "E",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Physical disk \\[.*\\]: Status$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"Discos\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"Discos\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "F",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Virtual disk \\[.*\\]: Status$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"Volumes\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"Volumes\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "G",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Virtual disk \\[.*\\]: Status$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "removeBelowValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                3
+              ],
+              "text": "removeBelowValue(3)"
+            },
+            {
+              "def": {
+                "name": "removeAboveValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                3
+              ],
+              "text": "removeAboveValue(3)"
+            },
+            {
+              "def": {
+                "name": "offset",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "delta",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  -100
+                ]
+              },
+              "params": [
+                20
+              ],
+              "text": "offset(20)"
+            },
+            {
+              "def": {
+                "name": "transformNull",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                0
+              ],
+              "text": "transformNull(0)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"Volumes\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"Volumes\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "H",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Fan \\[.*\\]: Status$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"Ventoinhas\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"Ventoinhas\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "I",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Fan \\[.*\\]: Status$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "removeBelowValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                5
+              ],
+              "text": "removeBelowValue(5)"
+            },
+            {
+              "def": {
+                "name": "removeAboveValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                6
+              ],
+              "text": "removeAboveValue(6)"
+            },
+            {
+              "def": {
+                "name": "offset",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "delta",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  -100
+                ]
+              },
+              "params": [
+                20
+              ],
+              "text": "offset(20)"
+            },
+            {
+              "def": {
+                "name": "transformNull",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                0
+              ],
+              "text": "transformNull(0)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"Ventoinhas\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"Ventoinhas\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "J",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Voltage probe \\[.*\\]: Status$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"Tensão\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"Tensão\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "K",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Voltage probe \\[.*\\]: Status$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "removeBelowValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                5
+              ],
+              "text": "removeBelowValue(5)"
+            },
+            {
+              "def": {
+                "name": "removeAboveValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                6
+              ],
+              "text": "removeAboveValue(6)"
+            },
+            {
+              "def": {
+                "name": "offset",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "delta",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  -100
+                ]
+              },
+              "params": [
+                20
+              ],
+              "text": "offset(20)"
+            },
+            {
+              "def": {
+                "name": "transformNull",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                0
+              ],
+              "text": "transformNull(0)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"Tensão\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"Tensão\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "L",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^CPU \\[.*\\]: Status$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"CPUs\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"CPUs\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "M",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Memory \\[.*\\]: Status$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"Memória\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"Memória\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "N",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Controller \\[.*\\]: Status$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"Ctrl.\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"Ctrl.\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "O",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Physical disk \\[.*\\]: S\\.M\\.A\\.R\\.T\\. Status$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"SMART\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"SMART\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "P",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Battery \\[.*\\]: Status$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"Bat. RAID\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"Bat. RAID\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "Q",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Battery \\[.*\\]: Status$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "removeBelowValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                3
+              ],
+              "text": "removeBelowValue(3)"
+            },
+            {
+              "def": {
+                "name": "removeAboveValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                3
+              ],
+              "text": "removeAboveValue(3)"
+            },
+            {
+              "def": {
+                "name": "offset",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "delta",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  -100
+                ]
+              },
+              "params": [
+                20
+              ],
+              "text": "offset(20)"
+            },
+            {
+              "def": {
+                "name": "transformNull",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                0
+              ],
+              "text": "transformNull(0)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"Bat. RAID\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"Bat. RAID\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "R",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Battery \\[.*\\]: Status$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "removeBelowValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                5
+              ],
+              "text": "removeBelowValue(5)"
+            },
+            {
+              "def": {
+                "name": "removeAboveValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                5
+              ],
+              "text": "removeAboveValue(5)"
+            },
+            {
+              "def": {
+                "name": "offset",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "delta",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  -100
+                ]
+              },
+              "params": [
+                20
+              ],
+              "text": "offset(20)"
+            },
+            {
+              "def": {
+                "name": "transformNull",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                0
+              ],
+              "text": "transformNull(0)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"Bat. RAID\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"Bat. RAID\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "S",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^System battery \\[.*\\]: Status$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"Baterias\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"Baterias\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "T",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^NIC \\[.*\\]: Status$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"Rede\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"Rede\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "U",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^SNMP agent availability$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"SNMP\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"SNMP\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "V",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "ICMP ping"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"Ping\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"Ping\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false,
+            "filterable": false,
+            "minWidth": 68
+          },
+          "mappings": [],
+          "noValue": "Sem dados para a seleção"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Servidor"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 145
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#E6EDF7"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Filtrar por ${__value.text}",
+                    "url": "/d/autodiscovery-server-hardware-v3?${__url_time_range}&var-host=${__value.raw}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Geral"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "SEM SUPORTE",
+                        "color": "#3A4250",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "OUTRO",
+                        "color": "#3A4250",
+                        "index": 1
+                      },
+                      "2": {
+                        "text": "DESCONHECIDO",
+                        "color": "#3A4250",
+                        "index": 2
+                      },
+                      "3": {
+                        "text": "OK",
+                        "color": "#0F4A33",
+                        "index": 3
+                      },
+                      "4": {
+                        "text": "ALERTA",
+                        "color": "#A15C00",
+                        "index": 4
+                      },
+                      "5": {
+                        "text": "CRÍTICO",
+                        "color": "#C0132F",
+                        "index": 5
+                      },
+                      "6": {
+                        "text": "IRRECUPERÁVEL",
+                        "color": "#C0132F",
+                        "index": 6
+                      }
+                    }
+                  },
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null+nan",
+                      "result": {
+                        "text": "—",
+                        "color": "#3A4250",
+                        "index": 99
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#3A4250",
+                      "value": null
+                    },
+                    {
+                      "color": "#0F4A33",
+                      "value": 3
+                    },
+                    {
+                      "color": "#A15C00",
+                      "value": 4
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 5
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "noValue",
+                "value": "—"
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Geral"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Sensores"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "1": {
+                        "text": "OUTRO",
+                        "color": "#3A4250",
+                        "index": 0
+                      },
+                      "2": {
+                        "text": "DESCONHECIDO",
+                        "color": "#3A4250",
+                        "index": 1
+                      },
+                      "3": {
+                        "text": "OK",
+                        "color": "#0F4A33",
+                        "index": 2
+                      },
+                      "4": {
+                        "text": "ALERTA",
+                        "color": "#A15C00",
+                        "index": 3
+                      },
+                      "5": {
+                        "text": "CRÍTICO",
+                        "color": "#C0132F",
+                        "index": 4
+                      },
+                      "6": {
+                        "text": "IRRECUPERÁVEL",
+                        "color": "#C0132F",
+                        "index": 5
+                      },
+                      "7": {
+                        "text": "ALERTA",
+                        "color": "#A15C00",
+                        "index": 6
+                      },
+                      "8": {
+                        "text": "CRÍTICO",
+                        "color": "#C0132F",
+                        "index": 7
+                      },
+                      "9": {
+                        "text": "IRRECUPERÁVEL",
+                        "color": "#C0132F",
+                        "index": 8
+                      },
+                      "10": {
+                        "text": "FALHA",
+                        "color": "#C0132F",
+                        "index": 9
+                      },
+                      "25": {
+                        "text": "CRÍTICO",
+                        "color": "#C0132F",
+                        "index": 10
+                      },
+                      "26": {
+                        "text": "IRRECUPERÁVEL",
+                        "color": "#C0132F",
+                        "index": 11
+                      }
+                    }
+                  },
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null+nan",
+                      "result": {
+                        "text": "—",
+                        "color": "#3A4250",
+                        "index": 99
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#3A4250",
+                      "value": null
+                    },
+                    {
+                      "color": "#0F4A33",
+                      "value": 3
+                    },
+                    {
+                      "color": "#A15C00",
+                      "value": 4
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 5
+                    },
+                    {
+                      "color": "#A15C00",
+                      "value": 7
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 8
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 25
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "noValue",
+                "value": "—"
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Sensores"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Fontes"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "SEM SUPORTE",
+                        "color": "#3A4250",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "OUTRO",
+                        "color": "#3A4250",
+                        "index": 1
+                      },
+                      "2": {
+                        "text": "DESCONHECIDO",
+                        "color": "#3A4250",
+                        "index": 2
+                      },
+                      "3": {
+                        "text": "OK",
+                        "color": "#0F4A33",
+                        "index": 3
+                      },
+                      "4": {
+                        "text": "ALERTA",
+                        "color": "#A15C00",
+                        "index": 4
+                      },
+                      "5": {
+                        "text": "CRÍTICO",
+                        "color": "#C0132F",
+                        "index": 5
+                      },
+                      "6": {
+                        "text": "IRRECUPERÁVEL",
+                        "color": "#C0132F",
+                        "index": 6
+                      }
+                    }
+                  },
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null+nan",
+                      "result": {
+                        "text": "—",
+                        "color": "#3A4250",
+                        "index": 99
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#3A4250",
+                      "value": null
+                    },
+                    {
+                      "color": "#0F4A33",
+                      "value": 3
+                    },
+                    {
+                      "color": "#A15C00",
+                      "value": 4
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 5
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "noValue",
+                "value": "—"
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Fontes"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Discos"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "SEM SUPORTE",
+                        "color": "#3A4250",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "OUTRO",
+                        "color": "#3A4250",
+                        "index": 1
+                      },
+                      "2": {
+                        "text": "DESCONHECIDO",
+                        "color": "#3A4250",
+                        "index": 2
+                      },
+                      "3": {
+                        "text": "OK",
+                        "color": "#0F4A33",
+                        "index": 3
+                      },
+                      "4": {
+                        "text": "ALERTA",
+                        "color": "#A15C00",
+                        "index": 4
+                      },
+                      "5": {
+                        "text": "CRÍTICO",
+                        "color": "#C0132F",
+                        "index": 5
+                      },
+                      "6": {
+                        "text": "IRRECUPERÁVEL",
+                        "color": "#C0132F",
+                        "index": 6
+                      }
+                    }
+                  },
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null+nan",
+                      "result": {
+                        "text": "—",
+                        "color": "#3A4250",
+                        "index": 99
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#3A4250",
+                      "value": null
+                    },
+                    {
+                      "color": "#0F4A33",
+                      "value": 3
+                    },
+                    {
+                      "color": "#A15C00",
+                      "value": 4
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 5
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "noValue",
+                "value": "—"
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Discos"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Volumes"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "1": {
+                        "text": "DESCONHECIDO",
+                        "color": "#3A4250",
+                        "index": 0
+                      },
+                      "2": {
+                        "text": "ONLINE",
+                        "color": "#0F4A33",
+                        "index": 1
+                      },
+                      "3": {
+                        "text": "FALHA",
+                        "color": "#C0132F",
+                        "index": 2
+                      },
+                      "4": {
+                        "text": "DEGRADADO",
+                        "color": "#A15C00",
+                        "index": 3
+                      },
+                      "23": {
+                        "text": "FALHA",
+                        "color": "#C0132F",
+                        "index": 4
+                      }
+                    }
+                  },
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null+nan",
+                      "result": {
+                        "text": "—",
+                        "color": "#3A4250",
+                        "index": 99
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#3A4250",
+                      "value": null
+                    },
+                    {
+                      "color": "#0F4A33",
+                      "value": 2
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 3
+                    },
+                    {
+                      "color": "#A15C00",
+                      "value": 4
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 23
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "noValue",
+                "value": "—"
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Volumes"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Ventoinhas"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "1": {
+                        "text": "OUTRO",
+                        "color": "#3A4250",
+                        "index": 0
+                      },
+                      "2": {
+                        "text": "DESCONHECIDO",
+                        "color": "#3A4250",
+                        "index": 1
+                      },
+                      "3": {
+                        "text": "OK",
+                        "color": "#0F4A33",
+                        "index": 2
+                      },
+                      "4": {
+                        "text": "ALERTA",
+                        "color": "#A15C00",
+                        "index": 3
+                      },
+                      "5": {
+                        "text": "CRÍTICO",
+                        "color": "#C0132F",
+                        "index": 4
+                      },
+                      "6": {
+                        "text": "IRRECUPERÁVEL",
+                        "color": "#C0132F",
+                        "index": 5
+                      },
+                      "7": {
+                        "text": "ALERTA",
+                        "color": "#A15C00",
+                        "index": 6
+                      },
+                      "8": {
+                        "text": "CRÍTICO",
+                        "color": "#C0132F",
+                        "index": 7
+                      },
+                      "9": {
+                        "text": "IRRECUPERÁVEL",
+                        "color": "#C0132F",
+                        "index": 8
+                      },
+                      "10": {
+                        "text": "FALHA",
+                        "color": "#C0132F",
+                        "index": 9
+                      },
+                      "25": {
+                        "text": "CRÍTICO",
+                        "color": "#C0132F",
+                        "index": 10
+                      },
+                      "26": {
+                        "text": "IRRECUPERÁVEL",
+                        "color": "#C0132F",
+                        "index": 11
+                      }
+                    }
+                  },
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null+nan",
+                      "result": {
+                        "text": "—",
+                        "color": "#3A4250",
+                        "index": 99
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#3A4250",
+                      "value": null
+                    },
+                    {
+                      "color": "#0F4A33",
+                      "value": 3
+                    },
+                    {
+                      "color": "#A15C00",
+                      "value": 4
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 5
+                    },
+                    {
+                      "color": "#A15C00",
+                      "value": 7
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 8
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 25
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "noValue",
+                "value": "—"
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Ventoinhas"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Tensão"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "1": {
+                        "text": "OUTRO",
+                        "color": "#3A4250",
+                        "index": 0
+                      },
+                      "2": {
+                        "text": "DESCONHECIDO",
+                        "color": "#3A4250",
+                        "index": 1
+                      },
+                      "3": {
+                        "text": "OK",
+                        "color": "#0F4A33",
+                        "index": 2
+                      },
+                      "4": {
+                        "text": "ALERTA",
+                        "color": "#A15C00",
+                        "index": 3
+                      },
+                      "5": {
+                        "text": "CRÍTICO",
+                        "color": "#C0132F",
+                        "index": 4
+                      },
+                      "6": {
+                        "text": "IRRECUPERÁVEL",
+                        "color": "#C0132F",
+                        "index": 5
+                      },
+                      "7": {
+                        "text": "ALERTA",
+                        "color": "#A15C00",
+                        "index": 6
+                      },
+                      "8": {
+                        "text": "CRÍTICO",
+                        "color": "#C0132F",
+                        "index": 7
+                      },
+                      "9": {
+                        "text": "IRRECUPERÁVEL",
+                        "color": "#C0132F",
+                        "index": 8
+                      },
+                      "10": {
+                        "text": "FALHA",
+                        "color": "#C0132F",
+                        "index": 9
+                      },
+                      "25": {
+                        "text": "CRÍTICO",
+                        "color": "#C0132F",
+                        "index": 10
+                      },
+                      "26": {
+                        "text": "IRRECUPERÁVEL",
+                        "color": "#C0132F",
+                        "index": 11
+                      }
+                    }
+                  },
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null+nan",
+                      "result": {
+                        "text": "—",
+                        "color": "#3A4250",
+                        "index": 99
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#3A4250",
+                      "value": null
+                    },
+                    {
+                      "color": "#0F4A33",
+                      "value": 3
+                    },
+                    {
+                      "color": "#A15C00",
+                      "value": 4
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 5
+                    },
+                    {
+                      "color": "#A15C00",
+                      "value": 7
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 8
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 25
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "noValue",
+                "value": "—"
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Tensão"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CPUs"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "SEM SUPORTE",
+                        "color": "#3A4250",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "OUTRO",
+                        "color": "#3A4250",
+                        "index": 1
+                      },
+                      "2": {
+                        "text": "DESCONHECIDO",
+                        "color": "#3A4250",
+                        "index": 2
+                      },
+                      "3": {
+                        "text": "OK",
+                        "color": "#0F4A33",
+                        "index": 3
+                      },
+                      "4": {
+                        "text": "ALERTA",
+                        "color": "#A15C00",
+                        "index": 4
+                      },
+                      "5": {
+                        "text": "CRÍTICO",
+                        "color": "#C0132F",
+                        "index": 5
+                      },
+                      "6": {
+                        "text": "IRRECUPERÁVEL",
+                        "color": "#C0132F",
+                        "index": 6
+                      }
+                    }
+                  },
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null+nan",
+                      "result": {
+                        "text": "—",
+                        "color": "#3A4250",
+                        "index": 99
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#3A4250",
+                      "value": null
+                    },
+                    {
+                      "color": "#0F4A33",
+                      "value": 3
+                    },
+                    {
+                      "color": "#A15C00",
+                      "value": 4
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 5
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "noValue",
+                "value": "—"
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CPUs"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Memória"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "SEM SUPORTE",
+                        "color": "#3A4250",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "OUTRO",
+                        "color": "#3A4250",
+                        "index": 1
+                      },
+                      "2": {
+                        "text": "DESCONHECIDO",
+                        "color": "#3A4250",
+                        "index": 2
+                      },
+                      "3": {
+                        "text": "OK",
+                        "color": "#0F4A33",
+                        "index": 3
+                      },
+                      "4": {
+                        "text": "ALERTA",
+                        "color": "#A15C00",
+                        "index": 4
+                      },
+                      "5": {
+                        "text": "CRÍTICO",
+                        "color": "#C0132F",
+                        "index": 5
+                      },
+                      "6": {
+                        "text": "IRRECUPERÁVEL",
+                        "color": "#C0132F",
+                        "index": 6
+                      }
+                    }
+                  },
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null+nan",
+                      "result": {
+                        "text": "—",
+                        "color": "#3A4250",
+                        "index": 99
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#3A4250",
+                      "value": null
+                    },
+                    {
+                      "color": "#0F4A33",
+                      "value": 3
+                    },
+                    {
+                      "color": "#A15C00",
+                      "value": 4
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 5
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "noValue",
+                "value": "—"
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Memória"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Ctrl."
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "SEM SUPORTE",
+                        "color": "#3A4250",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "OUTRO",
+                        "color": "#3A4250",
+                        "index": 1
+                      },
+                      "2": {
+                        "text": "DESCONHECIDO",
+                        "color": "#3A4250",
+                        "index": 2
+                      },
+                      "3": {
+                        "text": "OK",
+                        "color": "#0F4A33",
+                        "index": 3
+                      },
+                      "4": {
+                        "text": "ALERTA",
+                        "color": "#A15C00",
+                        "index": 4
+                      },
+                      "5": {
+                        "text": "CRÍTICO",
+                        "color": "#C0132F",
+                        "index": 5
+                      },
+                      "6": {
+                        "text": "IRRECUPERÁVEL",
+                        "color": "#C0132F",
+                        "index": 6
+                      }
+                    }
+                  },
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null+nan",
+                      "result": {
+                        "text": "—",
+                        "color": "#3A4250",
+                        "index": 99
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#3A4250",
+                      "value": null
+                    },
+                    {
+                      "color": "#0F4A33",
+                      "value": 3
+                    },
+                    {
+                      "color": "#A15C00",
+                      "value": 4
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 5
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "noValue",
+                "value": "—"
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Ctrl."
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "SMART"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "OK",
+                        "color": "#0F4A33",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "FALHA",
+                        "color": "#C0132F",
+                        "index": 1
+                      }
+                    }
+                  },
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null+nan",
+                      "result": {
+                        "text": "—",
+                        "color": "#3A4250",
+                        "index": 99
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#0F4A33",
+                      "value": null
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "noValue",
+                "value": "—"
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "SMART"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Bat. RAID"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "1": {
+                        "text": "DESCONHECIDO",
+                        "color": "#3A4250",
+                        "index": 0
+                      },
+                      "2": {
+                        "text": "PRONTA",
+                        "color": "#0F4A33",
+                        "index": 1
+                      },
+                      "3": {
+                        "text": "FALHA",
+                        "color": "#C0132F",
+                        "index": 2
+                      },
+                      "4": {
+                        "text": "DEGRADADA",
+                        "color": "#A15C00",
+                        "index": 3
+                      },
+                      "5": {
+                        "text": "AUSENTE",
+                        "color": "#C0132F",
+                        "index": 4
+                      },
+                      "6": {
+                        "text": "CARREGANDO",
+                        "color": "#A15C00",
+                        "index": 5
+                      },
+                      "7": {
+                        "text": "BAIXA",
+                        "color": "#A15C00",
+                        "index": 6
+                      },
+                      "23": {
+                        "text": "FALHA",
+                        "color": "#C0132F",
+                        "index": 7
+                      },
+                      "25": {
+                        "text": "AUSENTE",
+                        "color": "#C0132F",
+                        "index": 8
+                      }
+                    }
+                  },
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null+nan",
+                      "result": {
+                        "text": "—",
+                        "color": "#3A4250",
+                        "index": 99
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#3A4250",
+                      "value": null
+                    },
+                    {
+                      "color": "#0F4A33",
+                      "value": 2
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 3
+                    },
+                    {
+                      "color": "#A15C00",
+                      "value": 4
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 5
+                    },
+                    {
+                      "color": "#A15C00",
+                      "value": 6
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 23
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "noValue",
+                "value": "—"
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Bat. RAID"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Baterias"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "SEM SUPORTE",
+                        "color": "#3A4250",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "OUTRO",
+                        "color": "#3A4250",
+                        "index": 1
+                      },
+                      "2": {
+                        "text": "DESCONHECIDO",
+                        "color": "#3A4250",
+                        "index": 2
+                      },
+                      "3": {
+                        "text": "OK",
+                        "color": "#0F4A33",
+                        "index": 3
+                      },
+                      "4": {
+                        "text": "ALERTA",
+                        "color": "#A15C00",
+                        "index": 4
+                      },
+                      "5": {
+                        "text": "CRÍTICO",
+                        "color": "#C0132F",
+                        "index": 5
+                      },
+                      "6": {
+                        "text": "IRRECUPERÁVEL",
+                        "color": "#C0132F",
+                        "index": 6
+                      }
+                    }
+                  },
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null+nan",
+                      "result": {
+                        "text": "—",
+                        "color": "#3A4250",
+                        "index": 99
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#3A4250",
+                      "value": null
+                    },
+                    {
+                      "color": "#0F4A33",
+                      "value": 3
+                    },
+                    {
+                      "color": "#A15C00",
+                      "value": 4
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 5
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "noValue",
+                "value": "—"
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Baterias"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Rede"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "SEM SUPORTE",
+                        "color": "#3A4250",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "OUTRO",
+                        "color": "#3A4250",
+                        "index": 1
+                      },
+                      "2": {
+                        "text": "DESCONHECIDO",
+                        "color": "#3A4250",
+                        "index": 2
+                      },
+                      "3": {
+                        "text": "OK",
+                        "color": "#0F4A33",
+                        "index": 3
+                      },
+                      "4": {
+                        "text": "ALERTA",
+                        "color": "#A15C00",
+                        "index": 4
+                      },
+                      "5": {
+                        "text": "CRÍTICO",
+                        "color": "#C0132F",
+                        "index": 5
+                      },
+                      "6": {
+                        "text": "IRRECUPERÁVEL",
+                        "color": "#C0132F",
+                        "index": 6
+                      }
+                    }
+                  },
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null+nan",
+                      "result": {
+                        "text": "—",
+                        "color": "#3A4250",
+                        "index": 99
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#3A4250",
+                      "value": null
+                    },
+                    {
+                      "color": "#0F4A33",
+                      "value": 3
+                    },
+                    {
+                      "color": "#A15C00",
+                      "value": 4
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 5
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "noValue",
+                "value": "—"
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Rede"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "SNMP"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "OFFLINE",
+                        "color": "#C0132F",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "ONLINE",
+                        "color": "#0F4A33",
+                        "index": 1
+                      },
+                      "2": {
+                        "text": "DESCONHECIDO",
+                        "color": "#3A4250",
+                        "index": 2
+                      }
+                    }
+                  },
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null+nan",
+                      "result": {
+                        "text": "—",
+                        "color": "#3A4250",
+                        "index": 99
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#C0132F",
+                      "value": null
+                    },
+                    {
+                      "color": "#0F4A33",
+                      "value": 1
+                    },
+                    {
+                      "color": "#3A4250",
+                      "value": 2
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "noValue",
+                "value": "—"
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "SNMP"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Ping"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "OFFLINE",
+                        "color": "#C0132F",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "ONLINE",
+                        "color": "#0F4A33",
+                        "index": 1
+                      },
+                      "2": {
+                        "text": "DESCONHECIDO",
+                        "color": "#3A4250",
+                        "index": 2
+                      }
+                    }
+                  },
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null+nan",
+                      "result": {
+                        "text": "—",
+                        "color": "#3A4250",
+                        "index": 99
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#C0132F",
+                      "value": null
+                    },
+                    {
+                      "color": "#0F4A33",
+                      "value": 1
+                    },
+                    {
+                      "color": "#3A4250",
+                      "value": 2
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "noValue",
+                "value": "—"
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Ping"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [],
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        }
+      },
+      "transparent": false,
+      "id": 20,
+      "description": "Pior estado de cada componente por iDRAC (últimas 24h), incluindo agora Ping ICMP real além do agente SNMP para diferenciar falha física de rede de falha do daemon SNMP.",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "seriesToRows",
+            "reducers": [
+              "lastNotNull"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "extractFields",
+          "options": {
+            "source": "Field",
+            "format": "json",
+            "replace": false,
+            "keepTime": false
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "h": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "m": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "Last *": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "max"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": "groupingToMatrix",
+          "options": {
+            "columnField": "m",
+            "rowField": "h",
+            "valueField": "Last * (max)",
+            "emptyValue": "null"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "h\\m": "Servidor"
+            },
+            "excludeByName": {},
+            "indexByName": {
+              "h\\m": 0,
+              "Geral": 1,
+              "Sensores": 2,
+              "Fontes": 3,
+              "Discos": 4,
+              "Volumes": 5,
+              "Ventoinhas": 6,
+              "Tensão": 7,
+              "CPUs": 8,
+              "Memória": 9,
+              "Ctrl.": 10,
+              "SMART": 11,
+              "Bat. RAID": 12,
+              "Baterias": 13,
+              "Rede": 14,
+              "SNMP": 15,
+              "Ping": 16
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Servidor",
+                "desc": false
+              }
+            ]
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Sensores",
+                "desc": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Geral",
+                "desc": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "SNMP",
+                "desc": false
+              }
+            ]
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Ping",
+                "desc": false
+              }
+            ]
+          }
+        }
+      ],
+      "timeFrom": "24h",
+      "hideTimeOverride": true,
+      "maxDataPoints": 30,
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 24,
+        "h": 9
+      }
+    },
+    {
+      "type": "table",
+      "title": "TEMPERATURAS POR SERVIDOR",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Probe \\[.*Temp\\]: Status$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"Estado\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"Estado\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "B",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Probe \\[.*Temp\\]: Status$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "removeBelowValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                5
+              ],
+              "text": "removeBelowValue(5)"
+            },
+            {
+              "def": {
+                "name": "removeAboveValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                6
+              ],
+              "text": "removeAboveValue(6)"
+            },
+            {
+              "def": {
+                "name": "offset",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "delta",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  -100
+                ]
+              },
+              "params": [
+                20
+              ],
+              "text": "offset(20)"
+            },
+            {
+              "def": {
+                "name": "transformNull",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                0
+              ],
+              "text": "transformNull(0)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"Estado\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"Estado\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "C",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Probe \\[(System Board )?Inlet Temp\\]: Value$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"Entrada\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"Entrada\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "D",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Probe \\[CPU\\d+ Temp\\]: Value$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"CPU\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"CPU\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "E",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Probe \\[.*Exhaust Temp\\]: Value$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\", \"m\": \"Saída\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\", \"m\": \"Saída\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false,
+            "filterable": false,
+            "minWidth": 56
+          },
+          "mappings": [],
+          "noValue": "Sem dados para a seleção"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Servidor"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 130
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#E6EDF7"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Filtrar por ${__value.text}",
+                    "url": "/d/autodiscovery-server-hardware-v3?${__url_time_range}&var-host=${__value.raw}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Estado"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "1": {
+                        "text": "OUTRO",
+                        "color": "#3A4250",
+                        "index": 0
+                      },
+                      "2": {
+                        "text": "DESCONHECIDO",
+                        "color": "#3A4250",
+                        "index": 1
+                      },
+                      "3": {
+                        "text": "OK",
+                        "color": "#0F4A33",
+                        "index": 2
+                      },
+                      "4": {
+                        "text": "ALERTA",
+                        "color": "#A15C00",
+                        "index": 3
+                      },
+                      "5": {
+                        "text": "CRÍTICO",
+                        "color": "#C0132F",
+                        "index": 4
+                      },
+                      "6": {
+                        "text": "IRRECUPERÁVEL",
+                        "color": "#C0132F",
+                        "index": 5
+                      },
+                      "7": {
+                        "text": "ALERTA",
+                        "color": "#A15C00",
+                        "index": 6
+                      },
+                      "8": {
+                        "text": "CRÍTICO",
+                        "color": "#C0132F",
+                        "index": 7
+                      },
+                      "9": {
+                        "text": "IRRECUPERÁVEL",
+                        "color": "#C0132F",
+                        "index": 8
+                      },
+                      "10": {
+                        "text": "FALHA",
+                        "color": "#C0132F",
+                        "index": 9
+                      },
+                      "25": {
+                        "text": "CRÍTICO",
+                        "color": "#C0132F",
+                        "index": 10
+                      },
+                      "26": {
+                        "text": "IRRECUPERÁVEL",
+                        "color": "#C0132F",
+                        "index": 11
+                      }
+                    }
+                  },
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null+nan",
+                      "result": {
+                        "text": "—",
+                        "color": "#3A4250",
+                        "index": 99
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#3A4250",
+                      "value": null
+                    },
+                    {
+                      "color": "#0F4A33",
+                      "value": 3
+                    },
+                    {
+                      "color": "#A15C00",
+                      "value": 4
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 5
+                    },
+                    {
+                      "color": "#A15C00",
+                      "value": 7
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 8
+                    },
+                    {
+                      "color": "#C0132F",
+                      "value": 25
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "noValue",
+                "value": "—"
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Estado"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Estado"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Entrada"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "noValue",
+                "value": "—"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null+nan",
+                      "result": {
+                        "text": "—",
+                        "color": "#7B8794",
+                        "index": 99
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#22D3EE",
+                      "value": null
+                    },
+                    {
+                      "color": "#FFB224",
+                      "value": 27
+                    },
+                    {
+                      "color": "#FF4D5E",
+                      "value": 32
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.align",
+                "value": "right"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Entrada"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CPU"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "noValue",
+                "value": "—"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null+nan",
+                      "result": {
+                        "text": "—",
+                        "color": "#7B8794",
+                        "index": 99
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#E6EDF7"
+                }
+              },
+              {
+                "id": "custom.align",
+                "value": "right"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CPU"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Saída"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "noValue",
+                "value": "—"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null+nan",
+                      "result": {
+                        "text": "—",
+                        "color": "#7B8794",
+                        "index": 99
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#E6EDF7"
+                }
+              },
+              {
+                "id": "custom.align",
+                "value": "right"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Saída"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [],
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        }
+      },
+      "transparent": false,
+      "id": 21,
+      "description": "Estado = pior status dos sensores de temperatura do iDRAC (limites do próprio servidor). Última leitura da entrada de ar (refrigeração da sala: âmbar a partir de 27 °C, vermelho de 32 °C), do processador mais quente e da saída de ar.",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "seriesToRows",
+            "reducers": [
+              "lastNotNull"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "extractFields",
+          "options": {
+            "source": "Field",
+            "format": "json",
+            "replace": false,
+            "keepTime": false
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "h": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "m": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "Last *": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "max"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": "groupingToMatrix",
+          "options": {
+            "columnField": "m",
+            "rowField": "h",
+            "valueField": "Last * (max)",
+            "emptyValue": "null"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "h\\m": "Servidor"
+            },
+            "excludeByName": {},
+            "indexByName": {
+              "h\\m": 0,
+              "Estado": 1,
+              "Entrada": 2,
+              "CPU": 3,
+              "Saída": 4
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Servidor",
+                "desc": false
+              }
+            ]
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Estado",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "timeFrom": "24h",
+      "hideTimeOverride": true,
+      "maxDataPoints": 30,
+      "gridPos": {
+        "x": 0,
+        "y": 13,
+        "w": 7,
+        "h": 8
+      }
+    },
+    {
+      "type": "table",
+      "title": "VENTOINHAS POR SERVIDOR",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Fan \\[.*\\]: Speed$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"h\": \"$__zbx_host_name\"}"
+              ],
+              "text": "setAlias({\"h\": \"$__zbx_host_name\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false,
+            "filterable": false
+          },
+          "mappings": [],
+          "noValue": "Sem dados para a seleção"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Servidor"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 130
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#E6EDF7"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Filtrar por ${__value.text}",
+                    "url": "/d/autodiscovery-server-hardware-v3?${__url_time_range}&var-host=${__value.raw}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Qtd."
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 50
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Mínima"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "rotrpm"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 8000
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#FF4D5E",
+                      "value": null
+                    },
+                    {
+                      "color": "#FFB224",
+                      "value": 1
+                    },
+                    {
+                      "color": "#22D3EE",
+                      "value": 1500
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Mínima"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic",
+                  "valueDisplayMode": "color"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Máxima"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "rotrpm"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#E6EDF7"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 90
+              },
+              {
+                "id": "custom.align",
+                "value": "right"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Máxima"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Mínima",
+            "desc": false
+          }
+        ],
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        }
+      },
+      "transparent": false,
+      "description": "Rotação atual das ventoinhas de cada servidor (últimos 15 minutos), a mais lenta primeiro. 0 rpm = parada (vermelho); abaixo de 1500 rpm (âmbar) costuma indicar falha.",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "seriesToRows",
+            "reducers": [
+              "lastNotNull"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "extractFields",
+          "options": {
+            "source": "Field",
+            "format": "json",
+            "replace": false,
+            "keepTime": false
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "h": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "Last *": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "count",
+                  "min",
+                  "max"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "h": "Servidor",
+              "Last * (count)": "Qtd.",
+              "Last * (min)": "Mínima",
+              "Last * (max)": "Máxima"
+            },
+            "excludeByName": {},
+            "indexByName": {}
+          }
+        }
+      ],
+      "timeFrom": "15m",
+      "hideTimeOverride": true,
+      "maxDataPoints": 10,
+      "gridPos": {
+        "x": 7,
+        "y": 13,
+        "w": 8,
+        "h": 8
+      },
+      "id": 8
+    },
+    {
+      "type": "alexanderzobnin-zabbix-triggers-panel",
+      "title": "PROBLEMAS ATIVOS",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "5",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "schema": 13,
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "proxy": {
+            "filter": ""
+          },
+          "trigger": {
+            "filter": ""
+          },
+          "tags": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "showProblems": "problems",
+          "options": {
+            "minSeverity": 1,
+            "severities": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "acknowledged": 2,
+            "sortProblems": "severity",
+            "hostsInMaintenance": false,
+            "hostProxy": false,
+            "limit": 200,
+            "useTimeRange": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "schemaVersion": 8,
+        "layout": "table",
+        "fontSize": "100%",
+        "pageSize": 4,
+        "hostField": true,
+        "hostTechNameField": false,
+        "hostIpField": false,
+        "hostProxy": false,
+        "hostGroups": false,
+        "showTags": false,
+        "statusField": false,
+        "statusIcon": false,
+        "severityField": true,
+        "ackField": false,
+        "ageField": false,
+        "opdataField": false,
+        "descriptionField": false,
+        "descriptionAtNewLine": false,
+        "showDatasourceName": false,
+        "sortProblems": "priority",
+        "problemTimeline": true,
+        "highlightBackground": false,
+        "highlightNewEvents": true,
+        "highlightNewerThan": "1h",
+        "customLastChangeFormat": true,
+        "lastChangeFormat": "DD/MM HH:mm",
+        "resizedColumns": [
+          {
+            "id": "host",
+            "value": 150
+          },
+          {
+            "id": "priority",
+            "value": 90
+          },
+          {
+            "id": "name",
+            "value": 260
+          },
+          {
+            "id": "lastchange",
+            "value": 100
+          }
+        ],
+        "allowDangerousHTML": false,
+        "triggerSeverity": [
+          {
+            "priority": 0,
+            "severity": "Não classificado",
+            "color": "#7B8794",
+            "show": true
+          },
+          {
+            "priority": 1,
+            "severity": "Informação",
+            "color": "#4FA3FF",
+            "show": true
+          },
+          {
+            "priority": 2,
+            "severity": "Atenção",
+            "color": "#FFD23F",
+            "show": true
+          },
+          {
+            "priority": 3,
+            "severity": "Média",
+            "color": "#FF9F1C",
+            "show": true
+          },
+          {
+            "priority": 4,
+            "severity": "Alta",
+            "color": "#FF5A3C",
+            "show": true
+          },
+          {
+            "priority": 5,
+            "severity": "Desastre",
+            "color": "#FF1F5A",
+            "show": true
+          }
+        ],
+        "okEventColor": "#22E58A",
+        "ackEventColor": "#22D3EE",
+        "markAckEvents": false,
+        "showSearchFilter": false
+      },
+      "transparent": false,
+      "description": "Problemas ativos dos hosts da seleção (severidade Informação ou maior), mais graves primeiro; Time = início do problema. Cabeçalhos em inglês: limitação do plugin Zabbix.",
+      "gridPos": {
+        "x": 15,
+        "y": 13,
+        "w": 9,
+        "h": 8
+      },
+      "id": 9
+    },
+    {
+      "type": "timeseries",
+      "title": "ENTRADA DE AR · NO PERÍODO",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Probe \\[(System Board )?Inlet Temp\\]: Value$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "$__zbx_host_name"
+              ],
+              "text": "setAlias($__zbx_host_name)"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "noValue": "Sem dados para a seleção",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "gradientMode": "scheme",
+            "showPoints": "never",
+            "pointSize": 4,
+            "spanNulls": true,
+            "axisBorderShow": false,
+            "axisPlacement": "auto",
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "barAlignment": 0,
+            "insertNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "dashed"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "axisSoftMin": 15,
+            "axisSoftMax": 34
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#22D3EE",
+                "value": null
+              },
+              {
+                "color": "#FFB224",
+                "value": 27
+              },
+              {
+                "color": "#FF4D5E",
+                "value": 32
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "sortBy": "Last *",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc",
+          "hideZeros": false
+        }
+      },
+      "transparent": false,
+      "description": "Temperatura do ar que entra em cada servidor (refrigeração da sala). Linhas tracejadas = limites de 27 °C (âmbar) e 32 °C (vermelho); a linha muda de cor ao passar deles. O iDRAC só grava mudanças: a linha mantém o último valor até a próxima leitura diferente, e uma linha que termina antes do fim = valor inalterado desde então (não é sensor parado).",
+      "maxDataPoints": 300,
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 12,
+        "h": 9
+      },
+      "id": 10
+    },
+    {
+      "type": "timeseries",
+      "title": "SAÍDA DE AR · NO PERÍODO",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Probe \\[.*Exhaust Temp\\]: Value$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "$__zbx_host_name"
+              ],
+              "text": "setAlias($__zbx_host_name)"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "noValue": "Sem dados para a seleção",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "pointSize": 4,
+            "spanNulls": true,
+            "axisBorderShow": false,
+            "axisPlacement": "auto",
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "barAlignment": 0,
+            "insertNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "mappings": [],
+          "color": {
+            "mode": "shades",
+            "fixedColor": "#A78BFA"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "sortBy": "Last *",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc",
+          "hideZeros": false
+        }
+      },
+      "transparent": false,
+      "description": "Temperatura do ar que sai de cada servidor (carga + refrigeração). Só nos modelos com sensor de saída. O iDRAC só grava mudanças: a linha mantém o último valor até a próxima leitura diferente, e uma linha que termina antes do fim = valor inalterado desde então (não é sensor parado).",
+      "maxDataPoints": 300,
+      "gridPos": {
+        "x": 12,
+        "y": 21,
+        "w": 12,
+        "h": 9
+      },
+      "id": 11
+    },
+    {
+      "type": "row",
+      "title": "Detalhe: todas as ventoinhas",
+      "collapsed": true,
+      "panels": [
+        {
+          "type": "table",
+          "title": "TODAS AS VENTOINHAS · MAIS LENTAS PRIMEIRO",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "queryType": "0",
+              "datasource": {
+                "type": "alexanderzobnin-zabbix-datasource",
+                "uid": "${datasource}"
+              },
+              "group": {
+                "filter": "$group"
+              },
+              "host": {
+                "filter": "$host"
+              },
+              "application": {
+                "filter": ""
+              },
+              "itemTag": {
+                "filter": ""
+              },
+              "item": {
+                "filter": "/^Fan \\[.*\\]: Speed$/"
+              },
+              "functions": [
+                {
+                  "def": {
+                    "name": "setAlias",
+                    "category": "Alias",
+                    "params": [
+                      {
+                        "name": "alias",
+                        "type": "string"
+                      }
+                    ],
+                    "defaultParams": []
+                  },
+                  "params": [
+                    "{\"h\": \"$__zbx_host_name\", \"f\": \"$__zbx_item\"}"
+                  ],
+                  "text": "setAlias({\"h\": \"$__zbx_host_name\", \"f\": \"$__zbx_item\"})"
+                },
+                {
+                  "def": {
+                    "name": "replaceAlias",
+                    "category": "Alias",
+                    "params": [
+                      {
+                        "name": "regexp",
+                        "type": "string"
+                      },
+                      {
+                        "name": "newAlias",
+                        "type": "string"
+                      }
+                    ],
+                    "defaultParams": [
+                      "/(.*)/",
+                      "$1"
+                    ]
+                  },
+                  "params": [
+                    "/Fan \\[(System Board )?(.*)\\]: Speed/",
+                    "$2"
+                  ],
+                  "text": "replaceAlias(/Fan \\[(System Board )?(.*)\\]: Speed/, $2)"
+                }
+              ],
+              "options": {
+                "showDisabledItems": false,
+                "skipEmptyValues": true,
+                "disableDataAlignment": true,
+                "useTrends": "false"
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "inspect": false,
+                "filterable": true
+              },
+              "mappings": []
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Servidor"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 220
+                  },
+                  {
+                    "id": "color",
+                    "value": {
+                      "mode": "fixed",
+                      "fixedColor": "#E6EDF7"
+                    }
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "type": "color-text"
+                    }
+                  },
+                  {
+                    "id": "links",
+                    "value": [
+                      {
+                        "title": "Filtrar por ${__value.text}",
+                        "url": "/d/autodiscovery-server-hardware-v3?${__url_time_range}&var-host=${__value.raw}",
+                        "targetBlank": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Ventoinha"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 160
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Rotação"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "rotrpm"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 0
+                  },
+                  {
+                    "id": "min",
+                    "value": 0
+                  },
+                  {
+                    "id": "max",
+                    "value": 8000
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "#FF4D5E",
+                          "value": null
+                        },
+                        {
+                          "color": "#FFB224",
+                          "value": 1
+                        },
+                        {
+                          "color": "#22D3EE",
+                          "value": 1500
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "color",
+                    "value": {
+                      "mode": "thresholds"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Rotação"
+                },
+                "properties": [
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "type": "gauge",
+                      "mode": "basic",
+                      "valueDisplayMode": "color"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "sortBy": [
+              {
+                "displayName": "Rotação",
+                "desc": false
+              }
+            ],
+            "footer": {
+              "show": false,
+              "reducer": [
+                "sum"
+              ],
+              "countRows": false,
+              "fields": ""
+            }
+          },
+          "transparent": false,
+          "description": "Rotação atual de cada ventoinha (últimos 15 minutos), da mais lenta para a mais rápida. 0 rpm vermelho, abaixo de 1500 rpm âmbar.",
+          "transformations": [
+            {
+              "id": "reduce",
+              "options": {
+                "mode": "seriesToRows",
+                "reducers": [
+                  "lastNotNull"
+                ],
+                "includeTimeField": false
+              }
+            },
+            {
+              "id": "extractFields",
+              "options": {
+                "source": "Field",
+                "format": "json",
+                "replace": false,
+                "keepTime": false
+              }
+            },
+            {
+              "id": "organize",
+              "options": {
+                "renameByName": {
+                  "h": "Servidor",
+                  "f": "Ventoinha",
+                  "Last *": "Rotação"
+                },
+                "excludeByName": {
+                  "Field": true
+                },
+                "indexByName": {
+                  "h": 0,
+                  "f": 1,
+                  "Last *": 2
+                }
+              }
+            }
+          ],
+          "timeFrom": "15m",
+          "hideTimeOverride": true,
+          "maxDataPoints": 10,
+          "gridPos": {
+            "x": 0,
+            "y": 31,
+            "w": 24,
+            "h": 14
+          },
+          "id": 13
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 30,
+        "w": 24,
+        "h": 1
+      },
+      "id": 12
+    }
+  ]
+}

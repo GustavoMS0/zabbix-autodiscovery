@@ -19,8 +19,26 @@ def test_installer_native_datasource_trends_disabled_and_cleans_old_dashboards()
     assert "trends: false" in script
     # stale autodiscovery-*.json must be removed before copying the new ones
     rm = script.index("rm -f /var/lib/grafana/dashboards/autodiscovery-*.json")
-    cp = script.index('cp -r "$SCRIPT_DIR/grafana/dashboards/"')
+    cp = script.index('cp -r "$SCRIPT_DIR/grafana/dashboards-v2/"')
     assert rm < cp
+
+
+def test_compose_and_provisioning_use_dashboards_v2():
+    compose = yaml.safe_load((DEPLOY / "docker-compose.yml").read_text(encoding="utf-8"))
+    volumes = compose["services"]["grafana"]["volumes"]
+    assert "./grafana/dashboards-v2:/var/lib/grafana/dashboards:ro" in volumes
+    prov = yaml.safe_load((DEPLOY / "grafana/provisioning/dashboards/autodiscovery.yml").read_text(encoding="utf-8"))
+    assert prov["providers"][0]["folder"] == "AutoDiscovery v2"
+    assert prov["providers"][0]["folderUid"] == "autodiscovery-v2"
+
+
+def test_compose_and_provisioning_use_dashboards_v3():
+    compose = yaml.safe_load((DEPLOY / "docker-compose.yml").read_text(encoding="utf-8"))
+    volumes = compose["services"]["grafana"]["volumes"]
+    assert "./grafana/dashboards-v3:/var/lib/grafana/dashboards-v3:ro" in volumes
+    prov = yaml.safe_load((DEPLOY / "grafana/provisioning/dashboards/autodiscovery.yml").read_text(encoding="utf-8"))
+    assert prov["providers"][1]["folder"] == "AutoDiscovery v3"
+    assert prov["providers"][1]["folderUid"] == "autodiscovery-v3"
 
 
 def test_compose_zabbix_web_memory_limit():
@@ -28,3 +46,4 @@ def test_compose_zabbix_web_memory_limit():
     web = doc["services"]["zabbix-web"]
     assert web["image"].startswith("zabbix/zabbix-web-")
     assert web["environment"]["ZBX_MEMORYLIMIT"] == "512M"
+
