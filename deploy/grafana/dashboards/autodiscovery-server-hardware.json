@@ -6,7 +6,7 @@
     "zabbix"
   ],
   "timezone": "browser",
-  "refresh": "1m",
+  "refresh": "5m",
   "schemaVersion": 39,
   "editable": true,
   "time": {
@@ -83,12 +83,61 @@
         "multi": true,
         "includeAll": true,
         "allValue": "/.*/",
-        "refresh": 2,
+        "refresh": 1,
         "sort": 1,
         "current": {
           "text": "All",
           "value": "$__all"
         }
+      }
+    ]
+  },
+  "timepicker": {
+    "quick_ranges": [
+      {
+        "from": "now-5m",
+        "to": "now",
+        "display": "Last 5 minutes"
+      },
+      {
+        "from": "now-15m",
+        "to": "now",
+        "display": "Last 15 minutes"
+      },
+      {
+        "from": "now-30m",
+        "to": "now",
+        "display": "Last 30 minutes"
+      },
+      {
+        "from": "now-1h",
+        "to": "now",
+        "display": "Last 1 hour"
+      },
+      {
+        "from": "now-3h",
+        "to": "now",
+        "display": "Last 3 hours"
+      },
+      {
+        "from": "now-6h",
+        "to": "now",
+        "display": "Last 6 hours"
+      },
+      {
+        "from": "now-12h",
+        "to": "now",
+        "display": "Last 12 hours"
+      },
+      {
+        "from": "now-1d",
+        "to": "now",
+        "display": "Last 24 hours"
+      },
+      {
+        "from": "now-2d",
+        "to": "now",
+        "display": "Last 2 days"
       }
     ]
   },
@@ -154,11 +203,12 @@
     },
     {
       "type": "stat",
-      "title": "Availability (ICMP)",
+      "title": "Availability",
       "datasource": {
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 100,
       "targets": [
         {
           "refId": "A",
@@ -180,7 +230,7 @@
             "filter": ""
           },
           "item": {
-            "filter": "ICMP ping"
+            "filter": "/^SNMP agent availability$/"
           },
           "functions": [
             {
@@ -203,7 +253,9 @@
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -234,6 +286,10 @@
                 "1": {
                   "text": "UP",
                   "color": "green"
+                },
+                "2": {
+                  "text": "UNKNOWN",
+                  "color": "#8e8e8e"
                 }
               }
             }
@@ -248,12 +304,18 @@
               {
                 "color": "green",
                 "value": 1
+              },
+              {
+                "color": "#8e8e8e",
+                "value": 2
               }
             ]
           }
         },
         "overrides": []
       },
+      "timeFrom": "24h",
+      "hideTimeOverride": true,
       "id": 2,
       "gridPos": {
         "x": 0,
@@ -269,6 +331,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 500,
       "targets": [
         {
           "refId": "A",
@@ -290,7 +353,7 @@
             "filter": ""
           },
           "item": {
-            "filter": "/temp(erature)?|temperatura/i"
+            "filter": "/^Probe \\[.*Temp.*\\]: Value$/"
           },
           "functions": [
             {
@@ -313,7 +376,9 @@
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -352,6 +417,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 200,
       "targets": [
         {
           "refId": "A",
@@ -373,7 +439,7 @@
             "filter": ""
           },
           "item": {
-            "filter": "/fan/i"
+            "filter": "/^Fan \\[.*\\]: Speed$/"
           },
           "functions": [
             {
@@ -396,7 +462,9 @@
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -420,6 +488,7 @@
           "sort": "desc"
         }
       },
+      "description": "Raw history of many items: with all hosts selected, ranges longer than about 2 days (1 day on switches) can exceed the Zabbix frontend memory limit and fail with HTTP 500. Select fewer hosts or raise ZBX_MEMORYLIMIT on the Zabbix web container.",
       "id": 4,
       "gridPos": {
         "x": 12,
@@ -435,6 +504,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 100,
       "targets": [
         {
           "refId": "A",
@@ -456,7 +526,7 @@
             "filter": ""
           },
           "item": {
-            "filter": "/(overall|global|system|power supply|psu).*status/i"
+            "filter": "/^(Overall system health status|Power supply \\[.*\\]: State)$/"
           },
           "functions": [
             {
@@ -479,7 +549,9 @@
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -499,10 +571,63 @@
       },
       "fieldConfig": {
         "defaults": {
-          "mappings": []
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": {
+                  "text": "OTHER",
+                  "color": "#8e8e8e"
+                },
+                "2": {
+                  "text": "UNKNOWN",
+                  "color": "#8e8e8e"
+                },
+                "3": {
+                  "text": "OK",
+                  "color": "green"
+                },
+                "4": {
+                  "text": "NON-CRITICAL",
+                  "color": "orange"
+                },
+                "5": {
+                  "text": "CRITICAL",
+                  "color": "red"
+                },
+                "6": {
+                  "text": "NON-RECOVERABLE",
+                  "color": "red"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#8e8e8e",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 3
+              },
+              {
+                "color": "orange",
+                "value": 4
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          }
         },
         "overrides": []
       },
+      "timeFrom": "24h",
+      "hideTimeOverride": true,
       "id": 5,
       "gridPos": {
         "x": 0,

@@ -6,7 +6,7 @@
     "zabbix"
   ],
   "timezone": "browser",
-  "refresh": "1m",
+  "refresh": "5m",
   "schemaVersion": 39,
   "editable": true,
   "time": {
@@ -83,12 +83,61 @@
         "multi": true,
         "includeAll": true,
         "allValue": "/.*/",
-        "refresh": 2,
+        "refresh": 1,
         "sort": 1,
         "current": {
           "text": "All",
           "value": "$__all"
         }
+      }
+    ]
+  },
+  "timepicker": {
+    "quick_ranges": [
+      {
+        "from": "now-5m",
+        "to": "now",
+        "display": "Last 5 minutes"
+      },
+      {
+        "from": "now-15m",
+        "to": "now",
+        "display": "Last 15 minutes"
+      },
+      {
+        "from": "now-30m",
+        "to": "now",
+        "display": "Last 30 minutes"
+      },
+      {
+        "from": "now-1h",
+        "to": "now",
+        "display": "Last 1 hour"
+      },
+      {
+        "from": "now-3h",
+        "to": "now",
+        "display": "Last 3 hours"
+      },
+      {
+        "from": "now-6h",
+        "to": "now",
+        "display": "Last 6 hours"
+      },
+      {
+        "from": "now-12h",
+        "to": "now",
+        "display": "Last 12 hours"
+      },
+      {
+        "from": "now-1d",
+        "to": "now",
+        "display": "Last 24 hours"
+      },
+      {
+        "from": "now-2d",
+        "to": "now",
+        "display": "Last 2 days"
       }
     ]
   },
@@ -159,6 +208,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 100,
       "targets": [
         {
           "refId": "A",
@@ -203,7 +253,9 @@
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -234,6 +286,10 @@
                 "1": {
                   "text": "UP",
                   "color": "green"
+                },
+                "2": {
+                  "text": "UNKNOWN",
+                  "color": "#8e8e8e"
                 }
               }
             }
@@ -248,12 +304,18 @@
               {
                 "color": "green",
                 "value": 1
+              },
+              {
+                "color": "#8e8e8e",
+                "value": 2
               }
             ]
           }
         },
         "overrides": []
       },
+      "timeFrom": "15m",
+      "hideTimeOverride": true,
       "id": 2,
       "gridPos": {
         "x": 0,
@@ -269,6 +331,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 100,
       "targets": [
         {
           "refId": "A",
@@ -290,7 +353,7 @@
             "filter": ""
           },
           "item": {
-            "filter": "/(toner|cartridge|supply|ink|drum|marker)/i"
+            "filter": "/: Level %$/"
           },
           "functions": [
             {
@@ -313,7 +376,9 @@
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -355,6 +420,8 @@
         },
         "overrides": []
       },
+      "timeFrom": "3h",
+      "hideTimeOverride": true,
       "id": 3,
       "gridPos": {
         "x": 0,
@@ -365,11 +432,12 @@
     },
     {
       "type": "timeseries",
-      "title": "Page counter",
+      "title": "Pages printed",
       "datasource": {
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 500,
       "targets": [
         {
           "refId": "A",
@@ -391,9 +459,19 @@
             "filter": ""
           },
           "item": {
-            "filter": "/(page|counter|impress)/i"
+            "filter": "/^Printer: Total page count$/"
           },
           "functions": [
+            {
+              "def": {
+                "name": "delta",
+                "category": "Transform",
+                "params": [],
+                "defaultParams": []
+              },
+              "params": [],
+              "text": "delta()"
+            },
             {
               "def": {
                 "name": "setAlias",
@@ -407,19 +485,28 @@
                 "defaultParams": []
               },
               "params": [
-                "$__zbx_host_name: $__zbx_item"
+                "$__zbx_host_name"
               ],
-              "text": "setAlias($__zbx_host_name: $__zbx_item)"
+              "text": "setAlias($__zbx_host_name)"
             }
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
       "fieldConfig": {
-        "defaults": {},
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "lineWidth": 1
+          }
+        },
         "overrides": []
       },
       "options": {
@@ -451,6 +538,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 500,
       "targets": [
         {
           "refId": "A",
@@ -495,7 +583,9 @@
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -519,6 +609,7 @@
           "sort": "desc"
         }
       },
+      "description": "Raw history of many items: with all hosts selected, ranges longer than about 2 days (1 day on switches) can exceed the Zabbix frontend memory limit and fail with HTTP 500. Select fewer hosts or raise ZBX_MEMORYLIMIT on the Zabbix web container.",
       "id": 5,
       "gridPos": {
         "x": 0,

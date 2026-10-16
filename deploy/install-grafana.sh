@@ -166,9 +166,9 @@ datasources:
     editable: true
     jsonData:
       username: "${ZBX_USER}"
-      trends: true
-      trendsFrom: "7d"
-      trendsRange: "4d"
+      # trends desativado: o plugin 6.9.1 envia "sortfield" no trend.get e o Zabbix 8.0 rejeita
+      # (unexpected parameter "sortfield"). Reativar quando houver plugin compatível com o Zabbix 8.
+      trends: false
       cacheTTL: "1h"
     secureJsonData:
       password: "${ZBX_PASS}"
@@ -187,6 +187,9 @@ EOF
 
     # Copiar dashboards pré-construídos
     if [ -d "$SCRIPT_DIR/grafana/dashboards" ]; then
+        # Remove JSONs gerados anteriormente: dashboards que não são mais geradas (ex.: autodiscovery-links)
+        # seriam recriadas pelo provisioner se o arquivo antigo ficasse na pasta
+        sudo rm -f /var/lib/grafana/dashboards/autodiscovery-*.json
         sudo cp -r "$SCRIPT_DIR/grafana/dashboards/"*.json /var/lib/grafana/dashboards/ 2>/dev/null || true
         sudo chown -R grafana:grafana /var/lib/grafana/dashboards /etc/grafana/provisioning
     fi

@@ -6,7 +6,7 @@
     "zabbix"
   ],
   "timezone": "browser",
-  "refresh": "1m",
+  "refresh": "5m",
   "schemaVersion": 39,
   "editable": true,
   "time": {
@@ -83,12 +83,56 @@
         "multi": true,
         "includeAll": true,
         "allValue": "/.*/",
-        "refresh": 2,
+        "refresh": 1,
         "sort": 1,
         "current": {
           "text": "All",
           "value": "$__all"
         }
+      }
+    ]
+  },
+  "timepicker": {
+    "quick_ranges": [
+      {
+        "from": "now-5m",
+        "to": "now",
+        "display": "Last 5 minutes"
+      },
+      {
+        "from": "now-15m",
+        "to": "now",
+        "display": "Last 15 minutes"
+      },
+      {
+        "from": "now-30m",
+        "to": "now",
+        "display": "Last 30 minutes"
+      },
+      {
+        "from": "now-1h",
+        "to": "now",
+        "display": "Last 1 hour"
+      },
+      {
+        "from": "now-3h",
+        "to": "now",
+        "display": "Last 3 hours"
+      },
+      {
+        "from": "now-6h",
+        "to": "now",
+        "display": "Last 6 hours"
+      },
+      {
+        "from": "now-12h",
+        "to": "now",
+        "display": "Last 12 hours"
+      },
+      {
+        "from": "now-1d",
+        "to": "now",
+        "display": "Last 24 hours"
       }
     ]
   },
@@ -159,6 +203,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 100,
       "targets": [
         {
           "refId": "A",
@@ -203,7 +248,9 @@
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -234,6 +281,10 @@
                 "1": {
                   "text": "UP",
                   "color": "green"
+                },
+                "2": {
+                  "text": "UNKNOWN",
+                  "color": "#8e8e8e"
                 }
               }
             }
@@ -248,12 +299,18 @@
               {
                 "color": "green",
                 "value": 1
+              },
+              {
+                "color": "#8e8e8e",
+                "value": 2
               }
             ]
           }
         },
         "overrides": []
       },
+      "timeFrom": "15m",
+      "hideTimeOverride": true,
       "id": 2,
       "gridPos": {
         "x": 0,
@@ -269,6 +326,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 100,
       "targets": [
         {
           "refId": "A",
@@ -290,7 +348,7 @@
             "filter": ""
           },
           "item": {
-            "filter": "/((cpu|processor).*(utilization|usage)|utiliza[cç][aã]o.*cpu|load average)/i"
+            "filter": "/(^|: )CPU utilization$/i"
           },
           "functions": [
             {
@@ -313,7 +371,9 @@
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -350,11 +410,15 @@
               }
             ]
           },
+          "noValue": "Not exposed via SNMP by this model",
           "min": 0,
           "max": 100
         },
         "overrides": []
       },
+      "timeFrom": "15m",
+      "hideTimeOverride": true,
+      "description": "Only devices whose template exposes CPU utilization are listed.",
       "id": 3,
       "gridPos": {
         "x": 0,
@@ -370,6 +434,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 100,
       "targets": [
         {
           "refId": "A",
@@ -414,7 +479,9 @@
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -451,11 +518,15 @@
               }
             ]
           },
+          "noValue": "Not exposed via SNMP by this model",
           "min": 0,
           "max": 100
         },
         "overrides": []
       },
+      "timeFrom": "15m",
+      "hideTimeOverride": true,
+      "description": "Only devices whose template exposes memory utilization are listed.",
       "id": 4,
       "gridPos": {
         "x": 12,
@@ -471,6 +542,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 500,
       "targets": [
         {
           "refId": "A",
@@ -492,26 +564,9 @@
             "filter": ""
           },
           "item": {
-            "filter": "/Bits received/"
+            "filter": "/^Interface (?!.*(lag|vlan|stack|user defined|cpu interface|loo?pback|fortilink|fgfm|(ssl|l2t|naf|wqtn?)\\.|\\.\\d+\\()).*: Bits received$/i"
           },
           "functions": [
-            {
-              "def": {
-                "name": "setAlias",
-                "category": "Alias",
-                "params": [
-                  {
-                    "name": "alias",
-                    "type": "string"
-                  }
-                ],
-                "defaultParams": []
-              },
-              "params": [
-                "$__zbx_host_name: $__zbx_item"
-              ],
-              "text": "setAlias($__zbx_host_name: $__zbx_item)"
-            },
             {
               "def": {
                 "name": "top",
@@ -546,11 +601,30 @@
                 "avg"
               ],
               "text": "top(10, avg)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "$__zbx_host_name: $__zbx_item"
+              ],
+              "text": "setAlias($__zbx_host_name: $__zbx_item)"
             }
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -574,6 +648,7 @@
           "sort": "desc"
         }
       },
+      "description": "Raw history of many items: with all hosts selected, ranges longer than about 2 days (1 day on switches) can exceed the Zabbix frontend memory limit and fail with HTTP 500. Select fewer hosts or raise ZBX_MEMORYLIMIT on the Zabbix web container.",
       "id": 5,
       "gridPos": {
         "x": 0,
@@ -589,6 +664,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 500,
       "targets": [
         {
           "refId": "A",
@@ -610,26 +686,9 @@
             "filter": ""
           },
           "item": {
-            "filter": "/Bits sent/"
+            "filter": "/^Interface (?!.*(lag|vlan|stack|user defined|cpu interface|loo?pback|fortilink|fgfm|(ssl|l2t|naf|wqtn?)\\.|\\.\\d+\\()).*: Bits sent$/i"
           },
           "functions": [
-            {
-              "def": {
-                "name": "setAlias",
-                "category": "Alias",
-                "params": [
-                  {
-                    "name": "alias",
-                    "type": "string"
-                  }
-                ],
-                "defaultParams": []
-              },
-              "params": [
-                "$__zbx_host_name: $__zbx_item"
-              ],
-              "text": "setAlias($__zbx_host_name: $__zbx_item)"
-            },
             {
               "def": {
                 "name": "top",
@@ -664,11 +723,30 @@
                 "avg"
               ],
               "text": "top(10, avg)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "$__zbx_host_name: $__zbx_item"
+              ],
+              "text": "setAlias($__zbx_host_name: $__zbx_item)"
             }
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -692,6 +770,7 @@
           "sort": "desc"
         }
       },
+      "description": "Raw history of many items: with all hosts selected, ranges longer than about 2 days (1 day on switches) can exceed the Zabbix frontend memory limit and fail with HTTP 500. Select fewer hosts or raise ZBX_MEMORYLIMIT on the Zabbix web container.",
       "id": 6,
       "gridPos": {
         "x": 12,
@@ -702,11 +781,12 @@
     },
     {
       "type": "timeseries",
-      "title": "Interface errors (top 10)",
+      "title": "Inbound errors & discards (top 10 each)",
       "datasource": {
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 500,
       "targets": [
         {
           "refId": "A",
@@ -728,26 +808,9 @@
             "filter": ""
           },
           "item": {
-            "filter": "/packets with errors/i"
+            "filter": "/^Interface (?!.*(lag|vlan|stack|user defined|cpu interface|loo?pback|fortilink|fgfm|(ssl|l2t|naf|wqtn?)\\.|\\.\\d+\\()).*: Inbound packets with errors$/i"
           },
           "functions": [
-            {
-              "def": {
-                "name": "setAlias",
-                "category": "Alias",
-                "params": [
-                  {
-                    "name": "alias",
-                    "type": "string"
-                  }
-                ],
-                "defaultParams": []
-              },
-              "params": [
-                "$__zbx_host_name: $__zbx_item"
-              ],
-              "text": "setAlias($__zbx_host_name: $__zbx_item)"
-            },
             {
               "def": {
                 "name": "top",
@@ -779,14 +842,116 @@
               },
               "params": [
                 10,
-                "avg"
+                "max"
               ],
-              "text": "top(10, avg)"
+              "text": "top(10, max)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "$__zbx_host_name: $__zbx_item"
+              ],
+              "text": "setAlias($__zbx_host_name: $__zbx_item)"
             }
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "B",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "$group"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Interface (?!.*(lag|vlan|stack|user defined|cpu interface|loo?pback|fortilink|fgfm|(ssl|l2t|naf|wqtn?)\\.|\\.\\d+\\()).*: Inbound packets discarded$/i"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "top",
+                "category": "Filter",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "int"
+                  },
+                  {
+                    "name": "value",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  5,
+                  "avg"
+                ]
+              },
+              "params": [
+                10,
+                "max"
+              ],
+              "text": "top(10, max)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "$__zbx_host_name: $__zbx_item"
+              ],
+              "text": "setAlias($__zbx_host_name: $__zbx_item)"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -808,6 +973,7 @@
           "sort": "desc"
         }
       },
+      "description": "Raw history of many items: with all hosts selected, ranges longer than about 2 days (1 day on switches) can exceed the Zabbix frontend memory limit and fail with HTTP 500. Select fewer hosts or raise ZBX_MEMORYLIMIT on the Zabbix web container.",
       "id": 7,
       "gridPos": {
         "x": 0,
@@ -823,6 +989,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 500,
       "targets": [
         {
           "refId": "A",
@@ -867,7 +1034,9 @@
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -906,6 +1075,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 500,
       "targets": [
         {
           "refId": "A",
@@ -927,7 +1097,7 @@
             "filter": ""
           },
           "item": {
-            "filter": "/temp(erature)?|temperatura/i"
+            "filter": "/^(?!.*(status|alarm|tempo|walk)).*(temperat|temp\\b)/i"
           },
           "functions": [
             {
@@ -950,7 +1120,9 @@
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -983,128 +1155,13 @@
       }
     },
     {
-      "type": "timeseries",
-      "title": "Interface discards (top 10)",
-      "datasource": {
-        "type": "alexanderzobnin-zabbix-datasource",
-        "uid": "${datasource}"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "queryType": "0",
-          "datasource": {
-            "type": "alexanderzobnin-zabbix-datasource",
-            "uid": "${datasource}"
-          },
-          "group": {
-            "filter": "$group"
-          },
-          "host": {
-            "filter": "$host"
-          },
-          "application": {
-            "filter": ""
-          },
-          "itemTag": {
-            "filter": ""
-          },
-          "item": {
-            "filter": "/packets discarded/i"
-          },
-          "functions": [
-            {
-              "def": {
-                "name": "setAlias",
-                "category": "Alias",
-                "params": [
-                  {
-                    "name": "alias",
-                    "type": "string"
-                  }
-                ],
-                "defaultParams": []
-              },
-              "params": [
-                "$__zbx_host_name: $__zbx_item"
-              ],
-              "text": "setAlias($__zbx_host_name: $__zbx_item)"
-            },
-            {
-              "def": {
-                "name": "top",
-                "category": "Filter",
-                "params": [
-                  {
-                    "name": "number",
-                    "type": "int"
-                  },
-                  {
-                    "name": "value",
-                    "type": "string",
-                    "options": [
-                      "avg",
-                      "min",
-                      "max",
-                      "sum",
-                      "count",
-                      "median",
-                      "first",
-                      "last"
-                    ]
-                  }
-                ],
-                "defaultParams": [
-                  5,
-                  "avg"
-                ]
-              },
-              "params": [
-                10,
-                "avg"
-              ],
-              "text": "top(10, avg)"
-            }
-          ],
-          "options": {
-            "showDisabledItems": false,
-            "skipEmptyValues": true
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "right",
-          "calcs": [
-            "mean",
-            "max"
-          ]
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "id": 10,
-      "gridPos": {
-        "x": 12,
-        "y": 37,
-        "w": 12,
-        "h": 8
-      }
-    },
-    {
       "type": "stat",
       "title": "Uptime",
       "datasource": {
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 100,
       "targets": [
         {
           "refId": "A",
@@ -1126,7 +1183,7 @@
             "filter": ""
           },
           "item": {
-            "filter": "/uptime/i"
+            "filter": "/^(Uptime \\(network\\)|System uptime|Uptime)$/"
           },
           "functions": [
             {
@@ -1149,7 +1206,9 @@
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -1174,7 +1233,9 @@
         },
         "overrides": []
       },
-      "id": 11,
+      "timeFrom": "15m",
+      "hideTimeOverride": true,
+      "id": 10,
       "gridPos": {
         "x": 0,
         "y": 45,

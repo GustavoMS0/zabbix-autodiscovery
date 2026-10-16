@@ -3,166 +3,314 @@
 Inspired by top-tier NOC topology dashboards (ECharts graph + WAN links + Infrastructure
 health + Live alerts ticker). Uses the volkovlabs-echarts-panel plugin for interactive
 path tracing and hardware hierarchy.
+
+The dashboard only has the variables `datasource`, `site` and the hidden `site_hosts`, so
+every target sets its own group/host filters (there is no $group/$host here):
+- items that only exist on one device type (ICMP ping, WAN status) use the site group;
+- items shared by several device types (CPU, temperatures) use the category group plus
+  the hosts of the chosen site.
 """
 import json
 
 from .dashboards import (
-    CPU,
     DS,
-    MEM,
+    MAX_RANGE,
     OPER_STATUS_MAP,
     OPER_STATUS_STEPS,
-    SDWAN_LATENCY,
-    SDWAN_LOSS,
-    TEMP,
-    UPTIME,
     WAN_IN,
     WAN_OUT,
     WAN_STATUS,
     _alias,
     _replace_alias,
     _target,
-    _top,
+    quick_ranges,
 )
+
+# $site is "Matriz", "RJ", "BA", "PR" or the All value ".*", matching the Filiais/* groups.
+SITE_GROUP = r"/^Filiais\/$site$/"
+SITE_HOSTS = "/^$site_hosts$/"
+# Availability items present on the infrastructure hosts (ICMP: 1=up, 0=down;
+# zabbix[host,*,available]: 0=not available, 1=available, 2=unknown).
+AVAIL_RE = r"/^(ICMP ping|SNMP agent availability|Zabbix agent availability)$/"
+SITES = [("Matriz - Sede Principal", "Matriz"), ("Filial 1 (se houver)", "RJ"),
+         ("Filial 2 (se houver)", "BA"), ("Filial 3 (se houver)", "PR")]
+# Availability value map shared by ICMP and zabbix[host,*,available].
+AVAIL_MAP = [{"type": "value", "options": {"0": {"text": "DOWN", "color": "red", "index": 0},
+                                           "1": {"text": "UP", "color": "green", "index": 1},
+                                           "2": {"text": "UNKNOWN", "color": "#64748b", "index": 2}}}]
+AVAIL_STEPS = [{"color": "red", "value": None}, {"color": "green", "value": 1}, {"color": "#64748b", "value": 2}]
+
+# Map nodes. `hosts` are exact Zabbix host names (checked with host.get); the map colours each
+# node from their availability. `wan: True` nodes use the WAN operational status of those hosts.
+NODES = [
+    # --- TIER 0: Provedores / Internet (Y: 60) ---
+    {"id": "inet-sp", "name": "Internet SP\n(Mega / America)", "category": "Internet", "x": 500, "y": 60,
+     "symbolSize": 52, "ip": "BGP / Multi-WAN", "site": "Matriz - Sede Principal", "siteKey": "Matriz",
+     "role": "Link Primário 50M | Link Redundante 50M", "hosts": ["FW-SP"], "wan": True},
+    {"id": "inet-rj", "name": "Internet RJ\n(Easy / Int10)", "category": "Internet", "x": 160, "y": 60,
+     "symbolSize": 45, "ip": "Multi-WAN", "site": "Filial 1 (se houver)", "siteKey": "RJ",
+     "role": "Operadora A 50M | Operadora B 50M", "hosts": ["FW-RJ"], "wan": True},
+    {"id": "inet-ba", "name": "Internet BA\n(Link Rádio / NetFiber)", "category": "Internet", "x": 840, "y": 60,
+     "symbolSize": 45, "ip": "Multi-WAN", "site": "Filial 2 (se houver)", "siteKey": "BA",
+     "role": "Link Fibra 30M | Link Rádio 40M", "hosts": ["FW-BA"], "wan": True},
+    {"id": "inet-pr", "name": "Internet PR\n(SD-WAN)", "category": "Internet", "x": 1080, "y": 60,
+     "symbolSize": 45, "ip": "Multi-WAN", "site": "Filial 3 (se houver)", "siteKey": "PR",
+     "role": "Link Dedicado SD-WAN | wan2", "hosts": ["FW-PR"], "wan": True},
+
+    # --- TIER 1: Firewalls FortiGate (Y: 180) ---
+    {"id": "fw-sp", "name": "FW-SP (FortiGate)", "category": "Firewall", "x": 500, "y": 180, "symbolSize": 58,
+     "ip": "192.168.0.4", "site": "Matriz - Sede Principal", "siteKey": "Matriz",
+     "role": "Firewall Core / Hub SD-WAN", "hosts": ["FW-SP"]},
+    {"id": "fw-rj", "name": "FW-RJ (FortiGate)", "category": "Firewall", "x": 160, "y": 180, "symbolSize": 48,
+     "ip": "192.168.3.21", "site": "Filial 1 (se houver)", "siteKey": "RJ",
+     "role": "Firewall Filial / SD-WAN Spoke", "hosts": ["FW-RJ"]},
+    {"id": "fw-ba", "name": "FW-BA (FortiGate)", "category": "Firewall", "x": 840, "y": 180, "symbolSize": 48,
+     "ip": "192.168.2.244", "site": "Filial 2 (se houver)", "siteKey": "BA",
+     "role": "Firewall Filial / SD-WAN Spoke", "hosts": ["FW-BA"]},
+    {"id": "fw-pr", "name": "FW-PR (FortiGate)", "category": "Firewall", "x": 1080, "y": 180, "symbolSize": 48,
+     "ip": "192.168.1.2", "site": "Filial 3 (se houver)", "siteKey": "PR",
+     "role": "Firewall Filial / SD-WAN Spoke", "hosts": ["FW-PR"]},
+
+    # --- TIER 2: Switches Core & Distribuição (Y: 310) ---
+    {"id": "sw-core-sp", "name": "Switch-Aruba\n192.168.0.22", "category": "Switch", "x": 500, "y": 310,
+     "symbolSize": 52, "ip": "192.168.0.22", "site": "Matriz - Sede Principal", "siteKey": "Matriz",
+     "role": "Core Switch / VLT Stacking", "hosts": ["Switch-Aruba 192.168.0.22"]},
+    {"id": "sw-sp-17", "name": "SW-17 (Dist)", "category": "Switch", "x": 380, "y": 410, "symbolSize": 36,
+     "ip": "192.168.0.17", "site": "Matriz - Sede Principal", "siteKey": "Matriz", "role": "Switch Acesso",
+     "hosts": ["switch-192.168.0.17"]},
+    {"id": "sw-sp-19", "name": "SW-19 (Dist)", "category": "Switch", "x": 440, "y": 410, "symbolSize": 36,
+     "ip": "192.168.0.19", "site": "Matriz - Sede Principal", "siteKey": "Matriz", "role": "Switch Acesso",
+     "hosts": ["switch-192.168.0.19"]},
+    {"id": "sw-sp-20", "name": "SW-20 (Dist)", "category": "Switch", "x": 560, "y": 410, "symbolSize": 36,
+     "ip": "192.168.0.20", "site": "Matriz - Sede Principal", "siteKey": "Matriz", "role": "Switch Acesso",
+     "hosts": ["switch-192.168.0.20"]},
+    {"id": "sw-sp-21", "name": "SW-21 (Dist)", "category": "Switch", "x": 620, "y": 410, "symbolSize": 36,
+     "ip": "192.168.0.21", "site": "Matriz - Sede Principal", "siteKey": "Matriz", "role": "Switch Acesso",
+     "hosts": ["switch-192.168.0.21"]},
+    {"id": "sw-core-rj", "name": "SW-Filial1-MikroTik", "category": "Switch", "x": 160, "y": 310, "symbolSize": 42,
+     "ip": "192.168.3.19", "site": "Filial 1 (se houver)", "siteKey": "RJ", "role": "Core Switch RJ",
+     "hosts": ["SW-Filial1-MikroTik"]},
+    {"id": "sw-core-ba", "name": "SW-Core-Filial2", "category": "Switch", "x": 840, "y": 310, "symbolSize": 42,
+     "ip": "192.168.2.144", "site": "Filial 2 (se houver)", "siteKey": "BA", "role": "Core Switch BA",
+     "hosts": ["SW-Core-Filial2"]},
+
+    # --- TIER 3: Infraestrutura, Nobreak & Hardware Dell (Y: 490) ---
+    # Nobreak-Matriz has no ICMP/availability item yet, so it stays grey until "ICMP Ping" is linked.
+    {"id": "ups-sp", "name": "Nobreak-Matriz", "category": "Nobreak UPS", "x": 320, "y": 310, "symbolSize": 40,
+     "ip": "192.168.0.3", "site": "Matriz - Sede Principal", "siteKey": "Matriz", "role": "Nobreak NHS Laser Senoidal",
+     "hosts": ["Nobreak-Matriz"]},
+    {"id": "hw-sp-1", "name": "idrac-srv01", "category": "Hardware Servidor", "x": 380, "y": 500,
+     "symbolSize": 32, "ip": "192.168.0.224", "site": "Matriz - Sede Principal", "siteKey": "Matriz",
+     "role": "Dell iDRAC Enterprise", "hosts": ["idrac-srv01"]},
+    {"id": "hw-sp-2", "name": "idrac-srv02", "category": "Hardware Servidor", "x": 440, "y": 500,
+     "symbolSize": 32, "ip": "192.168.0.228", "site": "Matriz - Sede Principal", "siteKey": "Matriz",
+     "role": "Dell iDRAC Enterprise", "hosts": ["idrac-srv02"]},
+    {"id": "hw-sp-3", "name": "idrac-srv03", "category": "Hardware Servidor", "x": 500, "y": 500,
+     "symbolSize": 32, "ip": "192.168.0.226", "site": "Matriz - Sede Principal", "siteKey": "Matriz",
+     "role": "Dell iDRAC Enterprise", "hosts": ["idrac-srv03"]},
+    {"id": "hw-sp-4", "name": "idrac-srv04", "category": "Hardware Servidor", "x": 560, "y": 500,
+     "symbolSize": 32, "ip": "192.168.0.225", "site": "Matriz - Sede Principal", "siteKey": "Matriz",
+     "role": "Dell iDRAC Enterprise", "hosts": ["idrac-srv04"]},
+    {"id": "hw-sp-5", "name": "idrac-srv05", "category": "Hardware Servidor", "x": 620, "y": 500,
+     "symbolSize": 32, "ip": "192.168.0.227", "site": "Matriz - Sede Principal", "siteKey": "Matriz",
+     "role": "Dell iDRAC Enterprise", "hosts": ["idrac-srv05"]},
+    {"id": "hw-rj-1", "name": "idrac-filial01", "category": "Hardware Servidor", "x": 160, "y": 440,
+     "symbolSize": 32, "ip": "192.168.3.22", "site": "Filial 1 (se houver)", "siteKey": "RJ",
+     "role": "Dell iDRAC Enterprise", "hosts": ["idrac-filial01"]},
+    {"id": "hw-ba-1", "name": "idrac-filial02", "category": "Hardware Servidor", "x": 840, "y": 440,
+     "symbolSize": 32, "ip": "192.168.2.14", "site": "Filial 2 (se houver)", "siteKey": "BA",
+     "role": "Dell iDRAC Enterprise", "hosts": ["idrac-filial02"]},
+
+    # --- TIER 4: Hypervisors & Servidores (Y: 620) ---
+    {"id": "vm-cluster-sp", "name": "Cluster Hypervisors SP\n(5 hosts Hyper-V)", "category": "Virtualização / Servidor",
+     "x": 500, "y": 620, "symbolSize": 45, "ip": "192.168.0.x", "site": "Matriz - Sede Principal", "siteKey": "Matriz",
+     "role": "Hypervisors PHP, CLIPPER, DELPHI, PASCAL, ASSEMBLY",
+     "hosts": ["PHP", "CLIPPER", "DELPHI", "PASCAL", "ASSEMBLY"]},
+    {"id": "srv-sp", "name": "Servidores SP\n(AD / DC / NGINX)", "category": "Virtualização / Servidor",
+     "x": 660, "y": 620, "symbolSize": 40, "ip": "192.168.0.x", "site": "Matriz - Sede Principal", "siteKey": "Matriz",
+     "role": "VMs e servidores da matriz",
+     "hosts": ["SRV-AD01", "SRV-AD02", "srv-dc02", "srv-cs01", "NGINX-SRV", "JAVASCRIPT"]},
+    {"id": "vm-rj-1", "name": "SRV-DC01 (RJ)", "category": "Virtualização / Servidor", "x": 160, "y": 540,
+     "symbolSize": 34, "ip": "192.168.3.1", "site": "Filial 1 (se houver)", "siteKey": "RJ",
+     "role": "Domain Controller Filial", "hosts": ["SRV-DC01"]},
+    {"id": "vm-ba-1", "name": "SRV-AD03 (BA)", "category": "Virtualização / Servidor", "x": 840, "y": 540,
+     "symbolSize": 34, "ip": "192.168.2.4", "site": "Filial 2 (se houver)", "siteKey": "BA",
+     "role": "Domain Controller Filial", "hosts": ["SRV-AD03"]},
+
+    # --- TIER 5: Access Points Wi-Fi (Y: 740) ---
+    {"id": "ap-sp", "name": "5x APs Wi-Fi SP\n(TI/Com/Fin/Rec)", "category": "Access Point", "x": 500, "y": 740,
+     "symbolSize": 40, "ip": "192.168.0.40-44", "site": "Matriz - Sede Principal", "siteKey": "Matriz",
+     "role": "5x UniFi APs Corporativos",
+     "hosts": ["AP01 - FINANCEIRO", "AP02 - Kleber", "AP03 - RECEPÇÃO", "AP04 - COMERCIAL", "AP05 - TI"]},
+    {"id": "ap-rj", "name": "5x APs Wi-Fi RJ\n(Galpões/Adm)", "category": "Access Point", "x": 160, "y": 660,
+     "symbolSize": 38, "ip": "192.168.3.107-116", "site": "Filial 1 (se houver)", "siteKey": "RJ",
+     "role": "5x APs Galpão & Escritório",
+     "hosts": ["AP-ADM", "AP-BALANCA", "AP-GALPAO1FRENTE", "AP-GALPAO1FUNDO", "AP-GALPAO3"]},
+    {"id": "ap-ba", "name": "6x APs Wi-Fi BA\n(Fábrica/Adm)", "category": "Access Point", "x": 840, "y": 660,
+     "symbolSize": 40, "ip": "192.168.2.47-52", "site": "Filial 2 (se houver)", "siteKey": "BA",
+     "role": "6x APs Fábrica & Armazém",
+     "hosts": ["AP ADM - BAHIA", "AP ARMAZEM - BAHIA", "AP EXPEDIÇÃO - BAHIA", "AP FABRICA - BAHIA",
+               "AP LENTILHA - BAHIA", "AP RESERVA - BAHIA"]},
+]
+
+
+def _link(source, target, color, width, text=None, **style):
+    label = {"show": True, "formatter": text} if text else {"show": False}
+    return {"source": source, "target": target, "label": label,
+            "lineStyle": {"width": width, "color": color, **style}}
+
+
+LINKS = [
+    # Links de Internet -> Firewalls
+    _link("inet-sp", "fw-sp", "#10b981", 3.5, "wan1(50M) / wan2(50M)"),
+    _link("inet-rj", "fw-rj", "#10b981", 3, "Int10 / Easy(50M)"),
+    _link("inet-ba", "fw-ba", "#10b981", 3, "Link Rádio(40M) / Net(30M)"),
+    _link("inet-pr", "fw-pr", "#10b981", 2.5, "SD-WAN / wan2"),
+    # Malha SD-WAN VPN Inter-filiais (linhas tracejadas)
+    _link("fw-sp", "fw-rj", "#06b6d4", 2.5, type="dashed", curveness=0.22),
+    _link("fw-sp", "fw-ba", "#06b6d4", 2.5, type="dashed", curveness=-0.22),
+    _link("fw-sp", "fw-pr", "#06b6d4", 2, type="dashed", curveness=-0.35),
+    # Firewalls -> Switches Core
+    _link("fw-sp", "sw-core-sp", "#3b82f6", 4, "10 Gbps Trunk"),
+    _link("fw-rj", "sw-core-rj", "#3b82f6", 3, "1 Gbps Uplink"),
+    _link("fw-ba", "sw-core-ba", "#3b82f6", 3, "1 Gbps Uplink"),
+    # Nobreak alimentando infra de Core SP
+    _link("ups-sp", "sw-core-sp", "#eab308", 2, type="dotted"),
+    _link("ups-sp", "fw-sp", "#eab308", 2, type="dotted"),
+    # Core SP -> Switches de Distribuição
+    *[_link("sw-core-sp", f"sw-sp-{n}", "#60a5fa", 2.5) for n in (17, 19, 20, 21)],
+    # Switches -> Servidores Físicos Dell iDRAC
+    *[_link("sw-core-sp", f"hw-sp-{n}", "#a855f7", 2) for n in range(1, 6)],
+    _link("sw-core-rj", "hw-rj-1", "#a855f7", 2),
+    _link("sw-core-ba", "hw-ba-1", "#a855f7", 2),
+    # Servidores Físicos -> Hypervisors / VMs
+    _link("hw-sp-3", "vm-cluster-sp", "#8b5cf6", 3, "Hyper-V"),
+    _link("vm-cluster-sp", "srv-sp", "#8b5cf6", 2, "VMs"),
+    _link("hw-rj-1", "vm-rj-1", "#8b5cf6", 2),
+    _link("hw-ba-1", "vm-ba-1", "#8b5cf6", 2),
+    # Switches -> Access Points Wi-Fi
+    _link("sw-sp-20", "ap-sp", "#ec4899", 2.5, "PoE+"),
+    _link("sw-core-rj", "ap-rj", "#ec4899", 2.5, "PoE+"),
+    _link("sw-core-ba", "ap-ba", "#ec4899", 2.5, "PoE+"),
+]
 
 
 def _echarts_get_option():
-    """JavaScript code string executed by volkovlabs-echarts-panel."""
-    return r"""
+    """JavaScript code string executed by volkovlabs-echarts-panel.
+
+    The panel query returns A = availability per host (labels.host / labels.item_key) and
+    B = WAN operational status; each node is coloured from the hosts it lists.
+    """
+    code = r"""
 // Apache ECharts Network Topology & Path Tracing for AutoDiscovery NOC
-const seriesData = data.series || [];
+const seriesData = (context && context.panel && context.panel.data && context.panel.data.series) || [];
 
-// Node definitions (Coordinates system 0-1200 x, 0-800 y)
-const nodes = [
-  // --- TIER 0: Provedores / Internet (Y: 60) ---
-  { id: 'inet-sp', name: 'Internet SP\n(Mega / America)', category: 'Internet', x: 500, y: 60, symbolSize: 52,
-    itemStyle: { color: '#10b981', borderColor: '#34d399', borderWidth: 3, shadowBlur: 15, shadowColor: '#10b981' },
-    ip: 'BGP / Multi-WAN', site: 'Matriz - Sede Principal', role: 'Link Primário 50M | Link Redundante 50M' },
-  { id: 'inet-rj', name: 'Internet RJ\n(Easy / Int10)', category: 'Internet', x: 160, y: 60, symbolSize: 45,
-    itemStyle: { color: '#10b981', borderColor: '#34d399', borderWidth: 2, shadowBlur: 10, shadowColor: '#10b981' },
-    ip: 'Multi-WAN', site: 'Filial 1 (se houver)', role: 'Operadora A 50M | Operadora B 50M' },
-  { id: 'inet-ba', name: 'Internet BA\n(Link Rádio / NetFiber)', category: 'Internet', x: 840, y: 60, symbolSize: 45,
-    itemStyle: { color: '#10b981', borderColor: '#34d399', borderWidth: 2, shadowBlur: 10, shadowColor: '#10b981' },
-    ip: 'Multi-WAN', site: 'Filial 2 (se houver)', role: 'Link Fibra 30M | Link Rádio 40M' },
-  { id: 'inet-pr', name: 'Internet PR\n(SD-WAN)', category: 'Internet', x: 1080, y: 60, symbolSize: 45,
-    itemStyle: { color: '#10b981', borderColor: '#34d399', borderWidth: 2, shadowBlur: 10, shadowColor: '#10b981' },
-    ip: 'Multi-WAN', site: 'Filial 3 (se houver)', role: 'Link Dedicado SD-WAN | wan2' },
+// Node definitions (Coordinates system 0-1200 x, 0-800 y); hosts = Zabbix host names
+const allNodes = __NODES__;
+const allLinks = __LINKS__;
 
-  // --- TIER 1: Firewalls FortiGate (Y: 180) ---
-  { id: 'fw-sp', name: 'FW-SP (FortiGate)', category: 'Firewall', x: 500, y: 180, symbolSize: 58,
-    itemStyle: { color: '#ef4444', borderColor: '#f87171', borderWidth: 3, shadowBlur: 18, shadowColor: '#ef4444' },
-    ip: '192.168.0.4', site: 'Matriz - Sede Principal', role: 'Firewall Core / Hub SD-WAN' },
-  { id: 'fw-rj', name: 'FW-RJ (FortiGate)', category: 'Firewall', x: 160, y: 180, symbolSize: 48,
-    itemStyle: { color: '#ef4444', borderColor: '#f87171', borderWidth: 2, shadowBlur: 10, shadowColor: '#ef4444' },
-    ip: '192.168.3.21', site: 'Filial 1 (se houver)', role: 'Firewall Filial / SD-WAN Spoke' },
-  { id: 'fw-ba', name: 'FW-BA (FortiGate)', category: 'Firewall', x: 840, y: 180, symbolSize: 48,
-    itemStyle: { color: '#ef4444', borderColor: '#f87171', borderWidth: 2, shadowBlur: 10, shadowColor: '#ef4444' },
-    ip: '192.168.2.244', site: 'Filial 2 (se houver)', role: 'Firewall Filial / SD-WAN Spoke' },
-  { id: 'fw-pr', name: 'FW-PR (FortiGate)', category: 'Firewall', x: 1080, y: 180, symbolSize: 48,
-    itemStyle: { color: '#ef4444', borderColor: '#f87171', borderWidth: 2, shadowBlur: 10, shadowColor: '#ef4444' },
-    ip: '192.168.1.2', site: 'Filial 3 (se houver)', role: 'Firewall Filial / SD-WAN Spoke' },
+const COLORS = { up: '#22c55e', down: '#ef4444', partial: '#f97316', unknown: '#64748b' };
+const LABELS = { up: 'ONLINE', down: 'OFFLINE', partial: 'PARCIAL', unknown: 'SEM DADOS' };
+const CATEGORY_COLORS = {
+  'Internet': '#38bdf8', 'Firewall': '#e879f9', 'Switch': '#3b82f6', 'Hardware Servidor': '#a855f7',
+  'Virtualização / Servidor': '#8b5cf6', 'Access Point': '#ec4899', 'Nobreak UPS': '#eab308'
+};
 
-  // --- TIER 2: Switches Core & Distribuição (Y: 310) ---
-  { id: 'sw-core-sp', name: 'Switch-Aruba\n192.168.0.22', category: 'Switch', x: 500, y: 310, symbolSize: 52,
-    itemStyle: { color: '#3b82f6', borderColor: '#60a5fa', borderWidth: 3, shadowBlur: 15, shadowColor: '#3b82f6' },
-    ip: '192.168.0.22', site: 'Matriz - Sede Principal', role: 'Core Switch / VLT Stacking' },
-  { id: 'sw-sp-17', name: 'SW-17 (Dist)', category: 'Switch', x: 380, y: 410, symbolSize: 36,
-    itemStyle: { color: '#2563eb' }, ip: '192.168.0.17', site: 'Matriz - Sede Principal', role: 'Switch Acesso' },
-  { id: 'sw-sp-19', name: 'SW-19 (Dist)', category: 'Switch', x: 440, y: 410, symbolSize: 36,
-    itemStyle: { color: '#2563eb' }, ip: '192.168.0.19', site: 'Matriz - Sede Principal', role: 'Switch Acesso' },
-  { id: 'sw-sp-20', name: 'SW-20 (Dist)', category: 'Switch', x: 560, y: 410, symbolSize: 36,
-    itemStyle: { color: '#2563eb' }, ip: '192.168.0.20', site: 'Matriz - Sede Principal', role: 'Switch Acesso' },
-  { id: 'sw-sp-21', name: 'SW-21 (Dist)', category: 'Switch', x: 620, y: 410, symbolSize: 36,
-    itemStyle: { color: '#2563eb' }, ip: '192.168.0.21', site: 'Matriz - Sede Principal', role: 'Switch Acesso' },
-  { id: 'sw-core-rj', name: 'SW-Filial1-MikroTik', category: 'Switch', x: 160, y: 310, symbolSize: 42,
-    itemStyle: { color: '#3b82f6' }, ip: '192.168.3.19', site: 'Filial 1 (se houver)', role: 'Core Switch RJ' },
-  { id: 'sw-core-ba', name: 'SW-Core-Filial2', category: 'Switch', x: 840, y: 310, symbolSize: 42,
-    itemStyle: { color: '#3b82f6' }, ip: '192.168.2.144', site: 'Filial 2 (se houver)', role: 'Core Switch BA' },
+// Last non-null value of a field (Grafana may hand over a Vector or a plain array)
+const lastValue = (field) => {
+  const raw = field && field.values ? field.values : [];
+  const vals = typeof raw.toArray === 'function' ? raw.toArray() : raw;
+  for (let i = vals.length - 1; i >= 0; i--) {
+    if (vals[i] !== null && vals[i] !== undefined) return Number(vals[i]);
+  }
+  return null;
+};
 
-  // --- TIER 3: Infraestrutura, Nobreak & Hardware Dell (Y: 490) ---
-  { id: 'ups-sp', name: 'Nobreak-Matriz', category: 'Nobreak UPS', x: 320, y: 310, symbolSize: 40,
-    itemStyle: { color: '#eab308', borderColor: '#fde047', borderWidth: 2 },
-    ip: '192.168.0.3', site: 'Matriz - Sede Principal', role: 'Nobreak Nobreak NHS Laser Senoidal' },
-  { id: 'hw-sp-1', name: 'idrac-srv01', category: 'Hardware Servidor', x: 380, y: 500, symbolSize: 32,
-    itemStyle: { color: '#a855f7' }, ip: '192.168.0.224', site: 'Matriz - Sede Principal', role: 'Dell iDRAC Enterprise' },
-  { id: 'hw-sp-2', name: 'idrac-srv02', category: 'Hardware Servidor', x: 440, y: 500, symbolSize: 32,
-    itemStyle: { color: '#a855f7' }, ip: '192.168.0.228', site: 'Matriz - Sede Principal', role: 'Dell iDRAC Enterprise' },
-  { id: 'hw-sp-3', name: 'idrac-srv03', category: 'Hardware Servidor', x: 500, y: 500, symbolSize: 32,
-    itemStyle: { color: '#a855f7' }, ip: '192.168.0.226', site: 'Matriz - Sede Principal', role: 'Dell iDRAC Enterprise' },
-  { id: 'hw-sp-4', name: 'idrac-srv04', category: 'Hardware Servidor', x: 560, y: 500, symbolSize: 32,
-    itemStyle: { color: '#a855f7' }, ip: '192.168.0.225', site: 'Matriz - Sede Principal', role: 'Dell iDRAC Enterprise' },
-  { id: 'hw-sp-5', name: 'idrac-srv05', category: 'Hardware Servidor', x: 620, y: 500, symbolSize: 32,
-    itemStyle: { color: '#a855f7' }, ip: '192.168.0.227', site: 'Matriz - Sede Principal', role: 'Dell iDRAC Enterprise' },
-  { id: 'hw-rj-1', name: 'idrac-filial01', category: 'Hardware Servidor', x: 160, y: 440, symbolSize: 32,
-    itemStyle: { color: '#a855f7' }, ip: '192.168.3.22', site: 'Filial 1 (se houver)', role: 'Dell iDRAC Enterprise' },
-  { id: 'hw-ba-1', name: 'idrac-filial02', category: 'Hardware Servidor', x: 840, y: 440, symbolSize: 32,
-    itemStyle: { color: '#a855f7' }, ip: '192.168.2.14', site: 'Filial 2 (se houver)', role: 'Dell iDRAC Enterprise' },
+// Checks per host: reach = ICMP ping / SNMP availability, agent = Zabbix agent availability.
+// Each check: true = up, false = down, null = unknown.
+// icmpping: 1 = up, 0 = down. zabbix[host,*,available]: 1 = up, 0 = down, 2 = unknown.
+const hostChecks = {};
+const wanStatus = {};
+// Merge two readings of the same check: a known value beats null, down beats up
+const mergeOk = (prev, ok) => (prev === undefined || prev === null || ok === false ? ok : prev);
+for (const frame of seriesData) {
+  const valueField = (frame.fields || []).find((f) => f.type === 'number');
+  if (!valueField || !valueField.labels || !valueField.labels.host) continue;
+  const host = valueField.labels.host;
+  const key = valueField.labels.item_key || '';
+  const item = valueField.labels.item || key;
+  const last = lastValue(valueField);
+  if (frame.refId === 'B') {
+    // WAN interface operational status: 1 = up
+    (wanStatus[host] = wanStatus[host] || []).push({ name: item, ok: last === null ? null : last === 1 });
+    continue;
+  }
+  const ok = last === null ? null : (key === 'icmpping' ? last === 1 : (last === 1 ? true : last === 0 ? false : null));
+  const kind = key === 'icmpping' ? 'ping'
+    : (key.indexOf(',agent,') >= 0 || item === 'Zabbix agent availability' ? 'agent' : 'snmp');
+  const c = hostChecks[host] = hostChecks[host] || {};
+  c[kind] = mergeOk(c[kind], ok);
+}
 
-  // --- TIER 4: Hypervisors & Servidores (Y: 620) ---
-  { id: 'vm-cluster-sp', name: 'Cluster Hypervisors SP\n(ASSEMBLY/DELPHI/CLIPPER)', category: 'Virtualização / Servidor', x: 500, y: 620, symbolSize: 45,
-    itemStyle: { color: '#8b5cf6', borderColor: '#c4b5fd', borderWidth: 2 },
-    ip: '192.168.0.x', site: 'Matriz - Sede Principal', role: '5 Hypervisors | VMs: NGINX, CS01, AD01/02' },
-  { id: 'vm-rj-1', name: 'SRV-DC01 (RJ)', category: 'Virtualização / Servidor', x: 160, y: 540, symbolSize: 34,
-    itemStyle: { color: '#8b5cf6' }, ip: '192.168.3.1', site: 'Filial 1 (se houver)', role: 'Domain Controller Filial' },
-  { id: 'vm-ba-1', name: 'SRV-AD03 (BA)', category: 'Virtualização / Servidor', x: 840, y: 540, symbolSize: 34,
-    itemStyle: { color: '#8b5cf6' }, ip: '192.168.2.4', site: 'Filial 2 (se houver)', role: 'Domain Controller Filial' },
+// Host state: reachability (ping, else SNMP) decides up/down; a down agent (Zabbix or
+// SNMP) on a host that answers ping is 'partial'. Without ping/SNMP the agent alone decides.
+const CHECK_NAMES = { ping: 'ping', snmp: 'SNMP', agent: 'agente' };
+const hostMember = (h) => {
+  const c = hostChecks[h] || {};
+  const hasPing = c.ping !== undefined && c.ping !== null;
+  const reach = hasPing ? c.ping : (c.snmp === undefined ? null : c.snmp);
+  const agentDown = c.agent === false || (hasPing && c.snmp === false);
+  let state = 'unknown';
+  if (reach === false) state = 'down';
+  else if (reach === true) state = agentDown ? 'partial' : 'up';
+  else if (c.agent === true) state = 'up';
+  else if (c.agent === false) state = 'down';
+  const checks = Object.keys(CHECK_NAMES).filter((k) => c[k] !== undefined)
+    .map((k) => ({ name: CHECK_NAMES[k], state: c[k] === null ? 'unknown' : (c[k] ? 'up' : 'down') }));
+  return { name: h, state: state, checks: checks };
+};
 
-  // --- TIER 5: Access Points Wi-Fi (Y: 740) ---
-  { id: 'ap-sp', name: '5x APs Wi-Fi SP\n(TI/Com/Fin/Rec)', category: 'Access Point', x: 500, y: 740, symbolSize: 40,
-    itemStyle: { color: '#f97316' }, ip: '192.168.0.40-44', site: 'Matriz - Sede Principal', role: '5x UniFi APs Corporativos' },
-  { id: 'ap-rj', name: '5x APs Wi-Fi RJ\n(Galpões/Adm)', category: 'Access Point', x: 160, y: 660, symbolSize: 38,
-    itemStyle: { color: '#f97316' }, ip: '192.168.3.107-116', site: 'Filial 1 (se houver)', role: '5x APs Galpão & Escritório' },
-  { id: 'ap-ba', name: '6x APs Wi-Fi BA\n(Fábrica/Adm)', category: 'Access Point', x: 840, y: 660, symbolSize: 40,
-    itemStyle: { color: '#f97316' }, ip: '192.168.2.47-52', site: 'Filial 2 (se houver)', role: '6x APs Fábrica & Armazém' }
-];
+// Branch filter: $site is a regex fragment (".*" for all)
+let site = '.*';
+try {
+  if (context && context.grafana && typeof context.grafana.replaceVariables === 'function') {
+    site = context.grafana.replaceVariables('$site');
+  }
+} catch (e) { site = '.*'; }
+const allSites = !site || site === '.*' || site === '$site' || site === '$__all';
 
-// Connection links between elements
-const links = [
-  // Links de Internet -> Firewalls
-  { source: 'inet-sp', target: 'fw-sp', label: { show: true, formatter: 'wan1(50M) / wan2(50M)' }, lineStyle: { width: 3.5, color: '#10b981' } },
-  { source: 'inet-rj', target: 'fw-rj', label: { show: true, formatter: 'Int10 / Easy(50M)' }, lineStyle: { width: 3, color: '#10b981' } },
-  { source: 'inet-ba', target: 'fw-ba', label: { show: true, formatter: 'Link Rádio(40M) / Net(30M)' }, lineStyle: { width: 3, color: '#10b981' } },
-  { source: 'inet-pr', target: 'fw-pr', label: { show: true, formatter: 'SD-WAN / wan2' }, lineStyle: { width: 2.5, color: '#10b981' } },
+const nodes = allNodes.filter((n) => allSites || n.siteKey === site).map((n) => {
+  const members = n.wan
+    ? n.hosts.flatMap((h) => (wanStatus[h] || []).map((w) => ({
+        name: h + ': ' + w.name, state: w.ok === null ? 'unknown' : (w.ok ? 'up' : 'down'), checks: [] })))
+    : n.hosts.map(hostMember);
+  // Node: all known members up = up, all down = down, anything else (incl. a partial host) = partial
+  const known = members.filter((m) => m.state !== 'unknown');
+  const up = known.filter((m) => m.state === 'up').length;
+  const down = known.filter((m) => m.state === 'down').length;
+  let state = 'unknown';
+  if (known.length) state = up === known.length ? 'up' : (down === known.length ? 'down' : 'partial');
+  const catColor = CATEGORY_COLORS[n.category] || '#94a3b8';
+  return Object.assign({}, n, {
+    members: members,
+    state: state,
+    up: up,
+    total: members.length,
+    itemStyle: {
+      color: COLORS[state], borderColor: catColor, borderWidth: 3,
+      shadowBlur: state === 'down' ? 18 : 8, shadowColor: COLORS[state]
+    }
+  });
+});
+const byId = {};
+nodes.forEach((n) => { byId[n.id] = n; });
 
-  // Malha SD-WAN VPN Inter-filiais (linhas tracejadas com brilho)
-  { source: 'fw-sp', target: 'fw-rj', label: { show: false }, lineStyle: { type: 'dashed', curveness: 0.22, color: '#06b6d4', width: 2.5 } },
-  { source: 'fw-sp', target: 'fw-ba', label: { show: false }, lineStyle: { type: 'dashed', curveness: -0.22, color: '#06b6d4', width: 2.5 } },
-  { source: 'fw-sp', target: 'fw-pr', label: { show: false }, lineStyle: { type: 'dashed', curveness: -0.35, color: '#06b6d4', width: 2 } },
-
-  // Firewalls -> Switches Core
-  { source: 'fw-sp', target: 'sw-core-sp', label: { show: true, formatter: '10 Gbps Trunk' }, lineStyle: { width: 4, color: '#3b82f6' } },
-  { source: 'fw-rj', target: 'sw-core-rj', label: { show: true, formatter: '1 Gbps Uplink' }, lineStyle: { width: 3, color: '#3b82f6' } },
-  { source: 'fw-ba', target: 'sw-core-ba', label: { show: true, formatter: '1 Gbps Uplink' }, lineStyle: { width: 3, color: '#3b82f6' } },
-
-  // Nobreak alimentando infra de Core SP
-  { source: 'ups-sp', target: 'sw-core-sp', label: { show: false }, lineStyle: { type: 'dotted', color: '#eab308', width: 2 } },
-  { source: 'ups-sp', target: 'fw-sp', label: { show: false }, lineStyle: { type: 'dotted', color: '#eab308', width: 2 } },
-
-  // Core SP -> Switches de Distribuição
-  { source: 'sw-core-sp', target: 'sw-sp-17', lineStyle: { width: 2.5, color: '#60a5fa' } },
-  { source: 'sw-core-sp', target: 'sw-sp-19', lineStyle: { width: 2.5, color: '#60a5fa' } },
-  { source: 'sw-core-sp', target: 'sw-sp-20', lineStyle: { width: 2.5, color: '#60a5fa' } },
-  { source: 'sw-core-sp', target: 'sw-sp-21', lineStyle: { width: 2.5, color: '#60a5fa' } },
-
-  // Switches -> Servidores Físicos Dell iDRAC
-  { source: 'sw-core-sp', target: 'hw-sp-1', lineStyle: { width: 2, color: '#a855f7' } },
-  { source: 'sw-core-sp', target: 'hw-sp-2', lineStyle: { width: 2, color: '#a855f7' } },
-  { source: 'sw-core-sp', target: 'hw-sp-3', lineStyle: { width: 2, color: '#a855f7' } },
-  { source: 'sw-core-sp', target: 'hw-sp-4', lineStyle: { width: 2, color: '#a855f7' } },
-  { source: 'sw-core-sp', target: 'hw-sp-5', lineStyle: { width: 2, color: '#a855f7' } },
-  { source: 'sw-core-rj', target: 'hw-rj-1', lineStyle: { width: 2, color: '#a855f7' } },
-  { source: 'sw-core-ba', target: 'hw-ba-1', lineStyle: { width: 2, color: '#a855f7' } },
-
-  // Servidores Físicos -> Hypervisors / VMs
-  { source: 'hw-sp-3', target: 'vm-cluster-sp', label: { show: true, formatter: 'VMware ESXi' }, lineStyle: { width: 3, color: '#8b5cf6' } },
-  { source: 'hw-rj-1', target: 'vm-rj-1', lineStyle: { width: 2, color: '#8b5cf6' } },
-  { source: 'hw-ba-1', target: 'vm-ba-1', lineStyle: { width: 2, color: '#8b5cf6' } },
-
-  // Switches -> Access Points Wi-Fi
-  { source: 'sw-sp-20', target: 'ap-sp', label: { show: true, formatter: 'PoE+' }, lineStyle: { width: 2.5, color: '#f97316' } },
-  { source: 'sw-core-rj', target: 'ap-rj', label: { show: true, formatter: 'PoE+' }, lineStyle: { width: 2.5, color: '#f97316' } },
-  { source: 'sw-core-ba', target: 'ap-ba', label: { show: true, formatter: 'PoE+' }, lineStyle: { width: 2.5, color: '#f97316' } }
-];
+// Links touching a down node take the down colour
+const links = allLinks.filter((l) => byId[l.source] && byId[l.target]).map((l) => {
+  const down = byId[l.source].state === 'down' || byId[l.target].state === 'down';
+  if (!down) return l;
+  return Object.assign({}, l, { lineStyle: Object.assign({}, l.lineStyle, { color: COLORS.down, type: 'dashed' }) });
+});
 
 return {
   backgroundColor: 'transparent',
@@ -176,8 +324,15 @@ return {
     formatter: function(params) {
       if (params.dataType === 'node') {
         const d = params.data;
+        // One row per host, with each availability check (ping / SNMP / agente) so the cause is visible
+        const rows = (d.members || []).map((m) => {
+          const checks = (m.checks || []).map((c) =>
+            `<span style="color:${COLORS[c.state]};">${c.name} ●</span>`).join(', ');
+          return `<div><span style="color:${COLORS[m.state]};">●</span> ${m.name}` +
+            (checks ? ` <span style="color:#94a3b8;">(${checks})</span>` : '') + `</div>`;
+        }).join('') || '<div style="color:#94a3b8;">Sem item de disponibilidade no Zabbix</div>';
         return `
-          <div style="font-weight:bold;font-size:14px;color:${d.itemStyle?.color || '#38bdf8'};margin-bottom:6px;">
+          <div style="font-weight:bold;font-size:14px;color:${COLORS[d.state]};margin-bottom:6px;">
             ${d.name.replace('\n', ' ')}
           </div>
           <table style="font-size:12px;line-height:1.6;color:#cbd5e1;">
@@ -185,11 +340,9 @@ return {
             <tr><td><b>Endereço IP:</b></td><td style="padding-left:8px;font-family:monospace;color:#38bdf8;">${d.ip}</td></tr>
             <tr><td><b>Localidade:</b></td><td style="padding-left:8px;">${d.site}</td></tr>
             <tr><td><b>Papel / Detalhe:</b></td><td style="padding-left:8px;">${d.role}</td></tr>
-            <tr><td><b>Status:</b></td><td style="padding-left:8px;"><span style="color:#22c55e;font-weight:bold;">● ONLINE</span></td></tr>
+            <tr><td><b>Status:</b></td><td style="padding-left:8px;"><span style="color:${COLORS[d.state]};font-weight:bold;">● ${LABELS[d.state]}</span> (${d.up}/${d.total} online)</td></tr>
           </table>
-          <div style="margin-top:6px;font-size:10px;color:#94a3b8;border-top:1px solid #334155;padding-top:4px;">
-            Dica: Passe o mouse para destacar o caminho completo até a borda
-          </div>
+          <div style="margin-top:6px;font-size:11px;line-height:1.5;border-top:1px solid #334155;padding-top:4px;">${rows}</div>
         `;
       } else if (params.dataType === 'edge') {
         const d = params.data;
@@ -197,13 +350,14 @@ return {
           <div style="font-weight:bold;margin-bottom:4px;color:#38bdf8;">Conexão de Enlace</div>
           <div><b>Origem:</b> ${d.source}</div>
           <div><b>Destino:</b> ${d.target}</div>
-          <div><b>Info:</b> ${d.label?.formatter || 'Enlace LAN/WAN Ativo'}</div>
+          <div><b>Info:</b> ${(d.label && d.label.formatter) || 'Enlace LAN/WAN'}</div>
         `;
       }
+      return '';
     }
   },
   legend: [{
-    data: ['Internet', 'Firewall', 'Switch', 'Hardware Servidor', 'Virtualização / Servidor', 'Access Point', 'Nobreak UPS'],
+    data: Object.keys(CATEGORY_COLORS),
     textStyle: { color: '#cbd5e1', fontSize: 11 },
     top: 6,
     left: 'center',
@@ -241,75 +395,119 @@ return {
       curveness: 0.08,
       opacity: 0.85
     },
-    categories: [
-      { name: 'Internet', itemStyle: { color: '#10b981' } },
-      { name: 'Firewall', itemStyle: { color: '#ef4444' } },
-      { name: 'Switch', itemStyle: { color: '#3b82f6' } },
-      { name: 'Hardware Servidor', itemStyle: { color: '#a855f7' } },
-      { name: 'Virtualização / Servidor', itemStyle: { color: '#8b5cf6' } },
-      { name: 'Access Point', itemStyle: { color: '#f97316' } },
-      { name: 'Nobreak UPS', itemStyle: { color: '#eab308' } }
-    ],
+    categories: Object.keys(CATEGORY_COLORS).map((name) => ({ name: name, itemStyle: { color: CATEGORY_COLORS[name] } })),
     nodes: nodes,
     links: links
   }]
 };
 """.strip()
+    return (code.replace("__NODES__", json.dumps(NODES, ensure_ascii=False))
+                .replace("__LINKS__", json.dumps(LINKS, ensure_ascii=False)))
+
+
+def _q(item, functions=(), ref="A", group=SITE_GROUP, host="/.*/"):
+    """Target with explicit group/host filters (this dashboard has no $group/$host)."""
+    t = _target(item, functions, ref=ref)
+    t["datasource"] = {"type": DS["type"], "uid": "${datasource}"}
+    t["group"] = {"filter": group}
+    t["host"] = {"filter": host}
+    # trend.get of plugin 6.9.1 is rejected by Zabbix 8.0, so history only.
+    t["options"] = {**t.get("options", {}), "showDisabledItems": False, "skipEmptyValues": True,
+                    "disableDataAlignment": True, "useTrends": "false"}
+    return t
+
+
+# Parameter definitions of the Zabbix datasource functions used here.
+_FN_PARAMS = {"scale": [{"name": "factor", "type": "float", "options": [100, 0.01, 10, -1]}],
+              "offset": [{"name": "delta", "type": "float", "options": [-100, 100]}],
+              "groupBy": [{"name": "interval", "type": "string"},
+                          {"name": "function", "type": "string",
+                           "options": ["avg", "min", "max", "sum", "count", "median", "first", "last"]}]}
+_FN_DEFAULTS = {"scale": [100], "offset": [100], "groupBy": ["1m", "avg"]}
+
+
+def _fn(name, category, params=()):
+    """Zabbix datasource function (sumSeries, scale, offset...)."""
+    return {
+        "def": {"name": name, "category": category, "params": _FN_PARAMS.get(name, []),
+                "defaultParams": _FN_DEFAULTS.get(name, [])},
+        "params": list(params),
+        "text": f"{name}({', '.join(str(p) for p in params)})",
+    }
+
+
+def _stat_options(calcs=("lastNotNull",)):
+    return {
+        "reduceOptions": {"calcs": list(calcs), "values": False, "fields": ""},
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "colorMode": "background",
+        "graphMode": "none",
+        "wideLayout": False,
+    }
+
+
+def _last_only(panel, window, points=10):
+    """Stat panels only show the last value, so they fetch a short window."""
+    panel.update({"timeFrom": window, "hideTimeOverride": True, "maxDataPoints": points})
+    return panel
 
 
 def build_topology_dashboard(datasource_uid="zabbix"):
     """Constructs the complete AutoDiscovery Topologia & NOC dashboard."""
     ds = {"type": DS["type"], "uid": "${datasource}"}
 
-    # Top KPI Row (y=0, h=3)
-    kpi_summary = {
+    # Top KPI Row (y=0, h=3): ICMP hosts of the site, summed into Online / Total / Offline
+    kpi_summary = _last_only({
         "id": 1,
         "type": "stat",
         "title": "Infraestrutura Global - Visão Executiva",
         "gridPos": {"x": 0, "y": 0, "w": 24, "h": 3},
         "datasource": ds,
-        "targets": [_target("ICMP ping", [_alias("$__zbx_host_name")])],
-        "options": {
-            "reduceOptions": {"calcs": ["count"], "values": False, "fields": ""},
-            "orientation": "horizontal",
-            "textMode": "value_and_name",
-            "colorMode": "background",
-            "graphMode": "none",
-            "wideLayout": False,
-        },
+        "targets": [
+            _q("ICMP ping", [_fn("sumSeries", "Aggregate"), _alias("Online")], ref="A"),
+            _q("ICMP ping", [_fn("scale", "Transform", [0]), _fn("offset", "Transform", [1]),
+                             _fn("sumSeries", "Aggregate"), _alias("Total")], ref="B"),
+            _q("ICMP ping", [_fn("scale", "Transform", [-1]), _fn("offset", "Transform", [1]),
+                             _fn("sumSeries", "Aggregate"), _alias("Offline")], ref="C"),
+        ],
+        "options": _stat_options(),
         "fieldConfig": {
             "defaults": {
                 "unit": "none",
+                "decimals": 0,
                 "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": None}]},
             },
-            "overrides": [],
+            "overrides": [
+                {"matcher": {"id": "byFrameRefID", "options": "B"},
+                 "properties": [{"id": "thresholds", "value": {"mode": "absolute",
+                                                               "steps": [{"color": "blue", "value": None}]}}]},
+                {"matcher": {"id": "byFrameRefID", "options": "C"},
+                 "properties": [{"id": "thresholds", "value": {"mode": "absolute", "steps": [
+                     {"color": "green", "value": None}, {"color": "red", "value": 1}]}}]},
+            ],
         },
-    }
+    }, "5m")
 
     # Left Column: Links WAN & Conectividade (x=0, y=3, w=5, h=21)
-    wan_status_panel = {
+    # WAN items only exist on the FortiGates, so the site group is enough.
+    # replaceAlias sees the setAlias output ("host: item"), so its regex is not anchored with ^.
+    wan_status_panel = _last_only({
         "id": 2,
         "type": "stat",
         "title": "Links de Internet & Provedores",
         "gridPos": {"x": 0, "y": 3, "w": 5, "h": 11},
         "datasource": ds,
         "targets": [
-            _target(
+            _q(
                 WAN_STATUS["re"],
                 [
                     _alias("$__zbx_host_name: $__zbx_item"),
-                    _replace_alias(r"/^(?:Interface\s+)?([^:]+):\s+Operational status$/i", "$__zbx_host_name - $1"),
+                    _replace_alias(r"/: (?:Interface\s+)?([^:]+):\s+Operational status$/i", " - $1"),
                 ],
             )
         ],
-        "options": {
-            "reduceOptions": {"calcs": ["lastNotNull"], "values": False, "fields": ""},
-            "orientation": "horizontal",
-            "textMode": "value_and_name",
-            "colorMode": "background",
-            "graphMode": "none",
-            "wideLayout": False,
-        },
+        "options": _stat_options(),
         "fieldConfig": {
             "defaults": {
                 "mappings": OPER_STATUS_MAP,
@@ -317,30 +515,30 @@ def build_topology_dashboard(datasource_uid="zabbix"):
             },
             "overrides": [],
         },
-    }
+    }, "10m")
 
+    # Only 8 WAN links: no top(), so In and Out show every link.
     wan_traffic_panel = {
         "id": 3,
         "type": "timeseries",
-        "title": "Tráfego Internet WAN (Top Links)",
+        "title": "Tráfego Internet WAN",
         "gridPos": {"x": 0, "y": 14, "w": 5, "h": 10},
         "datasource": ds,
+        "maxDataPoints": 500,
         "targets": [
-            _target(
+            _q(
                 WAN_IN["re"],
                 [
                     _alias("$__zbx_host_name: $__zbx_item"),
-                    _replace_alias(r"/^(?:Interface\s+)?([^:]+):\s+Bits received$/i", "$__zbx_host_name: $1 (In)"),
-                    _top(5),
+                    _replace_alias(r"/: (?:Interface\s+)?([^:]+):\s+Bits received$/i", " - $1 (In)"),
                 ],
                 ref="A",
             ),
-            _target(
+            _q(
                 WAN_OUT["re"],
                 [
                     _alias("$__zbx_host_name: $__zbx_item"),
-                    _replace_alias(r"/^(?:Interface\s+)?([^:]+):\s+Bits sent$/i", "$__zbx_host_name: $1 (Out)"),
-                    _top(5),
+                    _replace_alias(r"/: (?:Interface\s+)?([^:]+):\s+Bits sent$/i", " - $1 (Out)"),
                 ],
                 ref="B",
             ),
@@ -353,83 +551,76 @@ def build_topology_dashboard(datasource_uid="zabbix"):
     }
 
     # Center Column: Apache ECharts Topology Graph (x=5, y=3, w=14, h=21)
-    echarts_panel = {
+    # A = availability of every host of the site, B = WAN status (Internet nodes).
+    # The iDRAC availability items "discard unchanged" with a 6h heartbeat, so the window is 7h;
+    # groupBy(1h, last) keeps the latest value while sending ~8 points per host.
+    # timeFrom is per panel, so ping/agent cannot use a shorter window: the 7 iDRACs only have
+    # SNMP availability (no ICMP ping) and vanish from a 5m window. Measured all sites: 7h ~860 ms
+    # (112 frames) vs 5m ~345 ms (105 frames, iDRACs missing).
+    latest = [_fn("groupBy", "Transform", ["1h", "last"])]
+    echarts_panel = _last_only({
         "id": 4,
         "type": "volkovlabs-echarts-panel",
         "title": "Mapa de Topologia e Conectividade de Rede",
         "gridPos": {"x": 5, "y": 3, "w": 14, "h": 21},
         "datasource": ds,
         "targets": [
-            _target("ICMP ping", [_alias("$__zbx_host_name")]),
+            _q(AVAIL_RE, latest, ref="A"),
+            _q(WAN_STATUS["re"], latest, ref="B"),
         ],
         "options": {
             "renderer": "canvas",
             "editor": {"height": 600, "format": "auto"},
             "getOption": _echarts_get_option(),
         },
-    }
+    }, "7h")
 
     # Right Column: Infraestrutura, Computação & Virtualização (x=19, y=3, w=5, h=21)
-    virt_panel = {
+    virt_panel = _last_only({
         "id": 5,
         "type": "stat",
         "title": "Virtualização & Servidores",
         "gridPos": {"x": 19, "y": 3, "w": 5, "h": 7},
         "datasource": ds,
         "targets": [
-            _target(
-                r"/ICMP ping/",
-                [_alias("$__zbx_host_name")],
+            _q(
+                r"/^(Zabbix agent availability|ICMP ping)$/",
+                [
+                    _alias("$__zbx_host_name: $__zbx_item"),
+                    _replace_alias(r"/: Zabbix agent availability$/", " (agente)"),
+                    _replace_alias(r"/: ICMP ping$/", " (ping)"),
+                ],
                 ref="A",
+                group=r"/^Servidores\/.*$/",
+                host=SITE_HOSTS,
             )
         ],
-        "options": {
-            "reduceOptions": {"calcs": ["lastNotNull"], "values": False, "fields": ""},
-            "orientation": "horizontal",
-            "textMode": "value_and_name",
-            "colorMode": "background",
-            "graphMode": "none",
-            "wideLayout": False,
-        },
+        "options": _stat_options(),
         "fieldConfig": {
             "defaults": {
-                "mappings": [
-                    {"type": "value", "options": {"0": {"text": "OFF", "color": "red"}, "1": {"text": "ON", "color": "green"}}}
-                ],
-                "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": None}]},
+                "mappings": AVAIL_MAP,
+                "thresholds": {"mode": "absolute", "steps": AVAIL_STEPS},
             },
             "overrides": [],
         },
-    }
+    }, "5m")
 
-    firewall_health_panel = {
+    firewall_health_panel = _last_only({
         "id": 6,
         "type": "stat",
         "title": "Firewalls FortiGate - CPU & Sessões",
         "gridPos": {"x": 19, "y": 10, "w": 5, "h": 7},
         "datasource": ds,
         "targets": [
-            _target(
-                r"/((cpu|processor).*(utilization|usage)|utiliza[cç][aã]o.*cpu)/i",
-                [_alias("$__zbx_host_name: CPU")],
-                ref="A",
-            ),
-            _target(
-                r"/session/i",
-                [_alias("$__zbx_host_name: Sessões")],
-                ref="B",
-            ),
+            _q(r"/^CPU utilization$/", [_alias("$__zbx_host_name: CPU")], ref="A",
+               group=r"/^Rede\/Firewalls$/", host=SITE_HOSTS),
+            _q(r"/^IPv4 Active sessions$/", [_alias("$__zbx_host_name: Sessões")], ref="B",
+               group=r"/^Rede\/Firewalls$/", host=SITE_HOSTS),
         ],
-        "options": {
-            "reduceOptions": {"calcs": ["lastNotNull"], "values": False, "fields": ""},
-            "orientation": "horizontal",
-            "textMode": "value_and_name",
-            "colorMode": "background",
-            "graphMode": "none",
-            "wideLayout": False,
-        },
+        "options": _stat_options(),
         "fieldConfig": {
             "defaults": {
+                "unit": "percent",
                 "thresholds": {
                     "mode": "absolute",
                     "steps": [
@@ -437,33 +628,39 @@ def build_topology_dashboard(datasource_uid="zabbix"):
                         {"color": "orange", "value": 70},
                         {"color": "red", "value": 85},
                     ],
-                }
+                },
             },
-            "overrides": [],
+            "overrides": [
+                # Sessions are a count, not a percentage.
+                {"matcher": {"id": "byFrameRefID", "options": "B"},
+                 "properties": [{"id": "unit", "value": "short"},
+                                {"id": "thresholds", "value": {"mode": "absolute",
+                                                               "steps": [{"color": "blue", "value": None}]}}]},
+            ],
         },
-    }
+    }, "10m")
 
-    hardware_panel = {
+    # iDRAC probes use "discard unchanged" with a 6h heartbeat, so the window is a bit over 6h.
+    hardware_panel = _last_only({
         "id": 7,
         "type": "stat",
         "title": "Hardware Físico (Dell iDRAC & UPS)",
         "gridPos": {"x": 19, "y": 17, "w": 5, "h": 7},
         "datasource": ds,
         "targets": [
-            _target(
-                TEMP["re"],
-                [_alias("$__zbx_host_name: Temp"), _top(3)],
+            _q(
+                r"/^(Probe \[(System Board )?Inlet Temp\]: Value|Bateria: Temperatura)$/",
+                [
+                    _alias("$__zbx_host_name: $__zbx_item"),
+                    _replace_alias(r"/: Probe \[.*Inlet Temp\]: Value$/", ": Inlet"),
+                    _replace_alias(r"/: Bateria: Temperatura$/", ": Bateria"),
+                ],
                 ref="A",
+                group=r"/^Infra\/.*$/",
+                host=SITE_HOSTS,
             ),
         ],
-        "options": {
-            "reduceOptions": {"calcs": ["lastNotNull"], "values": False, "fields": ""},
-            "orientation": "horizontal",
-            "textMode": "value_and_name",
-            "colorMode": "background",
-            "graphMode": "none",
-            "wideLayout": False,
-        },
+        "options": _stat_options(),
         "fieldConfig": {
             "defaults": {
                 "unit": "celsius",
@@ -471,14 +668,20 @@ def build_topology_dashboard(datasource_uid="zabbix"):
                     "mode": "absolute",
                     "steps": [
                         {"color": "green", "value": None},
-                        {"color": "orange", "value": 45},
-                        {"color": "red", "value": 60},
+                        {"color": "orange", "value": 27},
+                        {"color": "red", "value": 32},
                     ],
                 },
             },
-            "overrides": [],
+            "overrides": [
+                # UPS battery runs warmer than a server inlet.
+                {"matcher": {"id": "byRegexp", "options": ".*Bateria.*"},
+                 "properties": [{"id": "thresholds", "value": {"mode": "absolute", "steps": [
+                     {"color": "green", "value": None}, {"color": "orange", "value": 40},
+                     {"color": "red", "value": 45}]}}]},
+            ],
         },
-    }
+    }, "7h", points=100)
 
     # Bottom Row: Alertas Ativos / NOC Feed (x=0, y=24, w=24, h=7)
     alerts_ticker = {
@@ -492,7 +695,7 @@ def build_topology_dashboard(datasource_uid="zabbix"):
                 "refId": "A",
                 "queryType": "5",
                 "datasource": ds,
-                "group": {"filter": "/.*/"},
+                "group": {"filter": SITE_GROUP},
                 "host": {"filter": "/.*/"},
                 "application": {"filter": ""},
                 "proxy": {"filter": ""},
@@ -500,7 +703,7 @@ def build_topology_dashboard(datasource_uid="zabbix"):
                 "tags": {"filter": ""},
                 "showProblems": "problems",
                 "options": {
-                    "minSeverity": 1,
+                    "minSeverity": 2,
                     "acknowledged": 2,
                     "sortProblems": "priority",
                     "hostsInMaintenance": False,
@@ -514,7 +717,7 @@ def build_topology_dashboard(datasource_uid="zabbix"):
             "severityField": True,
             "ageField": True,
             "showTags": True,
-            "pageSize": 5,
+            "pageSize": 10,
         },
     }
 
@@ -539,21 +742,34 @@ def build_topology_dashboard(datasource_uid="zabbix"):
             "hide": 0,
         },
         {
+            # Values are regex fragments for /^Filiais\/$site$/; All = ".*" (a custom allValue
+            # is inserted unescaped by Grafana).
             "name": "site",
             "label": "Filial / Sede",
             "type": "custom",
-            "options": [
-                {"text": "Todas as Filiais (Global)", "value": "all", "selected": True},
-                {"text": "Matriz - Sede Principal", "value": "Matriz", "selected": False},
-                {"text": "Filial 1 (se houver)", "value": "RJ", "selected": False},
-                {"text": "Filial 2 (se houver)", "value": "BA", "selected": False},
-                {"text": "Filial 3 (se houver)", "value": "PR", "selected": False},
-            ],
-            "current": {"text": "Todas as Filiais (Global)", "value": "all"},
-            "query": "Todas as Filiais (Global) : all, Matriz - Sede Principal : Matriz, Filial 1 (se houver) : RJ, Filial 2 (se houver) : BA, Filial 3 (se houver) : PR",
+            "options": [{"text": "Todas as Filiais (Global)", "value": "$__all", "selected": True}]
+            + [{"text": text, "value": value, "selected": False} for text, value in SITES],
+            "current": {"text": "Todas as Filiais (Global)", "value": "$__all"},
+            "query": ", ".join(f"{text} : {value}" for text, value in SITES),
             "multi": False,
-            "includeAll": False,
+            "includeAll": True,
+            "allValue": ".*",
             "hide": 0,
+        },
+        {
+            # Hosts of the chosen site, for panels whose item exists on several device types.
+            "name": "site_hosts",
+            "label": "Hosts da filial",
+            "type": "query",
+            "datasource": ds,
+            "query": {"queryType": "host", "group": SITE_GROUP, "host": "/.*/", "application": "",
+                      "itemTag": "", "item": ""},
+            "multi": True,
+            "includeAll": True,
+            "refresh": 2,
+            "sort": 1,
+            "current": {"text": "All", "value": "$__all"},
+            "hide": 2,
         },
     ]
 
@@ -562,10 +778,12 @@ def build_topology_dashboard(datasource_uid="zabbix"):
         "title": "AutoDiscovery - Topologia de Rede & Infraestrutura",
         "tags": ["autodiscovery", "topologia", "noc", "zabbix"],
         "timezone": "browser",
-        "refresh": "30s",
+        "refresh": "1m",
         "schemaVersion": 39,
         "editable": True,
         "time": {"from": "now-6h", "to": "now"},
+        # WAN traffic reads raw history (trends off): slow at 7d, HTTP 500 at 30d
+        "timepicker": {"quick_ranges": quick_ranges(MAX_RANGE)},
         "links": [
             {
                 "title": "AutoDiscovery dashboards",
