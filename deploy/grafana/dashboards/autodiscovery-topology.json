@@ -8,12 +8,61 @@
     "zabbix"
   ],
   "timezone": "browser",
-  "refresh": "30s",
+  "refresh": "1m",
   "schemaVersion": 39,
   "editable": true,
   "time": {
     "from": "now-6h",
     "to": "now"
+  },
+  "timepicker": {
+    "quick_ranges": [
+      {
+        "from": "now-5m",
+        "to": "now",
+        "display": "Last 5 minutes"
+      },
+      {
+        "from": "now-15m",
+        "to": "now",
+        "display": "Last 15 minutes"
+      },
+      {
+        "from": "now-30m",
+        "to": "now",
+        "display": "Last 30 minutes"
+      },
+      {
+        "from": "now-1h",
+        "to": "now",
+        "display": "Last 1 hour"
+      },
+      {
+        "from": "now-3h",
+        "to": "now",
+        "display": "Last 3 hours"
+      },
+      {
+        "from": "now-6h",
+        "to": "now",
+        "display": "Last 6 hours"
+      },
+      {
+        "from": "now-12h",
+        "to": "now",
+        "display": "Last 12 hours"
+      },
+      {
+        "from": "now-1d",
+        "to": "now",
+        "display": "Last 24 hours"
+      },
+      {
+        "from": "now-2d",
+        "to": "now",
+        "display": "Last 2 days"
+      }
+    ]
   },
   "links": [
     {
@@ -47,7 +96,7 @@
         "options": [
           {
             "text": "Todas as Filiais (Global)",
-            "value": "all",
+            "value": "$__all",
             "selected": true
           },
           {
@@ -73,12 +122,39 @@
         ],
         "current": {
           "text": "Todas as Filiais (Global)",
-          "value": "all"
+          "value": "$__all"
         },
-        "query": "Todas as Filiais (Global) : all, Barueri (SP) - Matriz : Barueri, Rio de Janeiro (RJ) : RJ, Bahia (BA) : BA, Paraná (PR) : PR",
+        "query": "Barueri (SP) - Matriz : Barueri, Rio de Janeiro (RJ) : RJ, Bahia (BA) : BA, Paraná (PR) : PR",
         "multi": false,
-        "includeAll": false,
+        "includeAll": true,
+        "allValue": ".*",
         "hide": 0
+      },
+      {
+        "name": "site_hosts",
+        "label": "Hosts da filial",
+        "type": "query",
+        "datasource": {
+          "type": "alexanderzobnin-zabbix-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "queryType": "host",
+          "group": "/^Filiais\\/$site$/",
+          "host": "/.*/",
+          "application": "",
+          "itemTag": "",
+          "item": ""
+        },
+        "multi": true,
+        "includeAll": true,
+        "refresh": 2,
+        "sort": 1,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "hide": 2
       }
     ]
   },
@@ -103,13 +179,13 @@
           "queryType": "0",
           "datasource": {
             "type": "alexanderzobnin-zabbix-datasource",
-            "uid": "zabbix"
+            "uid": "${datasource}"
           },
           "group": {
-            "filter": "$group"
+            "filter": "/^Filiais\\/$site$/"
           },
           "host": {
-            "filter": "$host"
+            "filter": "/.*/"
           },
           "application": {
             "filter": ""
@@ -123,6 +199,16 @@
           "functions": [
             {
               "def": {
+                "name": "sumSeries",
+                "category": "Aggregate",
+                "params": [],
+                "defaultParams": []
+              },
+              "params": [],
+              "text": "sumSeries()"
+            },
+            {
+              "def": {
                 "name": "setAlias",
                 "category": "Alias",
                 "params": [
@@ -134,21 +220,235 @@
                 "defaultParams": []
               },
               "params": [
-                "$__zbx_host_name"
+                "Online"
               ],
-              "text": "setAlias($__zbx_host_name)"
+              "text": "setAlias(Online)"
             }
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "B",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "ICMP ping"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "scale",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "factor",
+                    "type": "float",
+                    "options": [
+                      100,
+                      0.01,
+                      10,
+                      -1
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  100
+                ]
+              },
+              "params": [
+                0
+              ],
+              "text": "scale(0)"
+            },
+            {
+              "def": {
+                "name": "offset",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "delta",
+                    "type": "float",
+                    "options": [
+                      -100,
+                      100
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  100
+                ]
+              },
+              "params": [
+                1
+              ],
+              "text": "offset(1)"
+            },
+            {
+              "def": {
+                "name": "sumSeries",
+                "category": "Aggregate",
+                "params": [],
+                "defaultParams": []
+              },
+              "params": [],
+              "text": "sumSeries()"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "Total"
+              ],
+              "text": "setAlias(Total)"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "C",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "ICMP ping"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "scale",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "factor",
+                    "type": "float",
+                    "options": [
+                      100,
+                      0.01,
+                      10,
+                      -1
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  100
+                ]
+              },
+              "params": [
+                -1
+              ],
+              "text": "scale(-1)"
+            },
+            {
+              "def": {
+                "name": "offset",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "delta",
+                    "type": "float",
+                    "options": [
+                      -100,
+                      100
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  100
+                ]
+              },
+              "params": [
+                1
+              ],
+              "text": "offset(1)"
+            },
+            {
+              "def": {
+                "name": "sumSeries",
+                "category": "Aggregate",
+                "params": [],
+                "defaultParams": []
+              },
+              "params": [],
+              "text": "sumSeries()"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "Offline"
+              ],
+              "text": "setAlias(Offline)"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
       "options": {
         "reduceOptions": {
           "calcs": [
-            "count"
+            "lastNotNull"
           ],
           "values": false,
           "fields": ""
@@ -162,6 +462,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "none",
+          "decimals": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -172,8 +473,56 @@
             ]
           }
         },
-        "overrides": []
-      }
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "blue",
+                      "value": null
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "C"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "timeFrom": "5m",
+      "hideTimeOverride": true,
+      "maxDataPoints": 10
     },
     {
       "id": 2,
@@ -195,13 +544,13 @@
           "queryType": "0",
           "datasource": {
             "type": "alexanderzobnin-zabbix-datasource",
-            "uid": "zabbix"
+            "uid": "${datasource}"
           },
           "group": {
-            "filter": "$group"
+            "filter": "/^Filiais\\/$site$/"
           },
           "host": {
-            "filter": "$host"
+            "filter": "/.*/"
           },
           "application": {
             "filter": ""
@@ -250,15 +599,17 @@
                 ]
               },
               "params": [
-                "/^(?:Interface\\s+)?([^:]+):\\s+Operational status$/i",
-                "$__zbx_host_name - $1"
+                "/: (?:Interface\\s+)?([^:]+):\\s+Operational status$/i",
+                " - $1"
               ],
-              "text": "replaceAlias(/^(?:Interface\\s+)?([^:]+):\\s+Operational status$/i, $__zbx_host_name - $1)"
+              "text": "replaceAlias(/: (?:Interface\\s+)?([^:]+):\\s+Operational status$/i,  - $1)"
             }
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -339,12 +690,15 @@
           }
         },
         "overrides": []
-      }
+      },
+      "timeFrom": "10m",
+      "hideTimeOverride": true,
+      "maxDataPoints": 10
     },
     {
       "id": 3,
       "type": "timeseries",
-      "title": "Tráfego Internet WAN (Top Links)",
+      "title": "Tráfego Internet WAN",
       "gridPos": {
         "x": 0,
         "y": 14,
@@ -355,19 +709,20 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 500,
       "targets": [
         {
           "refId": "A",
           "queryType": "0",
           "datasource": {
             "type": "alexanderzobnin-zabbix-datasource",
-            "uid": "zabbix"
+            "uid": "${datasource}"
           },
           "group": {
-            "filter": "$group"
+            "filter": "/^Filiais\\/$site$/"
           },
           "host": {
-            "filter": "$host"
+            "filter": "/.*/"
           },
           "application": {
             "filter": ""
@@ -416,50 +771,17 @@
                 ]
               },
               "params": [
-                "/^(?:Interface\\s+)?([^:]+):\\s+Bits received$/i",
-                "$__zbx_host_name: $1 (In)"
+                "/: (?:Interface\\s+)?([^:]+):\\s+Bits received$/i",
+                " - $1 (In)"
               ],
-              "text": "replaceAlias(/^(?:Interface\\s+)?([^:]+):\\s+Bits received$/i, $__zbx_host_name: $1 (In))"
-            },
-            {
-              "def": {
-                "name": "top",
-                "category": "Filter",
-                "params": [
-                  {
-                    "name": "number",
-                    "type": "int"
-                  },
-                  {
-                    "name": "value",
-                    "type": "string",
-                    "options": [
-                      "avg",
-                      "min",
-                      "max",
-                      "sum",
-                      "count",
-                      "median",
-                      "first",
-                      "last"
-                    ]
-                  }
-                ],
-                "defaultParams": [
-                  5,
-                  "avg"
-                ]
-              },
-              "params": [
-                5,
-                "avg"
-              ],
-              "text": "top(5, avg)"
+              "text": "replaceAlias(/: (?:Interface\\s+)?([^:]+):\\s+Bits received$/i,  - $1 (In))"
             }
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         },
         {
@@ -467,13 +789,13 @@
           "queryType": "0",
           "datasource": {
             "type": "alexanderzobnin-zabbix-datasource",
-            "uid": "zabbix"
+            "uid": "${datasource}"
           },
           "group": {
-            "filter": "$group"
+            "filter": "/^Filiais\\/$site$/"
           },
           "host": {
-            "filter": "$host"
+            "filter": "/.*/"
           },
           "application": {
             "filter": ""
@@ -522,50 +844,17 @@
                 ]
               },
               "params": [
-                "/^(?:Interface\\s+)?([^:]+):\\s+Bits sent$/i",
-                "$__zbx_host_name: $1 (Out)"
+                "/: (?:Interface\\s+)?([^:]+):\\s+Bits sent$/i",
+                " - $1 (Out)"
               ],
-              "text": "replaceAlias(/^(?:Interface\\s+)?([^:]+):\\s+Bits sent$/i, $__zbx_host_name: $1 (Out))"
-            },
-            {
-              "def": {
-                "name": "top",
-                "category": "Filter",
-                "params": [
-                  {
-                    "name": "number",
-                    "type": "int"
-                  },
-                  {
-                    "name": "value",
-                    "type": "string",
-                    "options": [
-                      "avg",
-                      "min",
-                      "max",
-                      "sum",
-                      "count",
-                      "median",
-                      "first",
-                      "last"
-                    ]
-                  }
-                ],
-                "defaultParams": [
-                  5,
-                  "avg"
-                ]
-              },
-              "params": [
-                5,
-                "avg"
-              ],
-              "text": "top(5, avg)"
+              "text": "replaceAlias(/: (?:Interface\\s+)?([^:]+):\\s+Bits sent$/i,  - $1 (Out))"
             }
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -610,13 +899,13 @@
           "queryType": "0",
           "datasource": {
             "type": "alexanderzobnin-zabbix-datasource",
-            "uid": "zabbix"
+            "uid": "${datasource}"
           },
           "group": {
-            "filter": "$group"
+            "filter": "/^Filiais\\/$site$/"
           },
           "host": {
-            "filter": "$host"
+            "filter": "/.*/"
           },
           "application": {
             "filter": ""
@@ -625,30 +914,116 @@
             "filter": ""
           },
           "item": {
-            "filter": "ICMP ping"
+            "filter": "/^(ICMP ping|SNMP agent availability|Zabbix agent availability)$/"
           },
           "functions": [
             {
               "def": {
-                "name": "setAlias",
-                "category": "Alias",
+                "name": "groupBy",
+                "category": "Transform",
                 "params": [
                   {
-                    "name": "alias",
+                    "name": "interval",
                     "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
                   }
                 ],
-                "defaultParams": []
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ]
               },
               "params": [
-                "$__zbx_host_name"
+                "1h",
+                "last"
               ],
-              "text": "setAlias($__zbx_host_name)"
+              "text": "groupBy(1h, last)"
             }
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "B",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/interface\\s+(?!fortilink|loopback)(wan\\d*|uplink\\d*|internet\\d*|a\\([^)]*(wan|internet|net\\s*fiber|mbps|ligga|its|easy|america|mega)[^)]*\\)).*: operational status/i"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "groupBy",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ]
+              },
+              "params": [
+                "1h",
+                "last"
+              ],
+              "text": "groupBy(1h, last)"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -658,8 +1033,11 @@
           "height": 600,
           "format": "auto"
         },
-        "getOption": "// Apache ECharts Network Topology & Path Tracing for AutoDiscovery NOC\nconst seriesData = data.series || [];\n\n// Node definitions (Coordinates system 0-1200 x, 0-800 y)\nconst nodes = [\n  // --- TIER 0: Provedores / Internet (Y: 60) ---\n  { id: 'inet-sp', name: 'Internet SP\\n(Mega / America)', category: 'Internet', x: 500, y: 60, symbolSize: 52,\n    itemStyle: { color: '#10b981', borderColor: '#34d399', borderWidth: 3, shadowBlur: 15, shadowColor: '#10b981' },\n    ip: 'BGP / Multi-WAN', site: 'Barueri (SP)', role: 'Megatelecom 50M | AmericaNet 50M' },\n  { id: 'inet-rj', name: 'Internet RJ\\n(Easy / Int10)', category: 'Internet', x: 160, y: 60, symbolSize: 45,\n    itemStyle: { color: '#10b981', borderColor: '#34d399', borderWidth: 2, shadowBlur: 10, shadowColor: '#10b981' },\n    ip: 'Multi-WAN', site: 'Rio de Janeiro (RJ)', role: 'Internet10 50M | Easy Net 50M' },\n  { id: 'inet-ba', name: 'Internet BA\\n(ITS / NetFiber)', category: 'Internet', x: 840, y: 60, symbolSize: 45,\n    itemStyle: { color: '#10b981', borderColor: '#34d399', borderWidth: 2, shadowBlur: 10, shadowColor: '#10b981' },\n    ip: 'Multi-WAN', site: 'Bahia (BA)', role: 'NET Fiber 30M | ITS 40M' },\n  { id: 'inet-pr', name: 'Internet PR\\n(LIGGA)', category: 'Internet', x: 1080, y: 60, symbolSize: 45,\n    itemStyle: { color: '#10b981', borderColor: '#34d399', borderWidth: 2, shadowBlur: 10, shadowColor: '#10b981' },\n    ip: 'Multi-WAN', site: 'Paraná (PR)', role: 'LIGGA Telecom | wan2' },\n\n  // --- TIER 1: Firewalls FortiGate (Y: 180) ---\n  { id: 'fw-sp', name: 'FW-SP (FortiGate)', category: 'Firewall', x: 500, y: 180, symbolSize: 58,\n    itemStyle: { color: '#ef4444', borderColor: '#f87171', borderWidth: 3, shadowBlur: 18, shadowColor: '#ef4444' },\n    ip: '192.168.0.4', site: 'Barueri (SP)', role: 'Firewall Core / Hub SD-WAN' },\n  { id: 'fw-rj', name: 'FW-RJ (FortiGate)', category: 'Firewall', x: 160, y: 180, symbolSize: 48,\n    itemStyle: { color: '#ef4444', borderColor: '#f87171', borderWidth: 2, shadowBlur: 10, shadowColor: '#ef4444' },\n    ip: '192.168.3.21', site: 'Rio de Janeiro (RJ)', role: 'Firewall Filial / SD-WAN Spoke' },\n  { id: 'fw-ba', name: 'FW-BA (FortiGate)', category: 'Firewall', x: 840, y: 180, symbolSize: 48,\n    itemStyle: { color: '#ef4444', borderColor: '#f87171', borderWidth: 2, shadowBlur: 10, shadowColor: '#ef4444' },\n    ip: '192.168.2.244', site: 'Bahia (BA)', role: 'Firewall Filial / SD-WAN Spoke' },\n  { id: 'fw-pr', name: 'FW-PR (FortiGate)', category: 'Firewall', x: 1080, y: 180, symbolSize: 48,\n    itemStyle: { color: '#ef4444', borderColor: '#f87171', borderWidth: 2, shadowBlur: 10, shadowColor: '#ef4444' },\n    ip: '192.168.1.2', site: 'Paraná (PR)', role: 'Firewall Filial / SD-WAN Spoke' },\n\n  // --- TIER 2: Switches Core & Distribuição (Y: 310) ---\n  { id: 'sw-core-sp', name: 'Switch-Aruba\\n192.168.0.22', category: 'Switch', x: 500, y: 310, symbolSize: 52,\n    itemStyle: { color: '#3b82f6', borderColor: '#60a5fa', borderWidth: 3, shadowBlur: 15, shadowColor: '#3b82f6' },\n    ip: '192.168.0.22', site: 'Barueri (SP)', role: 'Core Switch / VLT Stacking' },\n  { id: 'sw-sp-17', name: 'SW-17 (Dist)', category: 'Switch', x: 380, y: 410, symbolSize: 36,\n    itemStyle: { color: '#2563eb' }, ip: '192.168.0.17', site: 'Barueri (SP)', role: 'Switch Acesso' },\n  { id: 'sw-sp-19', name: 'SW-19 (Dist)', category: 'Switch', x: 440, y: 410, symbolSize: 36,\n    itemStyle: { color: '#2563eb' }, ip: '192.168.0.19', site: 'Barueri (SP)', role: 'Switch Acesso' },\n  { id: 'sw-sp-20', name: 'SW-20 (Dist)', category: 'Switch', x: 560, y: 410, symbolSize: 36,\n    itemStyle: { color: '#2563eb' }, ip: '192.168.0.20', site: 'Barueri (SP)', role: 'Switch Acesso' },\n  { id: 'sw-sp-21', name: 'SW-21 (Dist)', category: 'Switch', x: 620, y: 410, symbolSize: 36,\n    itemStyle: { color: '#2563eb' }, ip: '192.168.0.21', site: 'Barueri (SP)', role: 'Switch Acesso' },\n  { id: 'sw-core-rj', name: 'BRA30-SW_MikroTi', category: 'Switch', x: 160, y: 310, symbolSize: 42,\n    itemStyle: { color: '#3b82f6' }, ip: '192.168.3.19', site: 'Rio de Janeiro (RJ)', role: 'Core Switch RJ' },\n  { id: 'sw-core-ba', name: 'SWCORE - BA', category: 'Switch', x: 840, y: 310, symbolSize: 42,\n    itemStyle: { color: '#3b82f6' }, ip: '192.168.2.144', site: 'Bahia (BA)', role: 'Core Switch BA' },\n\n  // --- TIER 3: Infraestrutura, Nobreak & Hardware Dell (Y: 490) ---\n  { id: 'ups-sp', name: 'Nobreak-SP', category: 'Nobreak UPS', x: 320, y: 310, symbolSize: 40,\n    itemStyle: { color: '#eab308', borderColor: '#fde047', borderWidth: 2 },\n    ip: '192.168.0.3', site: 'Barueri (SP)', role: 'Nobreak Nobreak NHS Laser Senoidal' },\n  { id: 'hw-sp-1', name: 'RAC_8LK39R1', category: 'Hardware Servidor', x: 380, y: 500, symbolSize: 32,\n    itemStyle: { color: '#a855f7' }, ip: '192.168.0.224', site: 'Barueri (SP)', role: 'Dell iDRAC Enterprise' },\n  { id: 'hw-sp-2', name: 'idrac-66FCHZ3', category: 'Hardware Servidor', x: 440, y: 500, symbolSize: 32,\n    itemStyle: { color: '#a855f7' }, ip: '192.168.0.228', site: 'Barueri (SP)', role: 'Dell iDRAC Enterprise' },\n  { id: 'hw-sp-3', name: 'idrac-6VW02H2', category: 'Hardware Servidor', x: 500, y: 500, symbolSize: 32,\n    itemStyle: { color: '#a855f7' }, ip: '192.168.0.226', site: 'Barueri (SP)', role: 'Dell iDRAC Enterprise' },\n  { id: 'hw-sp-4', name: 'idrac-6VW22H2', category: 'Hardware Servidor', x: 560, y: 500, symbolSize: 32,\n    itemStyle: { color: '#a855f7' }, ip: '192.168.0.225', site: 'Barueri (SP)', role: 'Dell iDRAC Enterprise' },\n  { id: 'hw-sp-5', name: 'idrac-6VW42H2', category: 'Hardware Servidor', x: 620, y: 500, symbolSize: 32,\n    itemStyle: { color: '#a855f7' }, ip: '192.168.0.227', site: 'Barueri (SP)', role: 'Dell iDRAC Enterprise' },\n  { id: 'hw-rj-1', name: 'iDRAC-JXH2XG3', category: 'Hardware Servidor', x: 160, y: 440, symbolSize: 32,\n    itemStyle: { color: '#a855f7' }, ip: '192.168.3.22', site: 'Rio de Janeiro (RJ)', role: 'Dell iDRAC Enterprise' },\n  { id: 'hw-ba-1', name: 'i-DRAC - BA', category: 'Hardware Servidor', x: 840, y: 440, symbolSize: 32,\n    itemStyle: { color: '#a855f7' }, ip: '192.168.2.14', site: 'Bahia (BA)', role: 'Dell iDRAC Enterprise' },\n\n  // --- TIER 4: Hypervisors & Servidores (Y: 620) ---\n  { id: 'vm-cluster-sp', name: 'Cluster Hypervisors SP\\n(ASSEMBLY/DELPHI/CLIPPER)', category: 'Virtualização / Servidor', x: 500, y: 620, symbolSize: 45,\n    itemStyle: { color: '#8b5cf6', borderColor: '#c4b5fd', borderWidth: 2 },\n    ip: '192.168.0.x', site: 'Barueri (SP)', role: '5 Hypervisors | VMs: NGINX, CS01, AD01/02' },\n  { id: 'vm-rj-1', name: 'SRV-DC01 (RJ)', category: 'Virtualização / Servidor', x: 160, y: 540, symbolSize: 34,\n    itemStyle: { color: '#8b5cf6' }, ip: '192.168.3.1', site: 'Rio de Janeiro (RJ)', role: 'Domain Controller Filial' },\n  { id: 'vm-ba-1', name: 'SRV-AD03 (BA)', category: 'Virtualização / Servidor', x: 840, y: 540, symbolSize: 34,\n    itemStyle: { color: '#8b5cf6' }, ip: '192.168.2.4', site: 'Bahia (BA)', role: 'Domain Controller Filial' },\n\n  // --- TIER 5: Access Points Wi-Fi (Y: 740) ---\n  { id: 'ap-sp', name: '5x APs Wi-Fi SP\\n(TI/Com/Fin/Rec)', category: 'Access Point', x: 500, y: 740, symbolSize: 40,\n    itemStyle: { color: '#f97316' }, ip: '192.168.0.40-44', site: 'Barueri (SP)', role: '5x UniFi APs Corporativos' },\n  { id: 'ap-rj', name: '5x APs Wi-Fi RJ\\n(Galpões/Adm)', category: 'Access Point', x: 160, y: 660, symbolSize: 38,\n    itemStyle: { color: '#f97316' }, ip: '192.168.3.107-116', site: 'Rio de Janeiro (RJ)', role: '5x APs Galpão & Escritório' },\n  { id: 'ap-ba', name: '6x APs Wi-Fi BA\\n(Fábrica/Adm)', category: 'Access Point', x: 840, y: 660, symbolSize: 40,\n    itemStyle: { color: '#f97316' }, ip: '192.168.2.47-52', site: 'Bahia (BA)', role: '6x APs Fábrica & Armazém' }\n];\n\n// Connection links between elements\nconst links = [\n  // Links de Internet -> Firewalls\n  { source: 'inet-sp', target: 'fw-sp', label: { show: true, formatter: 'wan1(50M) / wan2(50M)' }, lineStyle: { width: 3.5, color: '#10b981' } },\n  { source: 'inet-rj', target: 'fw-rj', label: { show: true, formatter: 'Int10 / Easy(50M)' }, lineStyle: { width: 3, color: '#10b981' } },\n  { source: 'inet-ba', target: 'fw-ba', label: { show: true, formatter: 'ITS(40M) / Net(30M)' }, lineStyle: { width: 3, color: '#10b981' } },\n  { source: 'inet-pr', target: 'fw-pr', label: { show: true, formatter: 'LIGGA / wan2' }, lineStyle: { width: 2.5, color: '#10b981' } },\n\n  // Malha SD-WAN VPN Inter-filiais (linhas tracejadas com brilho)\n  { source: 'fw-sp', target: 'fw-rj', label: { show: false }, lineStyle: { type: 'dashed', curveness: 0.22, color: '#06b6d4', width: 2.5 } },\n  { source: 'fw-sp', target: 'fw-ba', label: { show: false }, lineStyle: { type: 'dashed', curveness: -0.22, color: '#06b6d4', width: 2.5 } },\n  { source: 'fw-sp', target: 'fw-pr', label: { show: false }, lineStyle: { type: 'dashed', curveness: -0.35, color: '#06b6d4', width: 2 } },\n\n  // Firewalls -> Switches Core\n  { source: 'fw-sp', target: 'sw-core-sp', label: { show: true, formatter: '10 Gbps Trunk' }, lineStyle: { width: 4, color: '#3b82f6' } },\n  { source: 'fw-rj', target: 'sw-core-rj', label: { show: true, formatter: '1 Gbps Uplink' }, lineStyle: { width: 3, color: '#3b82f6' } },\n  { source: 'fw-ba', target: 'sw-core-ba', label: { show: true, formatter: '1 Gbps Uplink' }, lineStyle: { width: 3, color: '#3b82f6' } },\n\n  // Nobreak alimentando infra de Core SP\n  { source: 'ups-sp', target: 'sw-core-sp', label: { show: false }, lineStyle: { type: 'dotted', color: '#eab308', width: 2 } },\n  { source: 'ups-sp', target: 'fw-sp', label: { show: false }, lineStyle: { type: 'dotted', color: '#eab308', width: 2 } },\n\n  // Core SP -> Switches de Distribuição\n  { source: 'sw-core-sp', target: 'sw-sp-17', lineStyle: { width: 2.5, color: '#60a5fa' } },\n  { source: 'sw-core-sp', target: 'sw-sp-19', lineStyle: { width: 2.5, color: '#60a5fa' } },\n  { source: 'sw-core-sp', target: 'sw-sp-20', lineStyle: { width: 2.5, color: '#60a5fa' } },\n  { source: 'sw-core-sp', target: 'sw-sp-21', lineStyle: { width: 2.5, color: '#60a5fa' } },\n\n  // Switches -> Servidores Físicos Dell iDRAC\n  { source: 'sw-core-sp', target: 'hw-sp-1', lineStyle: { width: 2, color: '#a855f7' } },\n  { source: 'sw-core-sp', target: 'hw-sp-2', lineStyle: { width: 2, color: '#a855f7' } },\n  { source: 'sw-core-sp', target: 'hw-sp-3', lineStyle: { width: 2, color: '#a855f7' } },\n  { source: 'sw-core-sp', target: 'hw-sp-4', lineStyle: { width: 2, color: '#a855f7' } },\n  { source: 'sw-core-sp', target: 'hw-sp-5', lineStyle: { width: 2, color: '#a855f7' } },\n  { source: 'sw-core-rj', target: 'hw-rj-1', lineStyle: { width: 2, color: '#a855f7' } },\n  { source: 'sw-core-ba', target: 'hw-ba-1', lineStyle: { width: 2, color: '#a855f7' } },\n\n  // Servidores Físicos -> Hypervisors / VMs\n  { source: 'hw-sp-3', target: 'vm-cluster-sp', label: { show: true, formatter: 'VMware ESXi' }, lineStyle: { width: 3, color: '#8b5cf6' } },\n  { source: 'hw-rj-1', target: 'vm-rj-1', lineStyle: { width: 2, color: '#8b5cf6' } },\n  { source: 'hw-ba-1', target: 'vm-ba-1', lineStyle: { width: 2, color: '#8b5cf6' } },\n\n  // Switches -> Access Points Wi-Fi\n  { source: 'sw-sp-20', target: 'ap-sp', label: { show: true, formatter: 'PoE+' }, lineStyle: { width: 2.5, color: '#f97316' } },\n  { source: 'sw-core-rj', target: 'ap-rj', label: { show: true, formatter: 'PoE+' }, lineStyle: { width: 2.5, color: '#f97316' } },\n  { source: 'sw-core-ba', target: 'ap-ba', label: { show: true, formatter: 'PoE+' }, lineStyle: { width: 2.5, color: '#f97316' } }\n];\n\nreturn {\n  backgroundColor: 'transparent',\n  tooltip: {\n    trigger: 'item',\n    backgroundColor: 'rgba(15, 23, 42, 0.95)',\n    borderColor: '#334155',\n    borderWidth: 1,\n    padding: [10, 14],\n    textStyle: { color: '#f8fafc', fontSize: 12 },\n    formatter: function(params) {\n      if (params.dataType === 'node') {\n        const d = params.data;\n        return `\n          <div style=\"font-weight:bold;font-size:14px;color:${d.itemStyle?.color || '#38bdf8'};margin-bottom:6px;\">\n            ${d.name.replace('\\n', ' ')}\n          </div>\n          <table style=\"font-size:12px;line-height:1.6;color:#cbd5e1;\">\n            <tr><td><b>Categoria:</b></td><td style=\"padding-left:8px;\">${d.category}</td></tr>\n            <tr><td><b>Endereço IP:</b></td><td style=\"padding-left:8px;font-family:monospace;color:#38bdf8;\">${d.ip}</td></tr>\n            <tr><td><b>Localidade:</b></td><td style=\"padding-left:8px;\">${d.site}</td></tr>\n            <tr><td><b>Papel / Detalhe:</b></td><td style=\"padding-left:8px;\">${d.role}</td></tr>\n            <tr><td><b>Status:</b></td><td style=\"padding-left:8px;\"><span style=\"color:#22c55e;font-weight:bold;\">● ONLINE</span></td></tr>\n          </table>\n          <div style=\"margin-top:6px;font-size:10px;color:#94a3b8;border-top:1px solid #334155;padding-top:4px;\">\n            Dica: Passe o mouse para destacar o caminho completo até a borda\n          </div>\n        `;\n      } else if (params.dataType === 'edge') {\n        const d = params.data;\n        return `\n          <div style=\"font-weight:bold;margin-bottom:4px;color:#38bdf8;\">Conexão de Enlace</div>\n          <div><b>Origem:</b> ${d.source}</div>\n          <div><b>Destino:</b> ${d.target}</div>\n          <div><b>Info:</b> ${d.label?.formatter || 'Enlace LAN/WAN Ativo'}</div>\n        `;\n      }\n    }\n  },\n  legend: [{\n    data: ['Internet', 'Firewall', 'Switch', 'Hardware Servidor', 'Virtualização / Servidor', 'Access Point', 'Nobreak UPS'],\n    textStyle: { color: '#cbd5e1', fontSize: 11 },\n    top: 6,\n    left: 'center',\n    itemGap: 16\n  }],\n  series: [{\n    type: 'graph',\n    layout: 'none',\n    roam: true,\n    draggable: true,\n    edgeSymbol: ['none', 'none'],\n    label: {\n      show: true,\n      position: 'bottom',\n      color: '#e2e8f0',\n      fontSize: 11,\n      fontWeight: 'bold',\n      distance: 6\n    },\n    emphasis: {\n      focus: 'adjacency',\n      lineStyle: {\n        width: 5,\n        color: '#00ffd5',\n        shadowColor: 'rgba(0, 255, 213, 0.8)',\n        shadowBlur: 14\n      },\n      label: {\n        fontSize: 12,\n        fontWeight: 'bolder',\n        color: '#00ffd5'\n      }\n    },\n    lineStyle: {\n      curveness: 0.08,\n      opacity: 0.85\n    },\n    categories: [\n      { name: 'Internet', itemStyle: { color: '#10b981' } },\n      { name: 'Firewall', itemStyle: { color: '#ef4444' } },\n      { name: 'Switch', itemStyle: { color: '#3b82f6' } },\n      { name: 'Hardware Servidor', itemStyle: { color: '#a855f7' } },\n      { name: 'Virtualização / Servidor', itemStyle: { color: '#8b5cf6' } },\n      { name: 'Access Point', itemStyle: { color: '#f97316' } },\n      { name: 'Nobreak UPS', itemStyle: { color: '#eab308' } }\n    ],\n    nodes: nodes,\n    links: links\n  }]\n};"
-      }
+        "getOption": "// Apache ECharts Network Topology & Path Tracing for AutoDiscovery NOC\nconst seriesData = (context && context.panel && context.panel.data && context.panel.data.series) || [];\n\n// Node definitions (Coordinates system 0-1200 x, 0-800 y); hosts = Zabbix host names\nconst allNodes = [{\"id\": \"inet-sp\", \"name\": \"Internet SP\\n(Mega / America)\", \"category\": \"Internet\", \"x\": 500, \"y\": 60, \"symbolSize\": 52, \"ip\": \"BGP / Multi-WAN\", \"site\": \"Barueri (SP)\", \"siteKey\": \"Barueri\", \"role\": \"Megatelecom 50M | AmericaNet 50M\", \"hosts\": [\"FW-SP\"], \"wan\": true}, {\"id\": \"inet-rj\", \"name\": \"Internet RJ\\n(Easy / Int10)\", \"category\": \"Internet\", \"x\": 160, \"y\": 60, \"symbolSize\": 45, \"ip\": \"Multi-WAN\", \"site\": \"Rio de Janeiro (RJ)\", \"siteKey\": \"RJ\", \"role\": \"Internet10 50M | Easy Net 50M\", \"hosts\": [\"FW-RJ\"], \"wan\": true}, {\"id\": \"inet-ba\", \"name\": \"Internet BA\\n(ITS / NetFiber)\", \"category\": \"Internet\", \"x\": 840, \"y\": 60, \"symbolSize\": 45, \"ip\": \"Multi-WAN\", \"site\": \"Bahia (BA)\", \"siteKey\": \"BA\", \"role\": \"NET Fiber 30M | ITS 40M\", \"hosts\": [\"FW-BA\"], \"wan\": true}, {\"id\": \"inet-pr\", \"name\": \"Internet PR\\n(LIGGA)\", \"category\": \"Internet\", \"x\": 1080, \"y\": 60, \"symbolSize\": 45, \"ip\": \"Multi-WAN\", \"site\": \"Paraná (PR)\", \"siteKey\": \"PR\", \"role\": \"LIGGA Telecom | wan2\", \"hosts\": [\"FW-PR\"], \"wan\": true}, {\"id\": \"fw-sp\", \"name\": \"FW-SP (FortiGate)\", \"category\": \"Firewall\", \"x\": 500, \"y\": 180, \"symbolSize\": 58, \"ip\": \"192.168.0.4\", \"site\": \"Barueri (SP)\", \"siteKey\": \"Barueri\", \"role\": \"Firewall Core / Hub SD-WAN\", \"hosts\": [\"FW-SP\"]}, {\"id\": \"fw-rj\", \"name\": \"FW-RJ (FortiGate)\", \"category\": \"Firewall\", \"x\": 160, \"y\": 180, \"symbolSize\": 48, \"ip\": \"192.168.3.21\", \"site\": \"Rio de Janeiro (RJ)\", \"siteKey\": \"RJ\", \"role\": \"Firewall Filial / SD-WAN Spoke\", \"hosts\": [\"FW-RJ\"]}, {\"id\": \"fw-ba\", \"name\": \"FW-BA (FortiGate)\", \"category\": \"Firewall\", \"x\": 840, \"y\": 180, \"symbolSize\": 48, \"ip\": \"192.168.2.244\", \"site\": \"Bahia (BA)\", \"siteKey\": \"BA\", \"role\": \"Firewall Filial / SD-WAN Spoke\", \"hosts\": [\"FW-BA\"]}, {\"id\": \"fw-pr\", \"name\": \"FW-PR (FortiGate)\", \"category\": \"Firewall\", \"x\": 1080, \"y\": 180, \"symbolSize\": 48, \"ip\": \"192.168.1.2\", \"site\": \"Paraná (PR)\", \"siteKey\": \"PR\", \"role\": \"Firewall Filial / SD-WAN Spoke\", \"hosts\": [\"FW-PR\"]}, {\"id\": \"sw-core-sp\", \"name\": \"Switch-Aruba\\n192.168.0.22\", \"category\": \"Switch\", \"x\": 500, \"y\": 310, \"symbolSize\": 52, \"ip\": \"192.168.0.22\", \"site\": \"Barueri (SP)\", \"siteKey\": \"Barueri\", \"role\": \"Core Switch / VLT Stacking\", \"hosts\": [\"Switch-Aruba 192.168.0.22\"]}, {\"id\": \"sw-sp-17\", \"name\": \"SW-17 (Dist)\", \"category\": \"Switch\", \"x\": 380, \"y\": 410, \"symbolSize\": 36, \"ip\": \"192.168.0.17\", \"site\": \"Barueri (SP)\", \"siteKey\": \"Barueri\", \"role\": \"Switch Acesso\", \"hosts\": [\"switch-192.168.0.17\"]}, {\"id\": \"sw-sp-19\", \"name\": \"SW-19 (Dist)\", \"category\": \"Switch\", \"x\": 440, \"y\": 410, \"symbolSize\": 36, \"ip\": \"192.168.0.19\", \"site\": \"Barueri (SP)\", \"siteKey\": \"Barueri\", \"role\": \"Switch Acesso\", \"hosts\": [\"switch-192.168.0.19\"]}, {\"id\": \"sw-sp-20\", \"name\": \"SW-20 (Dist)\", \"category\": \"Switch\", \"x\": 560, \"y\": 410, \"symbolSize\": 36, \"ip\": \"192.168.0.20\", \"site\": \"Barueri (SP)\", \"siteKey\": \"Barueri\", \"role\": \"Switch Acesso\", \"hosts\": [\"switch-192.168.0.20\"]}, {\"id\": \"sw-sp-21\", \"name\": \"SW-21 (Dist)\", \"category\": \"Switch\", \"x\": 620, \"y\": 410, \"symbolSize\": 36, \"ip\": \"192.168.0.21\", \"site\": \"Barueri (SP)\", \"siteKey\": \"Barueri\", \"role\": \"Switch Acesso\", \"hosts\": [\"switch-192.168.0.21\"]}, {\"id\": \"sw-core-rj\", \"name\": \"BRA30-SW_MikroTi\", \"category\": \"Switch\", \"x\": 160, \"y\": 310, \"symbolSize\": 42, \"ip\": \"192.168.3.19\", \"site\": \"Rio de Janeiro (RJ)\", \"siteKey\": \"RJ\", \"role\": \"Core Switch RJ\", \"hosts\": [\"BRA30-SW_MikroTi\"]}, {\"id\": \"sw-core-ba\", \"name\": \"SWCORE - BA\", \"category\": \"Switch\", \"x\": 840, \"y\": 310, \"symbolSize\": 42, \"ip\": \"192.168.2.144\", \"site\": \"Bahia (BA)\", \"siteKey\": \"BA\", \"role\": \"Core Switch BA\", \"hosts\": [\"SWCORE - BA\"]}, {\"id\": \"ups-sp\", \"name\": \"Nobreak-SP\", \"category\": \"Nobreak UPS\", \"x\": 320, \"y\": 310, \"symbolSize\": 40, \"ip\": \"192.168.0.3\", \"site\": \"Barueri (SP)\", \"siteKey\": \"Barueri\", \"role\": \"Nobreak NHS Laser Senoidal\", \"hosts\": [\"Nobreak-SP\"]}, {\"id\": \"hw-sp-1\", \"name\": \"RAC_8LK39R1\", \"category\": \"Hardware Servidor\", \"x\": 380, \"y\": 500, \"symbolSize\": 32, \"ip\": \"192.168.0.224\", \"site\": \"Barueri (SP)\", \"siteKey\": \"Barueri\", \"role\": \"Dell iDRAC Enterprise\", \"hosts\": [\"RAC_8LK39R1\"]}, {\"id\": \"hw-sp-2\", \"name\": \"idrac-66FCHZ3\", \"category\": \"Hardware Servidor\", \"x\": 440, \"y\": 500, \"symbolSize\": 32, \"ip\": \"192.168.0.228\", \"site\": \"Barueri (SP)\", \"siteKey\": \"Barueri\", \"role\": \"Dell iDRAC Enterprise\", \"hosts\": [\"idrac-66FCHZ3\"]}, {\"id\": \"hw-sp-3\", \"name\": \"idrac-6VW02H2\", \"category\": \"Hardware Servidor\", \"x\": 500, \"y\": 500, \"symbolSize\": 32, \"ip\": \"192.168.0.226\", \"site\": \"Barueri (SP)\", \"siteKey\": \"Barueri\", \"role\": \"Dell iDRAC Enterprise\", \"hosts\": [\"idrac-6VW02H2\"]}, {\"id\": \"hw-sp-4\", \"name\": \"idrac-6VW22H2\", \"category\": \"Hardware Servidor\", \"x\": 560, \"y\": 500, \"symbolSize\": 32, \"ip\": \"192.168.0.225\", \"site\": \"Barueri (SP)\", \"siteKey\": \"Barueri\", \"role\": \"Dell iDRAC Enterprise\", \"hosts\": [\"idrac-6VW22H2\"]}, {\"id\": \"hw-sp-5\", \"name\": \"idrac-6VW42H2\", \"category\": \"Hardware Servidor\", \"x\": 620, \"y\": 500, \"symbolSize\": 32, \"ip\": \"192.168.0.227\", \"site\": \"Barueri (SP)\", \"siteKey\": \"Barueri\", \"role\": \"Dell iDRAC Enterprise\", \"hosts\": [\"idrac-6VW42H2\"]}, {\"id\": \"hw-rj-1\", \"name\": \"iDRAC-JXH2XG3\", \"category\": \"Hardware Servidor\", \"x\": 160, \"y\": 440, \"symbolSize\": 32, \"ip\": \"192.168.3.22\", \"site\": \"Rio de Janeiro (RJ)\", \"siteKey\": \"RJ\", \"role\": \"Dell iDRAC Enterprise\", \"hosts\": [\"iDRAC-JXH2XG3\"]}, {\"id\": \"hw-ba-1\", \"name\": \"i-DRAC - BA\", \"category\": \"Hardware Servidor\", \"x\": 840, \"y\": 440, \"symbolSize\": 32, \"ip\": \"192.168.2.14\", \"site\": \"Bahia (BA)\", \"siteKey\": \"BA\", \"role\": \"Dell iDRAC Enterprise\", \"hosts\": [\"i-DRAC - BA\"]}, {\"id\": \"vm-cluster-sp\", \"name\": \"Cluster Hypervisors SP\\n(5 hosts Hyper-V)\", \"category\": \"Virtualização / Servidor\", \"x\": 500, \"y\": 620, \"symbolSize\": 45, \"ip\": \"192.168.0.x\", \"site\": \"Barueri (SP)\", \"siteKey\": \"Barueri\", \"role\": \"Hypervisors PHP, CLIPPER, DELPHI, PASCAL, ASSEMBLY\", \"hosts\": [\"PHP\", \"CLIPPER\", \"DELPHI\", \"PASCAL\", \"ASSEMBLY\"]}, {\"id\": \"srv-sp\", \"name\": \"Servidores SP\\n(AD / DC / NGINX)\", \"category\": \"Virtualização / Servidor\", \"x\": 660, \"y\": 620, \"symbolSize\": 40, \"ip\": \"192.168.0.x\", \"site\": \"Barueri (SP)\", \"siteKey\": \"Barueri\", \"role\": \"VMs e servidores da matriz\", \"hosts\": [\"SRV-AD01\", \"SRV-AD02\", \"srv-dc02\", \"srv-cs01\", \"NGINX-SRV\", \"JAVASCRIPT\"]}, {\"id\": \"vm-rj-1\", \"name\": \"SRV-DC01 (RJ)\", \"category\": \"Virtualização / Servidor\", \"x\": 160, \"y\": 540, \"symbolSize\": 34, \"ip\": \"192.168.3.1\", \"site\": \"Rio de Janeiro (RJ)\", \"siteKey\": \"RJ\", \"role\": \"Domain Controller Filial\", \"hosts\": [\"SRV-DC01\"]}, {\"id\": \"vm-ba-1\", \"name\": \"SRV-AD03 (BA)\", \"category\": \"Virtualização / Servidor\", \"x\": 840, \"y\": 540, \"symbolSize\": 34, \"ip\": \"192.168.2.4\", \"site\": \"Bahia (BA)\", \"siteKey\": \"BA\", \"role\": \"Domain Controller Filial\", \"hosts\": [\"SRV-AD03\"]}, {\"id\": \"ap-sp\", \"name\": \"5x APs Wi-Fi SP\\n(TI/Com/Fin/Rec)\", \"category\": \"Access Point\", \"x\": 500, \"y\": 740, \"symbolSize\": 40, \"ip\": \"192.168.0.40-44\", \"site\": \"Barueri (SP)\", \"siteKey\": \"Barueri\", \"role\": \"5x UniFi APs Corporativos\", \"hosts\": [\"AP01 - FINANCEIRO\", \"AP02 - Kleber\", \"AP03 - RECEPÇÃO\", \"AP04 - COMERCIAL\", \"AP05 - TI\"]}, {\"id\": \"ap-rj\", \"name\": \"5x APs Wi-Fi RJ\\n(Galpões/Adm)\", \"category\": \"Access Point\", \"x\": 160, \"y\": 660, \"symbolSize\": 38, \"ip\": \"192.168.3.107-116\", \"site\": \"Rio de Janeiro (RJ)\", \"siteKey\": \"RJ\", \"role\": \"5x APs Galpão & Escritório\", \"hosts\": [\"AP-ADM\", \"AP-BALANCA\", \"AP-GALPAO1FRENTE\", \"AP-GALPAO1FUNDO\", \"AP-GALPAO3\"]}, {\"id\": \"ap-ba\", \"name\": \"6x APs Wi-Fi BA\\n(Fábrica/Adm)\", \"category\": \"Access Point\", \"x\": 840, \"y\": 660, \"symbolSize\": 40, \"ip\": \"192.168.2.47-52\", \"site\": \"Bahia (BA)\", \"siteKey\": \"BA\", \"role\": \"6x APs Fábrica & Armazém\", \"hosts\": [\"AP ADM - BAHIA\", \"AP ARMAZEM - BAHIA\", \"AP EXPEDIÇÃO - BAHIA\", \"AP FABRICA - BAHIA\", \"AP LENTILHA - BAHIA\", \"AP RESERVA - BAHIA\"]}];\nconst allLinks = [{\"source\": \"inet-sp\", \"target\": \"fw-sp\", \"label\": {\"show\": true, \"formatter\": \"wan1(50M) / wan2(50M)\"}, \"lineStyle\": {\"width\": 3.5, \"color\": \"#10b981\"}}, {\"source\": \"inet-rj\", \"target\": \"fw-rj\", \"label\": {\"show\": true, \"formatter\": \"Int10 / Easy(50M)\"}, \"lineStyle\": {\"width\": 3, \"color\": \"#10b981\"}}, {\"source\": \"inet-ba\", \"target\": \"fw-ba\", \"label\": {\"show\": true, \"formatter\": \"ITS(40M) / Net(30M)\"}, \"lineStyle\": {\"width\": 3, \"color\": \"#10b981\"}}, {\"source\": \"inet-pr\", \"target\": \"fw-pr\", \"label\": {\"show\": true, \"formatter\": \"LIGGA / wan2\"}, \"lineStyle\": {\"width\": 2.5, \"color\": \"#10b981\"}}, {\"source\": \"fw-sp\", \"target\": \"fw-rj\", \"label\": {\"show\": false}, \"lineStyle\": {\"width\": 2.5, \"color\": \"#06b6d4\", \"type\": \"dashed\", \"curveness\": 0.22}}, {\"source\": \"fw-sp\", \"target\": \"fw-ba\", \"label\": {\"show\": false}, \"lineStyle\": {\"width\": 2.5, \"color\": \"#06b6d4\", \"type\": \"dashed\", \"curveness\": -0.22}}, {\"source\": \"fw-sp\", \"target\": \"fw-pr\", \"label\": {\"show\": false}, \"lineStyle\": {\"width\": 2, \"color\": \"#06b6d4\", \"type\": \"dashed\", \"curveness\": -0.35}}, {\"source\": \"fw-sp\", \"target\": \"sw-core-sp\", \"label\": {\"show\": true, \"formatter\": \"10 Gbps Trunk\"}, \"lineStyle\": {\"width\": 4, \"color\": \"#3b82f6\"}}, {\"source\": \"fw-rj\", \"target\": \"sw-core-rj\", \"label\": {\"show\": true, \"formatter\": \"1 Gbps Uplink\"}, \"lineStyle\": {\"width\": 3, \"color\": \"#3b82f6\"}}, {\"source\": \"fw-ba\", \"target\": \"sw-core-ba\", \"label\": {\"show\": true, \"formatter\": \"1 Gbps Uplink\"}, \"lineStyle\": {\"width\": 3, \"color\": \"#3b82f6\"}}, {\"source\": \"ups-sp\", \"target\": \"sw-core-sp\", \"label\": {\"show\": false}, \"lineStyle\": {\"width\": 2, \"color\": \"#eab308\", \"type\": \"dotted\"}}, {\"source\": \"ups-sp\", \"target\": \"fw-sp\", \"label\": {\"show\": false}, \"lineStyle\": {\"width\": 2, \"color\": \"#eab308\", \"type\": \"dotted\"}}, {\"source\": \"sw-core-sp\", \"target\": \"sw-sp-17\", \"label\": {\"show\": false}, \"lineStyle\": {\"width\": 2.5, \"color\": \"#60a5fa\"}}, {\"source\": \"sw-core-sp\", \"target\": \"sw-sp-19\", \"label\": {\"show\": false}, \"lineStyle\": {\"width\": 2.5, \"color\": \"#60a5fa\"}}, {\"source\": \"sw-core-sp\", \"target\": \"sw-sp-20\", \"label\": {\"show\": false}, \"lineStyle\": {\"width\": 2.5, \"color\": \"#60a5fa\"}}, {\"source\": \"sw-core-sp\", \"target\": \"sw-sp-21\", \"label\": {\"show\": false}, \"lineStyle\": {\"width\": 2.5, \"color\": \"#60a5fa\"}}, {\"source\": \"sw-core-sp\", \"target\": \"hw-sp-1\", \"label\": {\"show\": false}, \"lineStyle\": {\"width\": 2, \"color\": \"#a855f7\"}}, {\"source\": \"sw-core-sp\", \"target\": \"hw-sp-2\", \"label\": {\"show\": false}, \"lineStyle\": {\"width\": 2, \"color\": \"#a855f7\"}}, {\"source\": \"sw-core-sp\", \"target\": \"hw-sp-3\", \"label\": {\"show\": false}, \"lineStyle\": {\"width\": 2, \"color\": \"#a855f7\"}}, {\"source\": \"sw-core-sp\", \"target\": \"hw-sp-4\", \"label\": {\"show\": false}, \"lineStyle\": {\"width\": 2, \"color\": \"#a855f7\"}}, {\"source\": \"sw-core-sp\", \"target\": \"hw-sp-5\", \"label\": {\"show\": false}, \"lineStyle\": {\"width\": 2, \"color\": \"#a855f7\"}}, {\"source\": \"sw-core-rj\", \"target\": \"hw-rj-1\", \"label\": {\"show\": false}, \"lineStyle\": {\"width\": 2, \"color\": \"#a855f7\"}}, {\"source\": \"sw-core-ba\", \"target\": \"hw-ba-1\", \"label\": {\"show\": false}, \"lineStyle\": {\"width\": 2, \"color\": \"#a855f7\"}}, {\"source\": \"hw-sp-3\", \"target\": \"vm-cluster-sp\", \"label\": {\"show\": true, \"formatter\": \"Hyper-V\"}, \"lineStyle\": {\"width\": 3, \"color\": \"#8b5cf6\"}}, {\"source\": \"vm-cluster-sp\", \"target\": \"srv-sp\", \"label\": {\"show\": true, \"formatter\": \"VMs\"}, \"lineStyle\": {\"width\": 2, \"color\": \"#8b5cf6\"}}, {\"source\": \"hw-rj-1\", \"target\": \"vm-rj-1\", \"label\": {\"show\": false}, \"lineStyle\": {\"width\": 2, \"color\": \"#8b5cf6\"}}, {\"source\": \"hw-ba-1\", \"target\": \"vm-ba-1\", \"label\": {\"show\": false}, \"lineStyle\": {\"width\": 2, \"color\": \"#8b5cf6\"}}, {\"source\": \"sw-sp-20\", \"target\": \"ap-sp\", \"label\": {\"show\": true, \"formatter\": \"PoE+\"}, \"lineStyle\": {\"width\": 2.5, \"color\": \"#ec4899\"}}, {\"source\": \"sw-core-rj\", \"target\": \"ap-rj\", \"label\": {\"show\": true, \"formatter\": \"PoE+\"}, \"lineStyle\": {\"width\": 2.5, \"color\": \"#ec4899\"}}, {\"source\": \"sw-core-ba\", \"target\": \"ap-ba\", \"label\": {\"show\": true, \"formatter\": \"PoE+\"}, \"lineStyle\": {\"width\": 2.5, \"color\": \"#ec4899\"}}];\n\nconst COLORS = { up: '#22c55e', down: '#ef4444', partial: '#f97316', unknown: '#64748b' };\nconst LABELS = { up: 'ONLINE', down: 'OFFLINE', partial: 'PARCIAL', unknown: 'SEM DADOS' };\nconst CATEGORY_COLORS = {\n  'Internet': '#38bdf8', 'Firewall': '#e879f9', 'Switch': '#3b82f6', 'Hardware Servidor': '#a855f7',\n  'Virtualização / Servidor': '#8b5cf6', 'Access Point': '#ec4899', 'Nobreak UPS': '#eab308'\n};\n\n// Last non-null value of a field (Grafana may hand over a Vector or a plain array)\nconst lastValue = (field) => {\n  const raw = field && field.values ? field.values : [];\n  const vals = typeof raw.toArray === 'function' ? raw.toArray() : raw;\n  for (let i = vals.length - 1; i >= 0; i--) {\n    if (vals[i] !== null && vals[i] !== undefined) return Number(vals[i]);\n  }\n  return null;\n};\n\n// Checks per host: reach = ICMP ping / SNMP availability, agent = Zabbix agent availability.\n// Each check: true = up, false = down, null = unknown.\n// icmpping: 1 = up, 0 = down. zabbix[host,*,available]: 1 = up, 0 = down, 2 = unknown.\nconst hostChecks = {};\nconst wanStatus = {};\n// Merge two readings of the same check: a known value beats null, down beats up\nconst mergeOk = (prev, ok) => (prev === undefined || prev === null || ok === false ? ok : prev);\nfor (const frame of seriesData) {\n  const valueField = (frame.fields || []).find((f) => f.type === 'number');\n  if (!valueField || !valueField.labels || !valueField.labels.host) continue;\n  const host = valueField.labels.host;\n  const key = valueField.labels.item_key || '';\n  const item = valueField.labels.item || key;\n  const last = lastValue(valueField);\n  if (frame.refId === 'B') {\n    // WAN interface operational status: 1 = up\n    (wanStatus[host] = wanStatus[host] || []).push({ name: item, ok: last === null ? null : last === 1 });\n    continue;\n  }\n  const ok = last === null ? null : (key === 'icmpping' ? last === 1 : (last === 1 ? true : last === 0 ? false : null));\n  const kind = key === 'icmpping' ? 'ping'\n    : (key.indexOf(',agent,') >= 0 || item === 'Zabbix agent availability' ? 'agent' : 'snmp');\n  const c = hostChecks[host] = hostChecks[host] || {};\n  c[kind] = mergeOk(c[kind], ok);\n}\n\n// Host state: reachability (ping, else SNMP) decides up/down; a down agent (Zabbix or\n// SNMP) on a host that answers ping is 'partial'. Without ping/SNMP the agent alone decides.\nconst CHECK_NAMES = { ping: 'ping', snmp: 'SNMP', agent: 'agente' };\nconst hostMember = (h) => {\n  const c = hostChecks[h] || {};\n  const hasPing = c.ping !== undefined && c.ping !== null;\n  const reach = hasPing ? c.ping : (c.snmp === undefined ? null : c.snmp);\n  const agentDown = c.agent === false || (hasPing && c.snmp === false);\n  let state = 'unknown';\n  if (reach === false) state = 'down';\n  else if (reach === true) state = agentDown ? 'partial' : 'up';\n  else if (c.agent === true) state = 'up';\n  else if (c.agent === false) state = 'down';\n  const checks = Object.keys(CHECK_NAMES).filter((k) => c[k] !== undefined)\n    .map((k) => ({ name: CHECK_NAMES[k], state: c[k] === null ? 'unknown' : (c[k] ? 'up' : 'down') }));\n  return { name: h, state: state, checks: checks };\n};\n\n// Branch filter: $site is a regex fragment (\".*\" for all)\nlet site = '.*';\ntry {\n  if (context && context.grafana && typeof context.grafana.replaceVariables === 'function') {\n    site = context.grafana.replaceVariables('$site');\n  }\n} catch (e) { site = '.*'; }\nconst allSites = !site || site === '.*' || site === '$site' || site === '$__all';\n\nconst nodes = allNodes.filter((n) => allSites || n.siteKey === site).map((n) => {\n  const members = n.wan\n    ? n.hosts.flatMap((h) => (wanStatus[h] || []).map((w) => ({\n        name: h + ': ' + w.name, state: w.ok === null ? 'unknown' : (w.ok ? 'up' : 'down'), checks: [] })))\n    : n.hosts.map(hostMember);\n  // Node: all known members up = up, all down = down, anything else (incl. a partial host) = partial\n  const known = members.filter((m) => m.state !== 'unknown');\n  const up = known.filter((m) => m.state === 'up').length;\n  const down = known.filter((m) => m.state === 'down').length;\n  let state = 'unknown';\n  if (known.length) state = up === known.length ? 'up' : (down === known.length ? 'down' : 'partial');\n  const catColor = CATEGORY_COLORS[n.category] || '#94a3b8';\n  return Object.assign({}, n, {\n    members: members,\n    state: state,\n    up: up,\n    total: members.length,\n    itemStyle: {\n      color: COLORS[state], borderColor: catColor, borderWidth: 3,\n      shadowBlur: state === 'down' ? 18 : 8, shadowColor: COLORS[state]\n    }\n  });\n});\nconst byId = {};\nnodes.forEach((n) => { byId[n.id] = n; });\n\n// Links touching a down node take the down colour\nconst links = allLinks.filter((l) => byId[l.source] && byId[l.target]).map((l) => {\n  const down = byId[l.source].state === 'down' || byId[l.target].state === 'down';\n  if (!down) return l;\n  return Object.assign({}, l, { lineStyle: Object.assign({}, l.lineStyle, { color: COLORS.down, type: 'dashed' }) });\n});\n\nreturn {\n  backgroundColor: 'transparent',\n  tooltip: {\n    trigger: 'item',\n    backgroundColor: 'rgba(15, 23, 42, 0.95)',\n    borderColor: '#334155',\n    borderWidth: 1,\n    padding: [10, 14],\n    textStyle: { color: '#f8fafc', fontSize: 12 },\n    formatter: function(params) {\n      if (params.dataType === 'node') {\n        const d = params.data;\n        // One row per host, with each availability check (ping / SNMP / agente) so the cause is visible\n        const rows = (d.members || []).map((m) => {\n          const checks = (m.checks || []).map((c) =>\n            `<span style=\"color:${COLORS[c.state]};\">${c.name} ●</span>`).join(', ');\n          return `<div><span style=\"color:${COLORS[m.state]};\">●</span> ${m.name}` +\n            (checks ? ` <span style=\"color:#94a3b8;\">(${checks})</span>` : '') + `</div>`;\n        }).join('') || '<div style=\"color:#94a3b8;\">Sem item de disponibilidade no Zabbix</div>';\n        return `\n          <div style=\"font-weight:bold;font-size:14px;color:${COLORS[d.state]};margin-bottom:6px;\">\n            ${d.name.replace('\\n', ' ')}\n          </div>\n          <table style=\"font-size:12px;line-height:1.6;color:#cbd5e1;\">\n            <tr><td><b>Categoria:</b></td><td style=\"padding-left:8px;\">${d.category}</td></tr>\n            <tr><td><b>Endereço IP:</b></td><td style=\"padding-left:8px;font-family:monospace;color:#38bdf8;\">${d.ip}</td></tr>\n            <tr><td><b>Localidade:</b></td><td style=\"padding-left:8px;\">${d.site}</td></tr>\n            <tr><td><b>Papel / Detalhe:</b></td><td style=\"padding-left:8px;\">${d.role}</td></tr>\n            <tr><td><b>Status:</b></td><td style=\"padding-left:8px;\"><span style=\"color:${COLORS[d.state]};font-weight:bold;\">● ${LABELS[d.state]}</span> (${d.up}/${d.total} online)</td></tr>\n          </table>\n          <div style=\"margin-top:6px;font-size:11px;line-height:1.5;border-top:1px solid #334155;padding-top:4px;\">${rows}</div>\n        `;\n      } else if (params.dataType === 'edge') {\n        const d = params.data;\n        return `\n          <div style=\"font-weight:bold;margin-bottom:4px;color:#38bdf8;\">Conexão de Enlace</div>\n          <div><b>Origem:</b> ${d.source}</div>\n          <div><b>Destino:</b> ${d.target}</div>\n          <div><b>Info:</b> ${(d.label && d.label.formatter) || 'Enlace LAN/WAN'}</div>\n        `;\n      }\n      return '';\n    }\n  },\n  legend: [{\n    data: Object.keys(CATEGORY_COLORS),\n    textStyle: { color: '#cbd5e1', fontSize: 11 },\n    top: 6,\n    left: 'center',\n    itemGap: 16\n  }],\n  series: [{\n    type: 'graph',\n    layout: 'none',\n    roam: true,\n    draggable: true,\n    edgeSymbol: ['none', 'none'],\n    label: {\n      show: true,\n      position: 'bottom',\n      color: '#e2e8f0',\n      fontSize: 11,\n      fontWeight: 'bold',\n      distance: 6\n    },\n    emphasis: {\n      focus: 'adjacency',\n      lineStyle: {\n        width: 5,\n        color: '#00ffd5',\n        shadowColor: 'rgba(0, 255, 213, 0.8)',\n        shadowBlur: 14\n      },\n      label: {\n        fontSize: 12,\n        fontWeight: 'bolder',\n        color: '#00ffd5'\n      }\n    },\n    lineStyle: {\n      curveness: 0.08,\n      opacity: 0.85\n    },\n    categories: Object.keys(CATEGORY_COLORS).map((name) => ({ name: name, itemStyle: { color: CATEGORY_COLORS[name] } })),\n    nodes: nodes,\n    links: links\n  }]\n};"
+      },
+      "timeFrom": "7h",
+      "hideTimeOverride": true,
+      "maxDataPoints": 10
     },
     {
       "id": 5,
@@ -681,13 +1059,13 @@
           "queryType": "0",
           "datasource": {
             "type": "alexanderzobnin-zabbix-datasource",
-            "uid": "zabbix"
+            "uid": "${datasource}"
           },
           "group": {
-            "filter": "$group"
+            "filter": "/^Servidores\\/.*$/"
           },
           "host": {
-            "filter": "$host"
+            "filter": "/^$site_hosts$/"
           },
           "application": {
             "filter": ""
@@ -696,7 +1074,7 @@
             "filter": ""
           },
           "item": {
-            "filter": "/ICMP ping/"
+            "filter": "/^(Zabbix agent availability|ICMP ping)$/"
           },
           "functions": [
             {
@@ -712,14 +1090,66 @@
                 "defaultParams": []
               },
               "params": [
-                "$__zbx_host_name"
+                "$__zbx_host_name: $__zbx_item"
               ],
-              "text": "setAlias($__zbx_host_name)"
+              "text": "setAlias($__zbx_host_name: $__zbx_item)"
+            },
+            {
+              "def": {
+                "name": "replaceAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "regexp",
+                    "type": "string"
+                  },
+                  {
+                    "name": "newAlias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": [
+                  "/(.*)/",
+                  "$1"
+                ]
+              },
+              "params": [
+                "/: Zabbix agent availability$/",
+                " (agente)"
+              ],
+              "text": "replaceAlias(/: Zabbix agent availability$/,  (agente))"
+            },
+            {
+              "def": {
+                "name": "replaceAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "regexp",
+                    "type": "string"
+                  },
+                  {
+                    "name": "newAlias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": [
+                  "/(.*)/",
+                  "$1"
+                ]
+              },
+              "params": [
+                "/: ICMP ping$/",
+                " (ping)"
+              ],
+              "text": "replaceAlias(/: ICMP ping$/,  (ping))"
             }
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -744,12 +1174,19 @@
               "type": "value",
               "options": {
                 "0": {
-                  "text": "OFF",
-                  "color": "red"
+                  "text": "DOWN",
+                  "color": "red",
+                  "index": 0
                 },
                 "1": {
-                  "text": "ON",
-                  "color": "green"
+                  "text": "UP",
+                  "color": "green",
+                  "index": 1
+                },
+                "2": {
+                  "text": "UNKNOWN",
+                  "color": "#64748b",
+                  "index": 2
                 }
               }
             }
@@ -758,14 +1195,25 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "red",
                 "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              },
+              {
+                "color": "#64748b",
+                "value": 2
               }
             ]
           }
         },
         "overrides": []
-      }
+      },
+      "timeFrom": "5m",
+      "hideTimeOverride": true,
+      "maxDataPoints": 10
     },
     {
       "id": 6,
@@ -787,13 +1235,13 @@
           "queryType": "0",
           "datasource": {
             "type": "alexanderzobnin-zabbix-datasource",
-            "uid": "zabbix"
+            "uid": "${datasource}"
           },
           "group": {
-            "filter": "$group"
+            "filter": "/^Rede\\/Firewalls$/"
           },
           "host": {
-            "filter": "$host"
+            "filter": "/^$site_hosts$/"
           },
           "application": {
             "filter": ""
@@ -802,7 +1250,7 @@
             "filter": ""
           },
           "item": {
-            "filter": "/((cpu|processor).*(utilization|usage)|utiliza[cç][aã]o.*cpu)/i"
+            "filter": "/^CPU utilization$/"
           },
           "functions": [
             {
@@ -825,7 +1273,9 @@
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         },
         {
@@ -833,13 +1283,13 @@
           "queryType": "0",
           "datasource": {
             "type": "alexanderzobnin-zabbix-datasource",
-            "uid": "zabbix"
+            "uid": "${datasource}"
           },
           "group": {
-            "filter": "$group"
+            "filter": "/^Rede\\/Firewalls$/"
           },
           "host": {
-            "filter": "$host"
+            "filter": "/^$site_hosts$/"
           },
           "application": {
             "filter": ""
@@ -848,7 +1298,7 @@
             "filter": ""
           },
           "item": {
-            "filter": "/session/i"
+            "filter": "/^IPv4 Active sessions$/"
           },
           "functions": [
             {
@@ -871,7 +1321,9 @@
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -891,6 +1343,7 @@
       },
       "fieldConfig": {
         "defaults": {
+          "unit": "percent",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -909,8 +1362,36 @@
             ]
           }
         },
-        "overrides": []
-      }
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "blue",
+                      "value": null
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "timeFrom": "10m",
+      "hideTimeOverride": true,
+      "maxDataPoints": 10
     },
     {
       "id": 7,
@@ -932,13 +1413,13 @@
           "queryType": "0",
           "datasource": {
             "type": "alexanderzobnin-zabbix-datasource",
-            "uid": "zabbix"
+            "uid": "${datasource}"
           },
           "group": {
-            "filter": "$group"
+            "filter": "/^Infra\\/.*$/"
           },
           "host": {
-            "filter": "$host"
+            "filter": "/^$site_hosts$/"
           },
           "application": {
             "filter": ""
@@ -947,7 +1428,7 @@
             "filter": ""
           },
           "item": {
-            "filter": "/temp(erature)?|temperatura/i"
+            "filter": "/^(Probe \\[(System Board )?Inlet Temp\\]: Value|Bateria: Temperatura)$/"
           },
           "functions": [
             {
@@ -963,49 +1444,66 @@
                 "defaultParams": []
               },
               "params": [
-                "$__zbx_host_name: Temp"
+                "$__zbx_host_name: $__zbx_item"
               ],
-              "text": "setAlias($__zbx_host_name: Temp)"
+              "text": "setAlias($__zbx_host_name: $__zbx_item)"
             },
             {
               "def": {
-                "name": "top",
-                "category": "Filter",
+                "name": "replaceAlias",
+                "category": "Alias",
                 "params": [
                   {
-                    "name": "number",
-                    "type": "int"
+                    "name": "regexp",
+                    "type": "string"
                   },
                   {
-                    "name": "value",
-                    "type": "string",
-                    "options": [
-                      "avg",
-                      "min",
-                      "max",
-                      "sum",
-                      "count",
-                      "median",
-                      "first",
-                      "last"
-                    ]
+                    "name": "newAlias",
+                    "type": "string"
                   }
                 ],
                 "defaultParams": [
-                  5,
-                  "avg"
+                  "/(.*)/",
+                  "$1"
                 ]
               },
               "params": [
-                3,
-                "avg"
+                "/: Probe \\[.*Inlet Temp\\]: Value$/",
+                ": Inlet"
               ],
-              "text": "top(3, avg)"
+              "text": "replaceAlias(/: Probe \\[.*Inlet Temp\\]: Value$/, : Inlet)"
+            },
+            {
+              "def": {
+                "name": "replaceAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "regexp",
+                    "type": "string"
+                  },
+                  {
+                    "name": "newAlias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": [
+                  "/(.*)/",
+                  "$1"
+                ]
+              },
+              "params": [
+                "/: Bateria: Temperatura$/",
+                ": Bateria"
+              ],
+              "text": "replaceAlias(/: Bateria: Temperatura$/, : Bateria)"
             }
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -1035,17 +1533,49 @@
               },
               {
                 "color": "orange",
-                "value": 45
+                "value": 27
               },
               {
                 "color": "red",
-                "value": 60
+                "value": 32
               }
             ]
           }
         },
-        "overrides": []
-      }
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Bateria.*"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 40
+                    },
+                    {
+                      "color": "red",
+                      "value": 45
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "timeFrom": "7h",
+      "hideTimeOverride": true,
+      "maxDataPoints": 100
     },
     {
       "id": 8,
@@ -1070,7 +1600,7 @@
             "uid": "${datasource}"
           },
           "group": {
-            "filter": "/.*/"
+            "filter": "/^Filiais\\/$site$/"
           },
           "host": {
             "filter": "/.*/"
@@ -1089,7 +1619,7 @@
           },
           "showProblems": "problems",
           "options": {
-            "minSeverity": 1,
+            "minSeverity": 2,
             "acknowledged": 2,
             "sortProblems": "priority",
             "hostsInMaintenance": false,
@@ -1103,7 +1633,7 @@
         "severityField": true,
         "ageField": true,
         "showTags": true,
-        "pageSize": 5
+        "pageSize": 10
       }
     }
   ]

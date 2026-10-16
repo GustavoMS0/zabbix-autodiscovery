@@ -6,7 +6,7 @@
     "zabbix"
   ],
   "timezone": "browser",
-  "refresh": "1m",
+  "refresh": "5m",
   "schemaVersion": 39,
   "editable": true,
   "time": {
@@ -83,7 +83,7 @@
         "multi": true,
         "includeAll": true,
         "allValue": "/.*/",
-        "refresh": 2,
+        "refresh": 1,
         "sort": 1,
         "current": {
           "text": "All",
@@ -159,6 +159,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 100,
       "targets": [
         {
           "refId": "A",
@@ -203,7 +204,9 @@
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -234,6 +237,10 @@
                 "1": {
                   "text": "UP",
                   "color": "green"
+                },
+                "2": {
+                  "text": "UNKNOWN",
+                  "color": "#8e8e8e"
                 }
               }
             }
@@ -248,12 +255,18 @@
               {
                 "color": "green",
                 "value": 1
+              },
+              {
+                "color": "#8e8e8e",
+                "value": 2
               }
             ]
           }
         },
         "overrides": []
       },
+      "timeFrom": "15m",
+      "hideTimeOverride": true,
       "id": 2,
       "gridPos": {
         "x": 0,
@@ -269,6 +282,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 100,
       "targets": [
         {
           "refId": "A",
@@ -313,7 +327,9 @@
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -355,6 +371,8 @@
         },
         "overrides": []
       },
+      "timeFrom": "15m",
+      "hideTimeOverride": true,
       "id": 3,
       "gridPos": {
         "x": 0,
@@ -370,6 +388,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 100,
       "targets": [
         {
           "refId": "A",
@@ -414,7 +433,9 @@
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -456,6 +477,8 @@
         },
         "overrides": []
       },
+      "timeFrom": "15m",
+      "hideTimeOverride": true,
       "id": 4,
       "gridPos": {
         "x": 12,
@@ -471,6 +494,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 500,
       "targets": [
         {
           "refId": "A",
@@ -515,13 +539,15 @@
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "s"
+          "unit": "m"
         },
         "overrides": []
       },
@@ -554,6 +580,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 500,
       "targets": [
         {
           "refId": "A",
@@ -598,7 +625,9 @@
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -637,6 +666,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 500,
       "targets": [
         {
           "refId": "A",
@@ -681,7 +711,9 @@
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],
@@ -720,6 +752,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${datasource}"
       },
+      "maxDataPoints": 500,
       "targets": [
         {
           "refId": "A",
@@ -741,7 +774,7 @@
             "filter": ""
           },
           "item": {
-            "filter": "/temp(erature)?|temperatura/i"
+            "filter": "/^(?!.*(status|alarm|tempo|walk)).*(temperat|temp\\b)/i"
           },
           "functions": [
             {
@@ -764,7 +797,9 @@
           ],
           "options": {
             "showDisabledItems": false,
-            "skipEmptyValues": true
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
           }
         }
       ],

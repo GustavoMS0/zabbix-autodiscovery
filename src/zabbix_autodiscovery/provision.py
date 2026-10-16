@@ -79,12 +79,13 @@ def ensure_groups(api, cfg):
     return groups
 
 
-def setup_zabbix_dashboards(api, cfg, rebuild=False, log=print):
+def setup_zabbix_dashboards(api, cfg, rebuild=False, log=print, skip_empty=True):
     """One native dashboard per device type (only for types with a host group in the rules).
 
     rebuild=True refreshes existing AutoDiscovery dashboards, e.g. after new hosts were added
-    (graphs list the hosts of the type's groups)."""
-    created = kept = refreshed = 0
+    (graphs list the hosts of the type's groups). skip_empty=True creates nothing for types whose groups have
+    no enabled host yet (run again with --rebuild-dashboards once they have)."""
+    created = kept = refreshed = empty = 0
     for spec in dashboards.SPECS:
         groups = dashboards.groups_for(spec, cfg)
         if not groups:
@@ -96,6 +97,9 @@ def setup_zabbix_dashboards(api, cfg, rebuild=False, log=print):
             continue
         groupids = [api.ensure_hostgroup(g) for g in groups]
         hosts = api.call("host.get", {"output": ["hostid", "name"], "groupids": groupids, "filter": {"status": 0}})
+        if not hosts and skip_empty:
+            empty += 1                       # a dashboard of an empty group only shows "no data"
+            continue
         items = api.call("item.get", {"output": ["hostid", "name", "lastclock", "state"], "filter": {"status": 0},
                                       "hostids": [h["hostid"] for h in hosts]}) if hosts else []
         agent_missing = any(p["kind"] == "agent_missing" for p in spec["panels"])
@@ -122,7 +126,8 @@ def setup_zabbix_dashboards(api, cfg, rebuild=False, log=print):
                 continue
         created += 1
     log(f"- Zabbix dashboards: {created} created, {refreshed} refreshed, {kept} already existed (kept as they are"
-        + ("; use --rebuild-dashboards to refresh them)" if kept else ")"))
+        + ("; use --rebuild-dashboards to refresh them)" if kept else ")")
+        + (f", {empty} skipped (no hosts in their groups)" if empty else ""))
 
 
 def setup_grafana_user(api, cfg, log=print):

@@ -611,10 +611,12 @@ def run_grafana(cfg, args_base):
         print("\n-- Regenerar Dashboards do Grafana --")
         out_dir = Path(args_base.config).resolve().parent / "deploy" / "grafana" / "dashboards"
         out_dir.mkdir(parents=True, exist_ok=True)
+        for old in out_dir.glob("autodiscovery-*.json"):      # tipos sem hosts não deixam JSON antigo para trás
+            old.unlink()
         count = 0
-        for spec in dashboards.SPECS:
-            if not dashboards.groups_for(spec, cfg):
-                continue
+        # Sem hosts no grupo = sem dashboard (só quando o Zabbix responde; offline gera todos)
+        from .cli import connect_optional
+        for spec in dashboards.specs_to_build(cfg, connect_optional(cfg)):
             path = out_dir / f"autodiscovery-{spec['key']}.json"
             path.write_text(json.dumps(dashboards.grafana_dashboard(spec, cfg, "zabbix"),
                                        ensure_ascii=False, indent=2), encoding="utf-8")

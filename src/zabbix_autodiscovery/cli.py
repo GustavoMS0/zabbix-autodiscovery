@@ -16,6 +16,7 @@ Typical flow:
   zabbix-autodiscovery audit                               # read-only report: organization, duplicates, errors
   zabbix-autodiscovery maps [--rebuild]                    # one Zabbix map per site (interactive in the Zabbix UI)
   zabbix-autodiscovery grafana-dashboards -o ./dashboards  # optional: Grafana JSON per device type
+  zabbix-autodiscovery grafana-dashboards --v2             # v2 set into deploy/grafana/dashboards-v2
 """
 import argparse
 import asyncio
@@ -747,14 +748,29 @@ def cmd_web(cfg, args):
     print("\nSummary:", ", ".join(f"{k}={v}" for k, v in stats.items()))
 
 
+def connect_optional(cfg):
+    """connect() for commands that also work offline: None (with a notice) when Zabbix is not configured
+    or not reachable."""
+    z = cfg.get("zabbix") or {}
+    if not z.get("url") or not (z.get("token") or z.get("user")):
+        return None
+    try:
+        return connect(cfg)
+    except SystemExit as exc:
+        print(f"{exc} - continuing offline")
+        return None
+
+
 def cmd_grafana_dashboards(cfg, args):
-    out = Path(args.output)
+    if getattr(args, "v2", False):
+        return _write_grafana_v2(cfg, args)
+    out = Path(args.output or "grafana-dashboards")
     out.mkdir(parents=True, exist_ok=True)
     for old in out.glob("autodiscovery-*.json"):
         old.unlink()
-    for spec in dashboards.SPECS:
-        if not dashboards.groups_for(spec, cfg):
-            continue
+    # Device types whose groups have no hosts get no dashboard when Zabbix can be asked (offline: all of them)
+    api = None if args.include_empty else connect_optional(cfg)
+    for spec in dashboards.specs_to_build(cfg, api):
         path = out / f"autodiscovery-{spec['key']}.json"
         path.write_text(json.dumps(dashboards.grafana_dashboard(spec, cfg, args.datasource_uid),
                                    ensure_ascii=False, indent=2), encoding="utf-8")
@@ -764,6 +780,20 @@ def cmd_grafana_dashboards(cfg, args):
     topo_path.write_text(json.dumps(build_topology_dashboard(args.datasource_uid),
                                    ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"written {topo_path}")
+
+
+def _write_grafana_v2(cfg, args):
+    """v2 set ("NOC escuro neon") into its own directory, so the provisioned v1 JSONs stay as they are."""
+    from .grafana_v2 import build_all
+    out = Path(args.output or "deploy/grafana/dashboards-v2")
+    out.mkdir(parents=True, exist_ok=True)
+    for old in out.glob("autodiscovery-*-v2.json"):
+        old.unlink()
+    api = None if args.include_empty else connect_optional(cfg)
+    for name, dash in build_all(cfg, args.datasource_uid, api).items():
+        path = out / name
+        path.write_text(json.dumps(dash, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"written {path}")
 
 
 def cmd_export(cfg, args):
@@ -946,9 +976,15 @@ def build_parser():
     p.add_argument("--add-domain", metavar="DOMAIN", help="add a domain to monitor expiration (e.g. site.com.br)")
     p.add_argument("--save", action="store_true", help="save the new site/domain into config.yaml")
     p = sub.add_parser("grafana-dashboards", help="write Grafana dashboard JSON files (one per device type)")
-    p.add_argument("-o", "--output", default="grafana-dashboards")
+    p.add_argument("-o", "--output", default=None,
+                   help="output directory (default: grafana-dashboards, or deploy/grafana/dashboards-v2 with --v2)")
+    p.add_argument("--v2", action="store_true",
+                   help="write the v2 dashboards (NOC dark neon, folder 'AutoDiscovery v2') instead of v1")
     p.add_argument("--datasource-uid", default="zabbix",
                    help="default Zabbix datasource UID (each dashboard also has a datasource selector)")
+    p.add_argument("--include-empty", action="store_true",
+                   help="also write dashboards for device types whose host groups have no hosts "
+                        "(no Zabbix lookup; this is what happens anyway when Zabbix is unreachable)")
     p = sub.add_parser("export", help="export discovered or monitored hosts to Ansible, NetBox or JSON")
     p.add_argument("-f", "--format", choices=["ansible", "netbox", "json"], default="ansible",
                    help="export format (default: ansible)")

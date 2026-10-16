@@ -10,9 +10,11 @@ datasources:
     editable: true
     jsonData:
       username: ${ZABBIX_GRAFANA_USER}
-      trends: true
-      trendsFrom: "7d"
-      trendsRange: "4d"
+      # Trends disabled: plugin 6.9.1 sends "sortfield" in trend.get and Zabbix 8.0 rejects it
+      # (unexpected parameter "sortfield"), so every range longer than trendsFrom errors out.
+      # History-only queries were measured at ~0.3-1.2s for 7d and ~1.3s for 30d. Re-enable
+      # (trends: true, trendsFrom "7d", trendsRange "4d") once a plugin release supports Zabbix 8.
+      trends: false
       cacheTTL: "1h"
     secureJsonData:
       password: ${ZABBIX_GRAFANA_PASSWORD}

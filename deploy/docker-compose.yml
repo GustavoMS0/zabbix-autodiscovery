@@ -50,6 +50,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in deploy/.env}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/.env}
       PHP_TZ: ${TZ}
+      # PHP memory_limit of the frontend (image default 128M): large dashboards/maps and Grafana API
+      # calls (item.get/history.get over many hosts) can exhaust the default
+      ZBX_MEMORYLIMIT: 512M
     ports:
       - "8080:8080"
     volumes:
