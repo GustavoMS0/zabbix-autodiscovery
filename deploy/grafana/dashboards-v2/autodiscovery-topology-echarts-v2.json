@@ -1,0 +1,2429 @@
+{
+  "uid": "autodiscovery-topology-echarts-v2",
+  "title": "AutoDiscovery v2 - Topologia (ECharts)",
+  "description": "Protótipo B da topologia (Business Charts / ECharts) para TV 1920x1080: filiais em colunas, camadas de rede, links WAN, túneis VPN e problemas ao vivo.",
+  "tags": [
+    "autodiscovery",
+    "autodiscovery-v2"
+  ],
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 1,
+  "refresh": "1m",
+  "schemaVersion": 41,
+  "fiscalYearStartMonth": 0,
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {
+    "hidden": true
+  },
+  "links": [],
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "label": "Zabbix",
+        "type": "datasource",
+        "query": "alexanderzobnin-zabbix-datasource",
+        "current": {
+          "text": "zabbix",
+          "value": "zabbix"
+        },
+        "hide": 2
+      },
+      {
+        "name": "site",
+        "label": "Filial",
+        "type": "custom",
+        "hide": 2,
+        "query": "Matriz - Sede Principal : Matriz, Paraná : PR, Bahia : BA, Rio de Janeiro : RJ",
+        "options": [
+          {
+            "text": "Todas",
+            "value": "$__all",
+            "selected": true
+          },
+          {
+            "text": "Matriz - Sede Principal",
+            "value": "Matriz",
+            "selected": false
+          },
+          {
+            "text": "Paraná",
+            "value": "PR",
+            "selected": false
+          },
+          {
+            "text": "Bahia",
+            "value": "BA",
+            "selected": false
+          },
+          {
+            "text": "Rio de Janeiro",
+            "value": "RJ",
+            "selected": false
+          }
+        ],
+        "current": {
+          "text": "Todas",
+          "value": "$__all"
+        },
+        "multi": false,
+        "includeAll": true,
+        "allValue": ".*"
+      },
+      {
+        "name": "simular",
+        "label": "Simular falha",
+        "type": "textbox",
+        "hide": 2,
+        "query": "",
+        "current": {
+          "text": "",
+          "value": ""
+        }
+      },
+      {
+        "name": "site_Matriz",
+        "label": "Hosts Matriz - Sede Principal",
+        "type": "query",
+        "datasource": {
+          "type": "alexanderzobnin-zabbix-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "queryType": "host",
+          "group": "/^Filiais\\/Matriz$/",
+          "host": "/.*/",
+          "application": "",
+          "itemTag": "",
+          "item": ""
+        },
+        "multi": true,
+        "includeAll": true,
+        "refresh": 1,
+        "sort": 1,
+        "hide": 2,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "site_PR",
+        "label": "Hosts Paraná",
+        "type": "query",
+        "datasource": {
+          "type": "alexanderzobnin-zabbix-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "queryType": "host",
+          "group": "/^Filiais\\/PR$/",
+          "host": "/.*/",
+          "application": "",
+          "itemTag": "",
+          "item": ""
+        },
+        "multi": true,
+        "includeAll": true,
+        "refresh": 1,
+        "sort": 1,
+        "hide": 2,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "site_BA",
+        "label": "Hosts Bahia",
+        "type": "query",
+        "datasource": {
+          "type": "alexanderzobnin-zabbix-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "queryType": "host",
+          "group": "/^Filiais\\/BA$/",
+          "host": "/.*/",
+          "application": "",
+          "itemTag": "",
+          "item": ""
+        },
+        "multi": true,
+        "includeAll": true,
+        "refresh": 1,
+        "sort": 1,
+        "hide": 2,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "site_RJ",
+        "label": "Hosts Rio de Janeiro",
+        "type": "query",
+        "datasource": {
+          "type": "alexanderzobnin-zabbix-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "queryType": "host",
+          "group": "/^Filiais\\/RJ$/",
+          "host": "/.*/",
+          "application": "",
+          "itemTag": "",
+          "item": ""
+        },
+        "multi": true,
+        "includeAll": true,
+        "refresh": 1,
+        "sort": 1,
+        "hide": 2,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "tier_firewalls",
+        "label": "Hosts Firewalls",
+        "type": "query",
+        "datasource": {
+          "type": "alexanderzobnin-zabbix-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "queryType": "host",
+          "group": "/^(Rede\\/Firewalls)$/",
+          "host": "/.*/",
+          "application": "",
+          "itemTag": "",
+          "item": ""
+        },
+        "multi": true,
+        "includeAll": true,
+        "refresh": 1,
+        "sort": 1,
+        "hide": 2,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "tier_switches",
+        "label": "Hosts Switches",
+        "type": "query",
+        "datasource": {
+          "type": "alexanderzobnin-zabbix-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "queryType": "host",
+          "group": "/^(Rede\\/Switches)$/",
+          "host": "/.*/",
+          "application": "",
+          "itemTag": "",
+          "item": ""
+        },
+        "multi": true,
+        "includeAll": true,
+        "refresh": 1,
+        "sort": 1,
+        "hide": 2,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "tier_access_points",
+        "label": "Hosts Access Points",
+        "type": "query",
+        "datasource": {
+          "type": "alexanderzobnin-zabbix-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "queryType": "host",
+          "group": "/^(Rede\\/Access\\ Points)$/",
+          "host": "/.*/",
+          "application": "",
+          "itemTag": "",
+          "item": ""
+        },
+        "multi": true,
+        "includeAll": true,
+        "refresh": 1,
+        "sort": 1,
+        "hide": 2,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "tier_servers",
+        "label": "Hosts Servidores",
+        "type": "query",
+        "datasource": {
+          "type": "alexanderzobnin-zabbix-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "queryType": "host",
+          "group": "/^(Servidores\\/Hypervisors|Servidores\\/Linux|Servidores\\/Windows)$/",
+          "host": "/.*/",
+          "application": "",
+          "itemTag": "",
+          "item": ""
+        },
+        "multi": true,
+        "includeAll": true,
+        "refresh": 1,
+        "sort": 1,
+        "hide": 2,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "tier_server_hardware",
+        "label": "Hosts Hardware",
+        "type": "query",
+        "datasource": {
+          "type": "alexanderzobnin-zabbix-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "queryType": "host",
+          "group": "/^(Infra\\/Hardware\\ Servidores)$/",
+          "host": "/.*/",
+          "application": "",
+          "itemTag": "",
+          "item": ""
+        },
+        "multi": true,
+        "includeAll": true,
+        "refresh": 1,
+        "sort": 1,
+        "hide": 2,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "tier_printers",
+        "label": "Hosts Impressoras",
+        "type": "query",
+        "datasource": {
+          "type": "alexanderzobnin-zabbix-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "queryType": "host",
+          "group": "/^(Rede\\/Impressoras)$/",
+          "host": "/.*/",
+          "application": "",
+          "itemTag": "",
+          "item": ""
+        },
+        "multi": true,
+        "includeAll": true,
+        "refresh": 1,
+        "sort": 1,
+        "hide": 2,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "tier_ups",
+        "label": "Hosts Nobreaks",
+        "type": "query",
+        "datasource": {
+          "type": "alexanderzobnin-zabbix-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "queryType": "host",
+          "group": "/^(Infra\\/Nobreaks)$/",
+          "host": "/.*/",
+          "application": "",
+          "itemTag": "",
+          "item": ""
+        },
+        "multi": true,
+        "includeAll": true,
+        "refresh": 1,
+        "sort": 1,
+        "hide": 2,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "type": "text",
+      "title": "",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"border-left:4px solid #22D3EE;padding:2px 0 2px 14px;\"><div style=\"color:#8B98AD;font-size:12px;letter-spacing:3px;\">NOC · PROTÓTIPO B · ECHARTS</div><div style=\"color:#E6EDF7;font-size:26px;font-weight:700;letter-spacing:1px;line-height:1.2;\">TOPOLOGIA</div><div style=\"margin-top:3px;line-height:1.45;white-space:nowrap;\"><span style=\"display:inline-block;margin-right:9px;color:#8B98AD;font-size:11.5px;\"><span style=\"color:#22E58A;font-size:13px;\">&#9679;</span> ONLINE</span><span style=\"display:inline-block;margin-right:9px;color:#8B98AD;font-size:11.5px;\"><span style=\"color:#FFB224;font-size:13px;\">&#9679;</span> PARCIAL</span><span style=\"display:inline-block;margin-right:9px;color:#8B98AD;font-size:11.5px;\"><span style=\"color:#FF4D5E;font-size:13px;\">&#9679;</span> OFFLINE</span><span style=\"display:inline-block;margin-right:9px;color:#8B98AD;font-size:11.5px;\"><span style=\"color:#7B8794;font-size:13px;\">&#9679;</span> S/ DADOS</span><br><span style=\"display:inline-block;margin-right:9px;color:#8B98AD;font-size:11px;\"><span style=\"display:inline-block;width:16px;vertical-align:middle;border-top:2px solid #22D3EE;\"></span> ENLACE</span><span style=\"display:inline-block;margin-right:9px;color:#8B98AD;font-size:11px;\"><span style=\"display:inline-block;width:16px;vertical-align:middle;border-top:2px dashed #FF4D5E;\"></span> FORA DO AR</span><span style=\"display:inline-block;margin-right:9px;color:#8B98AD;font-size:11px;\"><span style=\"display:inline-block;width:14px;height:14px;line-height:14px;border-radius:50%;background:#FF9F1C;color:#0b0e13;font-size:9.5px;font-weight:800;text-align:center;\">2</span> PROBLEMAS</span><br><span style=\"display:inline-block;color:#8B98AD;font-size:11px;\"><b style=\"color:#E6EDF7;\">A &#8594; B</b> TÚNEL SÓ NO FIREWALL A</span></div></div>",
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        }
+      },
+      "transparent": true,
+      "links": [
+        {
+          "title": "Visão Geral",
+          "url": "/d/autodiscovery-overview-v2?${__url_time_range}",
+          "targetBlank": false
+        },
+        {
+          "title": "Topologia · protótipo A (Canvas)",
+          "url": "/d/autodiscovery-topology-canvas-v2?${__url_time_range}",
+          "targetBlank": false
+        },
+        {
+          "title": "Topologia · protótipo B (ECharts)",
+          "url": "/d/autodiscovery-topology-echarts-v2?${__url_time_range}",
+          "targetBlank": false
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 5,
+        "h": 4
+      },
+      "id": 1
+    },
+    {
+      "type": "stat",
+      "title": "HOSTS ONLINE",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 20,
+          "withTransforms": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "noValue": "—",
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "text": "—",
+                  "color": "#7B8794",
+                  "index": 99
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#22E58A",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Online"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "${__data.fields.Total} monitorados"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": true,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": false,
+        "showPercentChange": false,
+        "text": {
+          "valueSize": 60,
+          "titleSize": 14
+        }
+      },
+      "transparent": false,
+      "description": "Hosts das filiais alcançáveis agora (ping, SNMP ou agente).",
+      "transformations": [
+        {
+          "id": "filterByRefId",
+          "options": {
+            "include": "A|B|C|D"
+          }
+        },
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "seriesToRows",
+            "reducers": [
+              "lastNotNull"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "extractFields",
+          "options": {
+            "source": "Field",
+            "format": "json",
+            "replace": false,
+            "keepTime": false
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "dim": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "link": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "host": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "Last *": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "max"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "dim": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "link": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "Last * (max)": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "sum",
+                  "count"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Last * (max) (sum)": "Online",
+              "Last * (max) (count)": "Total"
+            },
+            "excludeByName": {},
+            "indexByName": {}
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Offline",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Total"
+                }
+              },
+              "operator": "-",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Online"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Disponibilidade",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Online"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Total"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "reduceFields",
+            "reducers": [
+              "sum"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "^(Online|Total)$"
+            }
+          }
+        },
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Total",
+                "destinationType": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 5,
+        "y": 0,
+        "w": 3,
+        "h": 4
+      },
+      "id": 2
+    },
+    {
+      "type": "stat",
+      "title": "HOSTS OFFLINE",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 20,
+          "withTransforms": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "noValue": "—",
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "text": "—",
+                  "color": "#7B8794",
+                  "index": 99
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#22E58A",
+                "value": null
+              },
+              {
+                "color": "#FF4D5E",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Offline"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "de ${__data.fields.Total} hosts"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": true,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": false,
+        "showPercentChange": false,
+        "text": {
+          "valueSize": 60,
+          "titleSize": 14
+        }
+      },
+      "transparent": false,
+      "description": "Hosts das filiais sem nenhuma verificação de disponibilidade OK.",
+      "transformations": [
+        {
+          "id": "filterByRefId",
+          "options": {
+            "include": "A|B|C|D"
+          }
+        },
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "seriesToRows",
+            "reducers": [
+              "lastNotNull"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "extractFields",
+          "options": {
+            "source": "Field",
+            "format": "json",
+            "replace": false,
+            "keepTime": false
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "dim": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "link": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "host": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "Last *": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "max"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "dim": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "link": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "Last * (max)": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "sum",
+                  "count"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Last * (max) (sum)": "Online",
+              "Last * (max) (count)": "Total"
+            },
+            "excludeByName": {},
+            "indexByName": {}
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Offline",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Total"
+                }
+              },
+              "operator": "-",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Online"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Disponibilidade",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Online"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Total"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "reduceFields",
+            "reducers": [
+              "sum"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "^(Offline|Total)$"
+            }
+          }
+        },
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Total",
+                "destinationType": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 3,
+        "h": 4
+      },
+      "id": 3
+    },
+    {
+      "type": "stat",
+      "title": "LINKS OFFLINE",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 20,
+          "withTransforms": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "noValue": "—",
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "text": "—",
+                  "color": "#7B8794",
+                  "index": 99
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#22E58A",
+                "value": null
+              },
+              {
+                "color": "#FF4D5E",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Offline"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "de ${__data.fields.Total} links WAN"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": true,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": false,
+        "showPercentChange": false,
+        "text": {
+          "valueSize": 60,
+          "titleSize": 14
+        }
+      },
+      "transparent": false,
+      "description": "Links de internet dos firewalls com status operacional diferente de UP.",
+      "transformations": [
+        {
+          "id": "filterByRefId",
+          "options": {
+            "include": "W"
+          }
+        },
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "seriesToRows",
+            "reducers": [
+              "lastNotNull"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "inv",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "fixed": "1"
+              },
+              "operator": "/",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Last *"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "unary",
+            "alias": "Online",
+            "replaceFields": false,
+            "unary": {
+              "operator": "floor",
+              "fieldName": "inv"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Total",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Last *"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Last *"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "reduceFields",
+            "reducers": [
+              "sum"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Offline",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Total"
+                }
+              },
+              "operator": "-",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Online"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "^(Offline|Total)$"
+            }
+          }
+        },
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Total",
+                "destinationType": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 11,
+        "y": 0,
+        "w": 3,
+        "h": 4
+      },
+      "id": 4
+    },
+    {
+      "type": "stat",
+      "title": "TÚNEIS OFFLINE",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 20,
+          "withTransforms": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "noValue": "—",
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "text": "—",
+                  "color": "#7B8794",
+                  "index": 99
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#22E58A",
+                "value": null
+              },
+              {
+                "color": "#FF4D5E",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Offline"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "de ${__data.fields.Total} túneis VPN"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": true,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": false,
+        "showPercentChange": false,
+        "text": {
+          "valueSize": 60,
+          "titleSize": 14
+        }
+      },
+      "transparent": false,
+      "description": "Túneis IPsec entre filiais (SD-WAN) fora do ar. No mapa, arco vermelho = par de filiais sem túnel; âmbar = redundância reduzida.",
+      "transformations": [
+        {
+          "id": "filterByRefId",
+          "options": {
+            "include": "V"
+          }
+        },
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "seriesToRows",
+            "reducers": [
+              "lastNotNull"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Online",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Last *"
+                }
+              },
+              "operator": "-",
+              "right": {
+                "fixed": "1"
+              }
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Total",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Last *"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Last *"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "reduceFields",
+            "reducers": [
+              "sum"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "Offline",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Total"
+                }
+              },
+              "operator": "-",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Online"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "^(Offline|Total)$"
+            }
+          }
+        },
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Total",
+                "destinationType": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 14,
+        "y": 0,
+        "w": 3,
+        "h": 4
+      },
+      "id": 5
+    },
+    {
+      "type": "stat",
+      "title": "PROBLEMAS ATIVOS POR SEVERIDADE",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "4",
+          "countTriggersBy": "",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "schema": 13,
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "proxy": {
+            "filter": ""
+          },
+          "trigger": {
+            "filter": ""
+          },
+          "tags": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "options": {
+            "minSeverity": 2,
+            "acknowledged": 2,
+            "count": false,
+            "useTimeRange": false,
+            "showDisabledItems": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#7B8794",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "DESASTRE"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#3A4250",
+                      "value": null
+                    },
+                    {
+                      "color": "#FF1F5A",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ALTA"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#3A4250",
+                      "value": null
+                    },
+                    {
+                      "color": "#FF5A3C",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "MÉDIA"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#3A4250",
+                      "value": null
+                    },
+                    {
+                      "color": "#FF9F1C",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ATENÇÃO"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#3A4250",
+                      "value": null
+                    },
+                    {
+                      "color": "#FFD23F",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "text": {
+          "titleSize": 13,
+          "valueSize": 46
+        }
+      },
+      "transparent": false,
+      "description": "Triggers em problema agora nos hosts das filiais, por severidade.",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "reduceFields",
+            "reducers": [
+              "sum"
+            ],
+            "includeTimeField": false
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Disaster": "DESASTRE",
+              "High": "ALTA",
+              "Average": "MÉDIA",
+              "Warning": "ATENÇÃO"
+            },
+            "excludeByName": {
+              "Host group": true,
+              "Not classified": true,
+              "Information": true
+            },
+            "indexByName": {
+              "Disaster": 0,
+              "High": 1,
+              "Average": 2,
+              "Warning": 3
+            }
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 17,
+        "y": 0,
+        "w": 7,
+        "h": 4
+      },
+      "id": 6
+    },
+    {
+      "type": "volkovlabs-echarts-panel",
+      "title": "",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^Filiais\\/(?=$site$)Matriz$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^(ICMP ping|SNMP agent availability|Zabbix agent availability)$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "groupBy",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ]
+              },
+              "params": [
+                "1h",
+                "last"
+              ],
+              "text": "groupBy(1h, last)"
+            },
+            {
+              "def": {
+                "name": "removeAboveValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                1
+              ],
+              "text": "removeAboveValue(1)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"dim\": \"Matriz - Sede Principal\", \"link\": \"\", \"host\": \"$__zbx_host_name\"}"
+              ],
+              "text": "setAlias({\"dim\": \"Matriz - Sede Principal\", \"link\": \"\", \"host\": \"$__zbx_host_name\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "B",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^Filiais\\/(?=$site$)PR$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^(ICMP ping|SNMP agent availability|Zabbix agent availability)$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "groupBy",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ]
+              },
+              "params": [
+                "1h",
+                "last"
+              ],
+              "text": "groupBy(1h, last)"
+            },
+            {
+              "def": {
+                "name": "removeAboveValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                1
+              ],
+              "text": "removeAboveValue(1)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"dim\": \"Paraná\", \"link\": \"\", \"host\": \"$__zbx_host_name\"}"
+              ],
+              "text": "setAlias({\"dim\": \"Paraná\", \"link\": \"\", \"host\": \"$__zbx_host_name\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "C",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^Filiais\\/(?=$site$)BA$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^(ICMP ping|SNMP agent availability|Zabbix agent availability)$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "groupBy",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ]
+              },
+              "params": [
+                "1h",
+                "last"
+              ],
+              "text": "groupBy(1h, last)"
+            },
+            {
+              "def": {
+                "name": "removeAboveValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                1
+              ],
+              "text": "removeAboveValue(1)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"dim\": \"Bahia\", \"link\": \"\", \"host\": \"$__zbx_host_name\"}"
+              ],
+              "text": "setAlias({\"dim\": \"Bahia\", \"link\": \"\", \"host\": \"$__zbx_host_name\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "D",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^Filiais\\/(?=$site$)RJ$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^(ICMP ping|SNMP agent availability|Zabbix agent availability)$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "groupBy",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ]
+              },
+              "params": [
+                "1h",
+                "last"
+              ],
+              "text": "groupBy(1h, last)"
+            },
+            {
+              "def": {
+                "name": "removeAboveValue",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "number",
+                    "type": "float"
+                  }
+                ],
+                "defaultParams": [
+                  0
+                ]
+              },
+              "params": [
+                1
+              ],
+              "text": "removeAboveValue(1)"
+            },
+            {
+              "def": {
+                "name": "setAlias",
+                "category": "Alias",
+                "params": [
+                  {
+                    "name": "alias",
+                    "type": "string"
+                  }
+                ],
+                "defaultParams": []
+              },
+              "params": [
+                "{\"dim\": \"Rio de Janeiro\", \"link\": \"\", \"host\": \"$__zbx_host_name\"}"
+              ],
+              "text": "setAlias({\"dim\": \"Rio de Janeiro\", \"link\": \"\", \"host\": \"$__zbx_host_name\"})"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "W",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/interface\\s+(?!fortilink|loopback)(wan\\d*|uplink\\d*|internet\\d*|a\\([^)]*(wan|internet|net\\s*fiber|mbps|ligga|its|easy|america|mega)[^)]*\\)).*: operational status/i"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "groupBy",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ]
+              },
+              "params": [
+                "30m",
+                "last"
+              ],
+              "text": "groupBy(30m, last)"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "V",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^VPN (?!VPN-FGFM).*: Tunnel Status$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "groupBy",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ]
+              },
+              "params": [
+                "20m",
+                "last"
+              ],
+              "text": "groupBy(20m, last)"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "U",
+          "queryType": "0",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^UPS: Disponibilidade \\(ICMP ping via agente\\)$/"
+          },
+          "functions": [
+            {
+              "def": {
+                "name": "groupBy",
+                "category": "Transform",
+                "params": [
+                  {
+                    "name": "interval",
+                    "type": "string"
+                  },
+                  {
+                    "name": "function",
+                    "type": "string",
+                    "options": [
+                      "avg",
+                      "min",
+                      "max",
+                      "sum",
+                      "count",
+                      "median",
+                      "first",
+                      "last"
+                    ]
+                  }
+                ],
+                "defaultParams": [
+                  "1m",
+                  "avg"
+                ]
+              },
+              "params": [
+                "15m",
+                "last"
+              ],
+              "text": "groupBy(15m, last)"
+            }
+          ],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": true,
+            "disableDataAlignment": true,
+            "useTrends": "false"
+          }
+        },
+        {
+          "refId": "P",
+          "queryType": "5",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "schema": 13,
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "proxy": {
+            "filter": ""
+          },
+          "trigger": {
+            "filter": ""
+          },
+          "tags": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "showProblems": "problems",
+          "options": {
+            "minSeverity": 2,
+            "severities": [
+              2,
+              3,
+              4,
+              5
+            ],
+            "acknowledged": 2,
+            "sortProblems": "severity",
+            "hostsInMaintenance": false,
+            "hostProxy": false,
+            "limit": 200,
+            "useTimeRange": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "renderer": "canvas",
+        "editorMode": "code",
+        "map": "none",
+        "editor": {
+          "height": 600,
+          "format": "auto"
+        },
+        "getOption": "const C = {\"sites\": [{\"key\": \"Matriz\", \"label\": \"Matriz - Sede Principal\", \"code\": \"SP\", \"var\": \"site_Matriz\", \"ref\": \"A\", \"link\": \"/d/autodiscovery-topology-echarts-v2?var-site=Matriz\"}, {\"key\": \"PR\", \"label\": \"Paraná\", \"code\": \"PR\", \"var\": \"site_PR\", \"ref\": \"B\", \"link\": \"/d/autodiscovery-topology-echarts-v2?var-site=PR\"}, {\"key\": \"BA\", \"label\": \"Bahia\", \"code\": \"BA\", \"var\": \"site_BA\", \"ref\": \"C\", \"link\": \"/d/autodiscovery-topology-echarts-v2?var-site=BA\"}, {\"key\": \"RJ\", \"label\": \"Rio de Janeiro\", \"code\": \"RJ\", \"var\": \"site_RJ\", \"ref\": \"D\", \"link\": \"/d/autodiscovery-topology-echarts-v2?var-site=RJ\"}], \"tiers\": [{\"key\": \"firewalls\", \"title\": \"Firewalls\", \"role\": \"fw\", \"icon\": \"firewall\", \"var\": \"tier_firewalls\", \"link\": \"/d/autodiscovery-firewalls-v2\"}, {\"key\": \"switches\", \"title\": \"Switches\", \"role\": \"sw\", \"icon\": \"switch\", \"var\": \"tier_switches\", \"link\": \"/d/autodiscovery-switches-v2\"}, {\"key\": \"servers\", \"title\": \"Servidores\", \"role\": \"leaf\", \"icon\": \"server\", \"var\": \"tier_servers\", \"link\": \"/d/autodiscovery-servers-v2\"}, {\"key\": \"server-hardware\", \"title\": \"Hardware\", \"role\": \"leaf\", \"icon\": \"chip\", \"var\": \"tier_server_hardware\", \"link\": \"/d/autodiscovery-server-hardware-v2\"}, {\"key\": \"ups\", \"title\": \"Nobreaks\", \"role\": \"leaf\", \"icon\": \"battery\", \"var\": \"tier_ups\", \"link\": \"/d/autodiscovery-ups-v2\"}, {\"key\": \"access-points\", \"title\": \"Access Points\", \"role\": \"leaf\", \"icon\": \"wifi\", \"var\": \"tier_access_points\", \"link\": \"/d/autodiscovery-access-points-v2\"}, {\"key\": \"printers\", \"title\": \"Impressoras\", \"role\": \"leaf\", \"icon\": \"printer\", \"var\": \"tier_printers\", \"link\": \"/d/autodiscovery-printers-v2\"}], \"peers\": {\"BAR\": \"Matriz\", \"RJ\": \"RJ\", \"BAH\": \"BA\", \"VIT\": \"PR\"}, \"wanRef\": \"W\", \"vpnRef\": \"V\", \"problemsRef\": \"P\", \"selfLink\": \"/d/autodiscovery-topology-echarts-v2\", \"icons\": {\"firewall\": \"<rect x=\\\"3\\\" y=\\\"4\\\" width=\\\"18\\\" height=\\\"16\\\" rx=\\\"2\\\"/><path d=\\\"M3 9.3h18M3 14.7h18M9 4v5.3M15 4v5.3M12 9.3v5.4M7 14.7V20M17 14.7V20\\\"/>\", \"switch\": \"<rect x=\\\"2\\\" y=\\\"7\\\" width=\\\"20\\\" height=\\\"10\\\" rx=\\\"2\\\"/><path d=\\\"M6 11v2M9.5 11v2M13 11v2M16.5 11v2\\\"/>\", \"server\": \"<rect x=\\\"3\\\" y=\\\"3.5\\\" width=\\\"18\\\" height=\\\"7.5\\\" rx=\\\"2\\\"/><rect x=\\\"3\\\" y=\\\"13\\\" width=\\\"18\\\" height=\\\"7.5\\\" rx=\\\"2\\\"/><path d=\\\"M7 7.25h.01M7 16.75h.01M11 7.25h6M11 16.75h6\\\"/>\", \"chip\": \"<rect x=\\\"6\\\" y=\\\"6\\\" width=\\\"12\\\" height=\\\"12\\\" rx=\\\"1.5\\\"/><rect x=\\\"9.5\\\" y=\\\"9.5\\\" width=\\\"5\\\" height=\\\"5\\\"/><path d=\\\"M9.5 2.5V6M14.5 2.5V6M9.5 18v3.5M14.5 18v3.5M2.5 9.5H6M2.5 14.5H6M18 9.5h3.5M18 14.5h3.5\\\"/>\", \"battery\": \"<rect x=\\\"2\\\" y=\\\"7\\\" width=\\\"17\\\" height=\\\"10\\\" rx=\\\"2\\\"/><path d=\\\"M22 10.5v3M11.5 9l-2.5 3.2h3.4L10 15.2\\\"/>\", \"wifi\": \"<path d=\\\"M2.5 9.2a14 14 0 0 1 19 0M5.6 12.6a9.5 9.5 0 0 1 12.8 0M8.8 16a4.8 4.8 0 0 1 6.4 0M12 19.6h.01\\\"/>\", \"printer\": \"<path d=\\\"M6 9V3h12v6\\\"/><rect x=\\\"3\\\" y=\\\"9\\\" width=\\\"18\\\" height=\\\"8\\\" rx=\\\"2\\\"/><path d=\\\"M7 14h10v7H7z\\\"/>\", \"host\": \"<circle cx=\\\"12\\\" cy=\\\"12\\\" r=\\\"5\\\"/>\"}, \"sev\": {\"0\": [\"Não classificado\", \"#7B8794\"], \"1\": [\"Informação\", \"#4FA3FF\"], \"2\": [\"Atenção\", \"#FFD23F\"], \"3\": [\"Média\", \"#FF9F1C\"], \"4\": [\"Alta\", \"#FF5A3C\"], \"5\": [\"Desastre\", \"#FF1F5A\"]}, \"c\": {\"ok\": \"#22E58A\", \"warn\": \"#FFB224\", \"crit\": \"#FF4D5E\", \"unk\": \"#7B8794\", \"accent\": \"#22D3EE\", \"text\": \"#E6EDF7\", \"muted\": \"#8B98AD\", \"sub\": \"#C9D1DC\"}};\nconst K = C.c;\nconst series = (context.panel && context.panel.data && context.panel.data.series) || [];\nconst chart = context.panel && context.panel.chart;\nconst W = (chart && chart.getWidth && chart.getWidth()) || 1250;\nconst H = (chart && chart.getHeight && chart.getHeight()) || 850;\nconst rv = (s) => { try { return context.grafana.replaceVariables(s); } catch (e) { return s; } };\n// '${var:json}' of a multi-value variable is a JSON array (a single value is a JSON string)\nconst listVar = (name) => {\n  const raw = rv('${' + name + ':json}');\n  try { const v = JSON.parse(raw); return Array.isArray(v) ? v : (v ? [String(v)] : []); } catch (e) { return []; }\n};\nconst ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;' };\nconst esc = (s) => String(s).replace(/[&<>\"]/g, (ch) => ESC[ch]);\nconst short = (s, n) => (s.length > n ? s.slice(0, n - 1) + '…' : s);\nconst plain = (s) => String(s).replace(/[{}|]/g, '');\nconst alpha = (hex, a) => {\n  const n = parseInt(hex.slice(1), 16);\n  return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';\n};\n// One rule for every v2 dashboard: amber = part of a group is down ('degraded') or a reachable host has a\n// failing check ('partial'); red only when every member is down. The down hosts of a degraded group are\n// still named in red under the node, so the amber ring says \"partial\", the red line says \"which one\".\nconst COL = { up: K.ok, partial: K.warn, degraded: K.warn, down: K.crit, unknown: K.unk };\nconst TXT = { up: 'ONLINE', partial: 'PARCIAL', degraded: 'PARCIAL', down: 'OFFLINE', unknown: 'SEM DADOS' };\nconst RICH_STATE = { up: 'ok', partial: 'warn', degraded: 'warn', down: 'crit', unknown: 'unk' };\nconst BG = '#111217';\n// Edges between tiers are inferred (no link is measured there), so they stay cyan unless the child tier\n// is entirely down (red dashed) or has no data (grey dashed). WAN drops are measured: same rule.\nconst edgeBad = (st) => st === 'down' || st === 'unknown';\n\n// ---- data ------------------------------------------------------------------------------------------\nconst valuesOf = (field) => {\n  const raw = field && field.values ? field.values : [];\n  return typeof raw.toArray === 'function' ? raw.toArray() : raw;\n};\nconst lastValue = (field) => {\n  const vals = valuesOf(field);\n  for (let i = vals.length - 1; i >= 0; i--) {\n    if (vals[i] !== null && vals[i] !== undefined && !Number.isNaN(vals[i])) return Number(vals[i]);\n  }\n  return null;\n};\n// checks per host: ping / snmp / agent, each true (up), false (down) or null (unknown)\nconst hostChecks = {};\nconst wan = {};\nconst vpn = {};\n// a known value beats null, down beats up (same as topology.py)\nconst mergeOk = (prev, ok) => (prev === undefined || prev === null || ok === false ? ok : prev);\n// Fields are classified by their item labels, not by refId: the plugin may hand over one merged \"wide\"\n// frame (see the Python side), where every query's field sits in a single frame.\nconst AVAIL_KEY = /^(icmpping|zabbix\\[host,\\w+,available\\])$/;\nconst VPN_ITEM = /^VPN .*: Tunnel Status$/;\n// The nobreak has no ping/SNMP availability item: its uptime item (polled every minute) reporting\n// recently = reachable; its \"Sem dados SNMP\" trigger (problems query P) = down. Same signal as Canvas.\nconst UPS_ITEM = /^UPS: Disponibilidade/;\nconst UPS_FRESH_MS = 45 * 60000;              // 15m buckets + polling delay\nconst fields = [].concat(...series.map((fr) => {\n  const time = (fr.fields || []).find((x) => x.type === 'time');\n  return (fr.fields || []).filter((x) => x.type === 'number').map((x) => ({ f: x, refId: fr.refId, time: time }));\n}));\n// time of the last non-null value of a field (its frame's time field; also right in a merged wide frame)\n// A time field that does not line up with the values (a merged frame) cannot date them: a value in the\n// window then counts as reporting (the \"Sem dados SNMP\" trigger still turns the nobreak red).\nconst lastTime = (field, timeField) => {\n  const vals = valuesOf(field), times = valuesOf(timeField);\n  for (let i = vals.length - 1; i >= 0; i--) {\n    if (vals[i] !== null && vals[i] !== undefined && !Number.isNaN(vals[i])) {\n      return times.length === vals.length ? (Number(times[i]) || null) : Date.now();\n    }\n  }\n  return null;\n};\nfor (const it of fields) {\n  const f = it.f;\n  if (!f.labels || !f.labels.host) continue;\n  const host = f.labels.host;\n  const key = f.labels.item_key || '';\n  const item = f.labels.item || key;\n  const last = lastValue(f);\n  if (key === 'ups.snmp.uptime' || UPS_ITEM.test(item)) {\n    const t = it.time ? lastTime(f, it.time) : null;\n    const c = hostChecks[host] = hostChecks[host] || {};\n    c.ups = mergeOk(c.ups, t !== null && Date.now() - t < UPS_FRESH_MS ? true : null);\n  } else if (AVAIL_KEY.test(key)) {\n    // icmpping 1 up / 0 down; zabbix[host,*,available] 1 up / 0 down / 2 unknown (removed upstream)\n    const ok = last === null ? null : (last === 1 ? true : (last === 0 ? false : null));\n    const kind = key === 'icmpping' ? 'ping' : (key.indexOf(',agent,') >= 0 ? 'agent' : 'snmp');\n    const c = hostChecks[host] = hostChecks[host] || {};\n    c[kind] = mergeOk(c[kind], ok);\n  } else if (VPN_ITEM.test(item)) {\n    // FortiGate tunnel status 2 = up, 1 = down\n    const name = item.replace(/^VPN\\s+/, '').replace(/: Tunnel Status$/, '');\n    const peer = C.peers[name.split('-')[0]] || null;\n    const state = last === null ? 'unknown' : (last === 2 ? 'up' : 'down');\n    (vpn[host] = vpn[host] || []).push({ name: name, peer: peer, state: state });\n  } else if (it.refId === C.wanRef || /operational status/i.test(item)) {\n    // ifOperStatus 1 = up; the link name is the text in parentheses (\"wan1(Link Primário 50Mbps)\")\n    const m = /\\(([^)]*)\\)/.exec(item);\n    const raw = (m ? m[1] : item.replace(/^Interface\\s+/i, '').replace(/:.*$/, '')).replace(/Mbps/i, 'M');\n    // an alias that is just the port (\"a(wan2)\" on FW-PR) reads as \"WAN 2\", as on the Canvas prototype\n    const name = raw.replace(/^wan\\s*(\\d*)$/i, (x, n) => 'WAN' + (n ? ' ' + n : ''));\n    (wan[host] = wan[host] || []).push({ name: name, state: last === null ? 'unknown' : (last === 1 ? 'up' : 'down') });\n  }\n}\n// active problems (frontend query P: one \"other\" field holding the plugin's problem objects) per host\nconst probs = {};\nseries.forEach((fr) => (fr.fields || []).forEach((f) => {\n  const isProblems = f.name === 'Problems' || (f.config && f.config.custom && f.config.custom.type === 'problems');\n  if (!isProblems) return;\n  valuesOf(f).forEach((p) => {\n    if (!p || p.value === '0') return;\n    const sev = Number(p.severity !== undefined ? p.severity : p.priority) || 0;\n    const hosts = (p.hosts && p.hosts.length ? p.hosts.map((h) => h.name || h.host) : [p.host]).filter(Boolean);\n    hosts.forEach((h) => (probs[h] = probs[h] || []).push({ sev: sev, name: p.description || p.name || '',\n                                                           ts: Number(p.timestamp) || 0 }));\n  });\n}));\nObject.keys(probs).forEach((h) => {\n  const c = hostChecks[h];\n  if (c && c.ups !== undefined && probs[h].some((p) => /Sem dados SNMP/i.test(p.name))) c.ups = false;\n});\nconst probsOf = (members) => [].concat(...members.map((m) => (probs[m.name] || [])\n  .map((p) => Object.assign({ host: m.name }, p)))).sort((a, b) => b.sev - a.sev || b.ts - a.ts);\nconst sevColor = (p) => (C.sev[String(p)] || C.sev['0'])[1];\nconst sevName = (p) => (C.sev[String(p)] || C.sev['0'])[0];\n\n// ?var-simular=FW-RJ,SD-WAN,BAR-INT-MEGA: shows those hosts / WAN links / tunnels as down on this map only\n// (rehearse what a failure looks like on the TV; the KPI tiles keep the real data)\nconst simRaw = rv('$simular');\nconst sim = simRaw && simRaw !== '$simular' ? simRaw.split(',').map((x) => x.trim()).filter(Boolean) : [];\nsim.forEach((name) => {\n  if (hostChecks[name]) hostChecks[name] = { ping: false };\n  Object.keys(wan).forEach((h) => wan[h].forEach((l) => { if (l.name === name) l.state = 'down'; }));\n  Object.keys(vpn).forEach((h) => vpn[h].forEach((t) => { if (t.name === name) t.state = 'down'; }));\n});\n// host state: reachability (ping, else SNMP) decides up/down; a down agent on a reachable host is partial\nconst CHECK_NAMES = { ping: 'ping', snmp: 'SNMP', agent: 'agente', ups: 'SNMP (uptime)' };\nconst isKnown = (v) => v !== undefined && v !== null;\nconst hostState = (h) => {\n  const c = hostChecks[h] || {};\n  const hasPing = isKnown(c.ping);\n  const reach = hasPing ? c.ping : (isKnown(c.snmp) ? c.snmp : (isKnown(c.ups) ? c.ups : null));\n  const agentDown = c.agent === false || (hasPing && c.snmp === false);\n  let state = 'unknown';\n  if (reach === false) state = 'down';\n  else if (reach === true) state = agentDown ? 'partial' : 'up';\n  else if (c.agent === true) state = 'up';\n  else if (c.agent === false) state = 'down';\n  const checks = Object.keys(CHECK_NAMES).filter((k) => c[k] !== undefined)\n    .map((k) => ({ name: CHECK_NAMES[k], state: c[k] === null ? 'unknown' : (c[k] ? 'up' : 'down') }));\n  return { name: h, state: state, checks: checks };\n};\n// all known up = up, all known down = down, some down = degraded (alarm), else partial; nothing known = unknown\nconst groupState = (members) => {\n  const known = members.filter((m) => m.state !== 'unknown');\n  const up = known.filter((m) => m.state === 'up').length;\n  const down = known.filter((m) => m.state === 'down').length;\n  const state = !known.length ? 'unknown' : (up === known.length ? 'up' : (down === known.length ? 'down'\n    : (down ? 'degraded' : 'partial')));\n  return { state: state, up: up, down: down, known: known.length, total: members.length };\n};\n\n// ---- membership (hidden variables) --------------------------------------------------------------------\nconst tierOf = {};\nC.tiers.forEach((t) => listVar(t.var).forEach((h) => { if (!tierOf[h]) tierOf[h] = t.key; }));\nconst site = rv('$site');\nconst allSites = !site || site === '.*' || site === '$site' || site === '$__all';\nconst sites = C.sites.filter((s) => allSites || s.key === site).map((s) => {\n  const hosts = listVar(s.var);\n  const tiers = C.tiers.map((t) => {\n    // The plugin's host query also lists disabled hosts (no items, no frames): keep only hosts with\n    // availability data, unless no host of the tier has any (e.g. a UPS without a ping item: grey node).\n    const inTier = hosts.filter((h) => tierOf[h] === t.key);\n    const withData = inTier.filter((h) => hostChecks[h]);\n    const members = (withData.length ? withData : inTier).map(hostState);\n    return Object.assign({}, t, { members: members }, groupState(members));\n  }).filter((t) => t.members.length);\n  const links = [].concat(...hosts.map((h) => (wan[h] || []).map((w) => Object.assign({ host: h }, w))));\n  const tunnels = [].concat(...hosts.map((h) => (vpn[h] || []).map((v) => Object.assign({ host: h }, v))));\n  const all = [].concat(...tiers.map((t) => t.members));\n  return Object.assign({}, s, { tiers: tiers, links: links, tunnels: tunnels, hosts: all }, groupState(all));\n}).filter((s) => s.hosts.length).sort((a, b) => b.hosts.length - a.hosts.length);\n\n// ---- layout (pixels of the panel; the cartesian axes map 1:1, so resizing scales everything) ----------\nconst single = sites.length === 1;\n// single site: more room, bigger text (a short chain like Paraná's firewall + printers, bigger still)\nlet FS = single ? (sites[0].tiers.length <= 3 ? 1.55 : 1.3) : 1;   // may shrink below (narrow panel)\nconst PAD = 8, GAP = 10;\nconst RS = single ? FS * 0.93 : 1;\nconst R = { fw: Math.round(48 * RS), sw: Math.round(44 * RS), leaf: Math.round(40 * RS) };\n// Text width estimate, em per char measured on the wall's screenshots: header caps + digits ~0.6, tier\n// titles ~0.58 (\"Impressoras 2/2\" 137px at 17px), host / link names ~0.62, bold caps (down host names,\n// \"BRN001BA9F4C5A5\" at 14px ~9.5px/char) 0.68. Sizes the columns, truncates labels from their real x.\nconst EM = { head: 0.56, title: 0.58, name: 0.62, caps: 0.68 };\nconst tw = (chars, size, em) => chars * size * FS * em;\nconst charsIn = (width, size, em) => Math.max(6, Math.floor(width / (size * FS * em)));\nconst countLen = (g) => (g.known === 0 ? 9 : (String(g.up) + '/' + String(g.known)).length);\n// Only a down core node (firewall, switch) gets the ripple; its label moves out past the ripple.\nconst ripple = (level, st) => st === 'down' && level === 'core';\nconst labelDist = (level, st, r) => (ripple(level, st) ? 12 + r * 0.42 : 12);\nconst CHAIN_X = 38, LEAF_DX = 42;                // chain x and leaf x (beside the bus) from the card's left\nconst roleLevel = (role) => (role === 'leaf' ? 'leaf' : 'core');\nconst labelOffset = (t) => CHAIN_X + (t.role === 'leaf' ? LEAF_DX : 0) + R[t.role] / 2 +\n  labelDist(roleLevel(t.role), groupState(t.members).state, R[t.role]);\n// Width a column needs for its longest label (tier \"Impressoras 2/2\", its single host name, the first\n// down host, the WAN link names), so a small site never cuts the one alarm on the wall.\nconst need = (s) => {\n  let n = 24 + tw(s.code.length + 2 + countLen(s), 22, EM.head);   // header (site code when narrow)\n  s.tiers.forEach((t) => {\n    const one = t.members.length === 1;\n    const title = t.role === 'fw' && one ? t.members[0].name : t.title;\n    let w = tw(title.length + 1 + countLen(groupState(t.members)), 17, EM.title);\n    if (one) w = Math.max(w, tw(t.members[0].name.length, 14, EM.name));\n    const down = t.members.filter((m) => m.state === 'down');\n    if (down.length && !one) w = Math.max(w, tw(Math.min(20, down[0].name.length) + 2, 14, EM.caps));\n    n = Math.max(n, labelOffset(t) + w + 14);\n  });\n  s.links.forEach((l) => { n = Math.max(n, CHAIN_X + 20 + tw(l.name.length + 2, 14, EM.name) + 14); });\n  return n;\n};\n// base share by size, then every column gets at least what it needs (the others shrink in proportion)\nconst weight = (s) => Math.min(1.3, 0.55 + 0.11 * s.tiers.length);\nconst usable = W - 2 * PAD - GAP * Math.max(0, sites.length - 1);\nconst fixed = {};\nsites.forEach((s) => { s.need = single ? usable : need(s); });\n// A narrow panel (a 1440px desktop) cannot give every column what it needs: shrink the map text instead\n// of cutting labels at the card edge (needs are mostly text, so they scale with FS).\nconst needSum = sites.reduce((a, s) => a + s.need, 0);\nif (!single && needSum > usable) {\n  FS = Math.max(0.78, usable / needSum);\n  sites.forEach((s) => { s.need = need(s); });\n}\nfor (let pass = 0; pass < sites.length; pass++) {\n  const free = sites.filter((s) => !fixed[s.key]);\n  const room = usable - sites.reduce((a, s) => a + (fixed[s.key] || 0), 0);\n  const ws = free.reduce((a, s) => a + weight(s), 0) || 1;\n  let changed = false;\n  free.forEach((s) => { if (room * weight(s) / ws < s.need) { fixed[s.key] = s.need; changed = true; } });\n  if (!changed) {\n    free.forEach((s) => { s.w = room * weight(s) / ws; });\n    break;\n  }\n}\nsites.forEach((s) => { if (fixed[s.key]) s.w = fixed[s.key]; });\nconst total = sites.reduce((a, s) => a + (s.w || 0), 0);\nlet cursor = PAD;\nsites.forEach((s) => {\n  s.w = (s.w || 0) * Math.min(1, usable / (total || 1));   // needs larger than the panel: labels truncate\n  s.x0 = cursor; cursor += s.w + GAP;\n  // single site with a short chain (e.g. Paraná: firewall + printers): centre it in the card\n  s.cx = s.x0 + (!single ? CHAIN_X : (s.tiers.length <= 2 ? Math.round(s.w / 2 - 170) : Math.round(s.w * 0.06) + 40));\n  // header: full name when it fits the column, else the site code (\"RJ 16/16\")\n  const head = s.label.toUpperCase();\n  s.head = 22 + tw(head.length + 2 + countLen(s), 22, EM.head) <= s.w ? head : s.code;\n});\n// The SD-WAN arcs need headroom over the backbone; without arcs (one site shown) the bone moves up.\nconst hasArcs = !single && sites.some((s) => s.tunnels.some((t) => t.peer && t.peer !== s.key &&\n  sites.some((x) => x.key === t.peer)));\nconst Y = { head: single ? 34 : 30, bone: hasArcs ? 134 : 84 };\nconst maxLinks = Math.max(0, ...sites.map((s) => s.links.length));\nY.fw = Y.bone + Math.max(106, 50 + maxLinks * 21 * FS + 40);\nY.sw = Y.fw + (single ? 124 : 100);\n// Leaf tiers: one global row per tier key (present in any shown site), so the rows line up across the\n// wall; a site without a tier leaves its slot blank, a site without a switch runs its bus through it.\nconst leafKeys = C.tiers.filter((t) => t.role === 'leaf' && sites.some((s) => s.tiers.some((x) => x.key === t.key)))\n  .map((t) => t.key);\nconst hasSw = sites.some((s) => s.tiers.some((t) => t.role === 'sw'));\nconst LEAF_TOP = (single && !hasSw ? Y.fw : Y.sw) + (single ? 124 : 90);\n// single site: two leaf columns (room for host chips) whenever there is more than one leaf tier\nconst leafCols = single && leafKeys.length > 1 ? 2 : 1;\nconst perCol = Math.ceil(leafKeys.length / leafCols);\nconst LEAF_STEP = Math.min(single ? 210 : 104, (H - (single ? 90 : 58) - LEAF_TOP) / Math.max(1, perCol - 1));\n\nconst icon = (name, color) => 'image://data:image/svg+xml;charset=utf-8,' + encodeURIComponent(\n  '<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"' + color +\n  '\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\">' + (C.icons[name] || C.icons.host) + '</svg>');\n\n// ---- rich text (TV: nothing important below 14px) --------------------------------------------------\nconst fz = (n) => Math.round(n * FS * 10) / 10;\nconst rich = {\n  t: { color: K.text, fontSize: fz(17), fontWeight: 700, lineHeight: fz(23) },\n  s: { color: K.sub, fontSize: fz(14), lineHeight: fz(19) },\n  w: { color: K.sub, fontSize: fz(14), lineHeight: fz(20) },\n  h: { color: K.text, fontSize: fz(22), fontWeight: 800, letterSpacing: 0.5 },\n  arc: { color: K.text, fontSize: 14, fontWeight: 700 },\n  sm: { color: K.muted, fontSize: fz(12), fontWeight: 700, letterSpacing: 1 },\n  g: { width: 4, height: 12 },\n  gc: { width: 6, height: 10 },\n};\nObject.keys(RICH_STATE).forEach((st) => {\n  const r = RICH_STATE[st];\n  rich[r] = { color: COL[st], fontSize: fz(17), fontWeight: 800, lineHeight: fz(23) };\n  rich['h' + r] = { color: COL[st], fontSize: fz(22), fontWeight: 800 };\n  rich['d' + r] = { color: COL[st], fontSize: fz(14), fontWeight: 800, lineHeight: fz(20) };\n  rich['p' + r] = { backgroundColor: COL[st], width: 12, height: 12, borderRadius: 2 };\n  rich['c' + r] = { color: COL[st], fontSize: fz(13.5), fontWeight: 700, backgroundColor: alpha(COL[st], 0.12),\n                    borderColor: alpha(COL[st], 0.5), borderWidth: 1, borderRadius: 4, padding: [3, 7],\n                    lineHeight: fz(28) };\n});\n// count of a group: \"6/7\" in the state colour; a tier without any availability item says so in words\nconst count = (g, small) => (g.known === 0 ? '{' + (small ? 'dunk' : 'unk') + '|sem dados}'\n  : '{' + (small ? 'd' : '') + RICH_STATE[g.state] + '|' + g.up + '/' + g.known + '}');\n// one square per host, wrapped to the label width\nconst pips = (members, width) => {\n  const per = Math.max(4, Math.floor(width / 16));\n  return members.map((m, i) => (i && i % per === 0 ? '\\n' : (i ? '{g| }' : '')) +\n    '{p' + RICH_STATE[m.state] + '| }').join('');\n};\n// single-site view: host names as chips, wrapped to the label width\nconst chips = (members, width) => {\n  let line = 0, out = '';\n  members.forEach((m) => {\n    const label = short(m.name, 26);\n    const w = label.length * 8.4 * FS + 22;\n    if (line && line + w > width) { out += '\\n'; line = 0; } else if (line) { out += '{gc| }'; }\n    out += '{c' + RICH_STATE[m.state] + '|' + plain(label) + '}';\n    line += w + 6;\n  });\n  return out;\n};\n// red line naming the down members (all-sites view: the squares alone do not say which host it is; a\n// single-member tier already shows its host name)\nconst downLine = (members, width) => {\n  const down = members.filter((m) => m.state === 'down').map((m) => m.name);\n  if (!down.length || single || members.length < 2) return '';\n  const names = down.slice(0, 2).join(', ') + (down.length > 2 ? ' +' + (down.length - 2) : '');\n  return '\\n{dcrit|▼ ' + plain(short(names, charsIn(width, 14, EM.caps) - 2)) + '}';\n};\n\n// ---- tooltips -------------------------------------------------------------------------------------------\nconst dot = (color) => '<span style=\"color:' + color + ';\">●</span>';\nconst tipBox = (title, st, body) => '<div style=\"min-width:240px;max-width:460px;\">' +\n  '<div style=\"font-weight:700;font-size:15px;color:' + COL[st] + ';margin-bottom:4px;\">' + esc(title) + '</div>' +\n  body + '</div>';\nconst probRows = (list, max) => list.slice(0, max).map((p) => '<div style=\"white-space:nowrap;overflow:hidden;' +\n  'text-overflow:ellipsis;max-width:440px;\">' + dot(sevColor(p.sev)) + ' <b style=\"color:' + sevColor(p.sev) + ';\">' +\n  sevName(p.sev) + '</b> ' + esc(p.host) + ' · ' + esc(p.name) + '</div>').join('') +\n  (list.length > max ? '<div style=\"color:' + K.muted + ';\">+' + (list.length - max) + ' problemas</div>' : '');\nconst memberRows = (members) => members.map((m) => {\n  const checks = (m.checks || []).map((c) => '<span style=\"color:' + COL[c.state] + ';\">' + c.name + '</span>')\n    .join(' · ');\n  const n = (probs[m.name] || []).length;\n  return '<div style=\"white-space:nowrap;\">' + dot(COL[m.state]) + ' ' + esc(m.name) +\n    (checks ? ' <span style=\"color:' + K.muted + ';font-size:11px;\">(' + checks + ')</span>' : '') +\n    (n ? ' <span style=\"color:' + sevColor(Math.max(...probs[m.name].map((p) => p.sev))) + ';font-size:11px;\">· ' +\n      n + (n > 1 ? ' problemas' : ' problema') + '</span>' : '') + '</div>';\n}).join('') || '<div style=\"color:' + K.muted + ';\">Sem item de disponibilidade no Zabbix</div>';\nconst stateLine = (g) => (g.known === 0 ? '<b style=\"color:' + K.unk + ';\">SEM DADOS</b> · sem item de ' +\n  'disponibilidade no Zabbix' : '<b style=\"color:' + COL[g.state] + ';\">' + TXT[g.state] + '</b> · ' + g.up + '/' +\n  g.known + ' online' + (g.down ? ' · <b style=\"color:' + K.crit + ';\">' + g.down + ' offline</b>' : ''));\nconst nodeTip = (title, s, g, members, hint) => {\n  const pl = probsOf(members);\n  return tipBox(title, g.state,\n    '<div style=\"color:' + K.muted + ';font-size:12px;margin-bottom:6px;\">' + esc(s.label) + ' · ' + stateLine(g) +\n    (pl.length ? ' · ' + pl.length + (pl.length > 1 ? ' problemas' : ' problema') : '') + '</div>' +\n    '<div style=\"font-size:12px;line-height:1.55;border-top:1px solid #2a3140;padding-top:5px;\">' +\n    memberRows(members) + '</div>' +\n    (pl.length ? '<div style=\"font-size:12px;line-height:1.55;border-top:1px solid #2a3140;margin-top:6px;' +\n      'padding-top:5px;\">' + probRows(pl, 6) + '</div>' : '') +\n    (hint ? '<div style=\"color:' + K.muted + ';font-size:11px;margin-top:6px;\">' + hint + '</div>' : ''));\n};\n\n// Single site: leaf rows packed by their label height (host chips wrap to several lines) with the spare\n// height spread between them, starting under the switch label (its chips wrap too). All sites: fixed\n// global rows (LEAF_TOP + slot * LEAF_STEP), so the wall reads in rows.\nconst leafY = {};\nlet BUS_Y = LEAF_TOP - 46;                       // where a second leaf column's bus branches off\nif (single && sites.length) {\n  const s = sites[0];\n  const right = s.x0 + s.w - 10;\n  const lines = (t, width) => (t.members.length === 1 ? 1 : chips(t.members, width).split('\\n').length);\n  const labelH = (t, width) => fz(23) + lines(t, width) * fz(28);\n  const sw = s.tiers.find((t) => t.role === 'sw');\n  const chainH = sw ? labelH(sw, right - (s.cx + R.sw / 2 + 12)) : fz(46);\n  const top = (sw ? Y.sw : Y.fw) + Math.max(sw ? R.sw : R.fw, chainH) / 2 + 40;\n  BUS_Y = top - 20;\n  const colW = (s.x0 + s.w - s.cx) / leafCols;\n  for (let col = 0; col < leafCols; col++) {\n    const keys = leafKeys.slice(col * perCol, (col + 1) * perCol);\n    const lx = s.cx + col * colW + LEAF_DX;\n    const width = (col + 1 < leafCols ? s.cx + (col + 1) * colW - 16 : right) - (lx + R.leaf / 2 + 12);\n    const hs = keys.map((k) => Math.max(R.leaf + 16, labelH(s.tiers.find((t) => t.key === k), width)));\n    const spare = Math.max(0, H - 30 - top - hs.reduce((a, b) => a + b, 0));\n    const gap = Math.min(keys.length <= 1 ? 240 : 110, spare / Math.max(1, keys.length));   // lone row: further down\n    let y = top + gap / 2;\n    keys.forEach((k, i) => { leafY[k] = y + hs[i] / 2; y += hs[i] + gap; });\n  }\n}\n\n// ---- build ----------------------------------------------------------------------------------------------\nconst discs = [], alarms = [], icons = [], badges = [], texts = [], edgesOk = [], edgesBad = [];\nconst arcsOk = [], arcsBad = [], areas = [];\n// A status ring with its icon. Alarm weight follows what the device is (NOC wall: motion = site impact):\n// a down firewall / switch gets the red ripple and glow; a down leaf tier (printers, APs, UPS...) a solid\n// red ring without motion; a degraded tier an amber ring (its down hosts named in red below the label).\nconst PLATE = 'rgba(17,18,23,0.88)';\nconst node = (x, y, r, st, iconName, label, tip, link, members, level) => {\n  const loud = ripple(level, st);\n  const down = st === 'down';\n  const fill = alpha(COL[st], down ? 0.3 : (st === 'up' ? 0.14 : 0.2));\n  const d = {\n    value: [x, y], symbolSize: r, tip: tip, link: link,\n    itemStyle: { color: fill, borderColor: COL[st], borderWidth: down ? 3.5 : 2.5,\n                 shadowBlur: loud ? 26 : (down ? 16 : 12),\n                 shadowColor: alpha(COL[st], loud ? 0.95 : (down ? 0.8 : 0.55)) },\n    // ripple: it grows past the ring, so the label moves out (labelDist); down labels get a dark plate\n    label: { show: !!label, position: 'right', distance: labelDist(level, st, r), formatter: label, rich: rich,\n             backgroundColor: down ? PLATE : 'transparent', padding: down ? [2, 5] : 0, borderRadius: 4 },\n  };\n  (loud ? alarms : discs).push(d);\n  icons.push({ value: [x, y], symbol: icon(iconName, COL[st]), symbolSize: Math.round(r * 0.52) });\n  // problem badge (top-right of the ring): worst severity colour, number of active problems\n  const pl = members ? probsOf(members) : [];\n  if (pl.length) {\n    badges.push({ value: [x + r * 0.38, y - r * 0.38], symbolSize: 22, tip: tip, link: link,\n      itemStyle: { color: sevColor(pl[0].sev), borderColor: BG, borderWidth: 2 },\n      label: { show: true, position: 'inside', formatter: String(pl.length), color: '#0b0e13', fontSize: 12,\n               fontWeight: 800 } });\n  }\n};\nconst edge = (coords, st, tip, width) => {\n  const bad = edgeBad(st);\n  (bad ? edgesBad : edgesOk).push({\n    coords: coords, tip: tip,\n    lineStyle: { color: bad ? COL[st] : alpha(K.accent, 0.5), width: width || 2,\n                 type: bad ? 'dashed' : 'solid', shadowBlur: st === 'down' ? 10 : 0, shadowColor: COL[st] },\n  });\n};\n\nsites.forEach((s) => {\n  const card = { color: 'rgba(148,163,184,0.035)', borderColor: alpha(K.accent, 0.14), borderWidth: 1 };\n  areas.push([{ coord: [s.x0, 4], itemStyle: card }, { coord: [s.x0 + s.w, H - 4] }]);\n  const right = s.x0 + s.w - 10;               // labels end here\n  // site header\n  const sp = probsOf(s.hosts);\n  texts.push({ value: [s.x0 + 14, Y.head], link: single ? C.selfLink : s.link,\n    tip: tipBox(s.label, s.state, '<div style=\"font-size:12px;color:' + K.muted + ';\">' + stateLine(s) +\n      (s.total > s.known ? ' · ' + (s.total - s.known) + ' sem dados' : '') +\n      (sp.length ? ' · ' + sp.length + ' problemas' : '') + '<br>' +\n      (single ? 'Clique para ver todas as filiais' : 'Clique para abrir só esta filial') + '</div>'),\n    label: { show: true, position: 'right', distance: 0, rich: rich,\n             formatter: '{h|' + plain(s.head) + '}  {h' + RICH_STATE[s.state] + '|' + s.up + '/' +\n               (s.known || s.total) + '}' } });\n\n  const fw = s.tiers.find((t) => t.role === 'fw');\n  const sw = s.tiers.find((t) => t.role === 'sw');\n\n  // WAN links: drops from the backbone into the firewall, one per link, named beside them\n  const lk = s.links;\n  const target = fw ? Y.fw : (sw ? Y.sw : Y.fw);\n  lk.forEach((l, i) => {\n    const dx = (i - (lk.length - 1) / 2) * 9;\n    edge([[s.cx + dx, Y.bone], [s.cx + dx, target - 38], [s.cx, target - R.fw / 2]], l.state,\n      tipBox('Link WAN · ' + l.name, l.state, '<div style=\"font-size:12px;color:' + K.muted + ';\">' + esc(l.host) +\n        ' · <b style=\"color:' + COL[l.state] + ';\">' + TXT[l.state] + '</b></div>'), 2.2);\n    // a measured outage (link down): ripple where the link leaves the backbone\n    if (l.state === 'down') {\n      alarms.push({ value: [s.cx + dx, Y.bone], symbolSize: 12, tip: null,\n                    itemStyle: { color: K.crit, shadowBlur: 14, shadowColor: K.crit } });\n    }\n    texts.push({ value: [s.cx + 20, Y.bone + 24 + i * 21 * FS], tip: null,\n      label: { show: true, position: 'right', distance: 0, rich: rich,\n               formatter: '{d' + RICH_STATE[l.state] + '|●} {' + (l.state === 'up' ? 'w' : 'd' + RICH_STATE[l.state]) +\n                 '|' + plain(short(l.name, charsIn(right - s.cx - 40, 14, l.state === 'up' ? EM.name : EM.caps))) +\n                 '}' } });\n  });\n\n  let parent = null;\n  // label line 1 \"{Tier} N/M\" for every node; line 2 the host name (one member) or squares / chips\n  const second = (t, width) => (t.members.length === 1 ? '{s|' + plain(short(t.members[0].name,\n    charsIn(width, 14, EM.name))) + '}' : (single ? chips(t.members, width) : pips(t.members, width)));\n  if (fw) {\n    const g = groupState(fw.members);\n    const tun = groupState(s.tunnels);\n    const one = fw.members.length === 1;\n    const name = one ? fw.members[0].name : fw.title;\n    const width = right - (s.cx + R.fw / 2 + labelDist('core', g.state, R.fw));\n    // single site: the arcs to the other sites are not drawn, so list the tunnels per peer site\n    const peers = {};\n    s.tunnels.forEach((t) => { if (t.peer && t.peer !== s.key) (peers[t.peer] = peers[t.peer] || []).push(t); });\n    const peerTxt = !single ? '' : Object.keys(peers).map((k) => {\n      const ps = C.sites.find((x) => x.key === k);\n      return '   {s|' + (ps ? ps.code : k) + '} ' + count(groupState(peers[k]), true);\n    }).join('');\n    const vpnTxt = s.tunnels.length ? '{s|VPN }' + count(tun, true) + peerTxt : '{s|' + fw.title + '}';\n    node(s.cx, Y.fw, R.fw, g.state, fw.icon,\n      '{t|' + plain(short(name, 16)) + '}' + (one ? '' : ' ' + count(g)) + '\\n' + vpnTxt +\n        downLine(fw.members, width),\n      nodeTip(name, s, g, fw.members, s.tunnels.length ? 'Túneis VPN: ' + tun.up + '/' + tun.total + ' online' : ''),\n      { url: fw.link, hosts: fw.members }, fw.members, 'core');\n    parent = { y: Y.fw, r: R.fw };\n  }\n  if (sw) {\n    const g = groupState(sw.members);\n    const width = right - (s.cx + R.sw / 2 + labelDist('core', g.state, R.sw));\n    if (parent) edge([[s.cx, parent.y + parent.r / 2], [s.cx, Y.sw - R.sw / 2]], g.state, null, 2.4);\n    node(s.cx, Y.sw, R.sw, g.state, sw.icon,\n      '{t|' + sw.title + '} ' + count(g) + '\\n' + second(sw, width) + downLine(sw.members, width),\n      nodeTip(sw.title, s, g, sw.members), { url: sw.link, hosts: sw.members }, sw.members, 'core');\n    parent = { y: Y.sw, r: R.sw };\n  }\n  if (!parent) parent = { y: Y.bone, r: 0 };\n  // leaf tiers on a bus under the last chain node (fixed global rows; two columns in the single view)\n  const colW = (s.x0 + s.w - s.cx) / leafCols;\n  const order = s.tiers.filter((t) => t.role === 'leaf').map((t) => {\n    const slot = leafKeys.indexOf(t.key);\n    const col = Math.floor(slot / perCol);\n    const busX = s.cx + col * colW;\n    const y = leafY[t.key] !== undefined ? leafY[t.key] : LEAF_TOP + (slot % perCol) * LEAF_STEP;\n    return { t: t, g: groupState(t.members), y: y, busX: busX, lx: busX + LEAF_DX,\n             right: col + 1 < leafCols ? busX + colW - 16 : right };\n  });\n  const busY = BUS_Y;\n  // The bus is shared: it stays healthy down to the last healthy tier; only the stub into a failing tier\n  // (and the bus below the last healthy one) takes the failing colour, so one bad tier does not paint the\n  // whole trunk red.\n  const buses = {};\n  order.forEach((o) => (buses[o.busX] = buses[o.busX] || []).push(o));\n  Object.keys(buses).forEach((k) => {\n    const list = buses[k].sort((a, b) => a.y - b.y);\n    const bx = list[0].busX;\n    const head = bx === s.cx ? [[s.cx, parent.y + parent.r / 2]]\n      : [[s.cx, parent.y + parent.r / 2], [s.cx, busY], [bx, busY]];\n    let lastUp = -1;\n    list.forEach((o, i) => { if (!edgeBad(o.g.state)) lastUp = i; });\n    if (lastUp >= 0) edge(head.concat([[bx, list[lastUp].y]]), 'up', null, 2);\n    list.forEach((o, i) => {\n      const stub = [[bx, o.y], [o.lx - R.leaf / 2, o.y]];\n      edge(i > lastUp ? (i ? [[bx, list[i - 1].y]] : head).concat(stub) : stub, o.g.state, null, 2);\n    });\n  });\n  order.forEach((o) => {\n    const t = o.t, g = o.g;\n    const width = o.right - (o.lx + R.leaf / 2 + labelDist('leaf', g.state, R.leaf));\n    node(o.lx, o.y, R.leaf, g.state, t.icon,\n      '{t|' + t.title + '} ' + count(g) + '\\n' + second(t, width) + downLine(t.members, width),\n      nodeTip(t.title, s, g, t.members, 'Clique para abrir o dashboard ' + esc(t.title) + ' desta filial'),\n      { url: t.link, hosts: t.members }, t.members, 'leaf');\n  });\n});\n\n// SD-WAN overlay: one arc per pair of sites over the backbone, coloured by all tunnels between them.\n// Healthy pairs are quiet hairlines; broken ones are drawn on top, labelled at their apex.\nconst bySite = {};\nsites.forEach((s) => { bySite[s.key] = s; });\nconst pairs = {};\nsites.forEach((s) => s.tunnels.forEach((t) => {\n  if (!t.peer || t.peer === s.key || !bySite[t.peer]) return;\n  const k = [s.key, t.peer].sort().join('|');\n  (pairs[k] = pairs[k] || []).push(Object.assign({ from: s.key }, t));\n}));\nconst pairList = Object.keys(pairs).map((k) => {\n  const ends = k.split('|').map((x) => bySite[x]).sort((a, b) => a.cx - b.cx);\n  return { k: k, ends: ends, list: pairs[k], span: ends[1].cx - ends[0].cx, mid: (ends[0].cx + ends[1].cx) / 2 };\n}).sort((a, b) => a.span - b.span || a.mid - b.mid);\n// one height per pair (by span rank): no two arcs share a curve\npairList.forEach((p, rank) => {\n  const g = groupState(p.list);\n  const h = 18 + rank * 11;\n  const sides = Array.from(new Set(p.list.map((t) => t.from)));\n  // a tunnel configured on one firewall only: name the direction (\"PR → BA\") and say so in the tooltip\n  const oneSided = sides.length === 1 ? bySite[sides[0]] : null;\n  const other = oneSided ? p.ends.find((e) => e.key !== oneSided.key) : null;\n  const pairName = oneSided ? oneSided.code + ' → ' + other.code : p.ends[0].code + ' ↔ ' + p.ends[1].code;\n  const rows = p.list.map((t) => '<div style=\"white-space:nowrap;\">' + dot(COL[t.state]) + ' ' + esc(t.host) + ' · ' +\n    esc(t.name) + '</div>').join('');\n  const bad = g.state !== 'up';\n  const tip = tipBox('SD-WAN · ' + p.ends[0].label + ' ↔ ' + p.ends[1].label, g.state,\n      '<div style=\"font-size:12px;color:' + K.muted + ';margin-bottom:4px;\">' + g.up + '/' + g.total +\n      ' túneis online' + (oneSided ? ' · túnel configurado só no ' + esc(p.list[0].host) : '') + '</div>' +\n      '<div style=\"font-size:12px;line-height:1.5;\">' + rows + '</div>');\n  (bad ? arcsBad : arcsOk).push({ coords: [[p.ends[0].cx, Y.bone], [p.ends[1].cx, Y.bone]], tip: tip,\n    lineStyle: { color: bad ? COL[g.state] : alpha(K.accent, 0.3), width: bad ? 2.5 : 1.2,\n                 type: bad ? [7, 5] : 'solid', curveness: 2 * h / p.span, opacity: 1,\n                 shadowBlur: bad ? 8 : 0, shadowColor: COL[g.state] } });\n  if (bad) {\n    texts.push({ value: [p.mid, Y.bone - h], tip: tip,\n      label: { show: true, position: 'inside', rich: rich, backgroundColor: PLATE,\n               borderColor: COL[g.state], borderWidth: 1, borderRadius: 4, padding: [3, 7],\n               formatter: '{arc|' + pairName + '}  {d' + RICH_STATE[g.state] + '|' + g.up + '/' + g.total + '}' } });\n  }\n});\n\nconst empty = !sites.length;\nconst xAxis = { type: 'value', min: 0, max: W, show: false };\nconst yAxis = { type: 'value', min: 0, max: H, show: false, inverse: true };\nconst lineBase = { type: 'lines', coordinateSystem: 'cartesian2d', polyline: true, z: 2 };\nconst option = {\n  backgroundColor: 'transparent',\n  animation: false,\n  grid: { left: 0, right: 0, top: 0, bottom: 0 },\n  xAxis: xAxis, yAxis: yAxis,\n  tooltip: {\n    trigger: 'item', confine: true, backgroundColor: 'rgba(13,17,23,0.96)', borderColor: '#2a3140', borderWidth: 1,\n    padding: [10, 12], textStyle: { color: K.text, fontSize: 12 },\n    extraCssText: 'box-shadow:0 8px 24px rgba(0,0,0,.5);',\n    formatter: (p) => (p.data && p.data.tip) || '',\n  },\n  // the line legend lives in the banner (dashboard header), not on the map\n  graphic: empty ? [{ type: 'text', left: 'center', top: 'middle',\n    style: { text: 'SEM DADOS DE TOPOLOGIA', fill: K.muted, fontSize: 18, fontWeight: 700 } }] : [\n    { type: 'text', right: 16, top: Y.bone - 24, silent: true,\n      style: { text: 'INTERNET · SD-WAN', fill: alpha(K.accent, 0.85), fontSize: 13, fontWeight: 700,\n               letterSpacing: 2 } },\n  ].concat(sim.length ? [{ type: 'text', left: 16, bottom: 10, silent: true, style: {\n    text: 'SIMULAÇÃO: ' + sim.join(', '), fill: K.warn, fontSize: 14, fontWeight: 800, letterSpacing: 1,\n    backgroundColor: 'rgba(17,18,23,0.9)', padding: [4, 8] } }] : []),\n  series: [\n    { type: 'scatter', name: 'areas', data: [], silent: true, markArea: { silent: true, data: areas } },\n    // backbone: the Internet / SD-WAN bus all sites hang from. Static: on the wall, motion means alarm.\n    Object.assign({}, lineBase, { name: 'bone', silent: true, z: 1,\n      data: empty ? [] : [{ coords: [[PAD + 6, Y.bone], [W - PAD - 6, Y.bone]] }],\n      lineStyle: { color: alpha(K.accent, 0.9), width: 3, shadowBlur: 12, shadowColor: alpha(K.accent, 0.6) } }),\n    { type: 'lines', coordinateSystem: 'cartesian2d', name: 'vpn', z: 2, data: arcsOk },\n    { type: 'lines', coordinateSystem: 'cartesian2d', name: 'vpnBad', z: 3, data: arcsBad },\n    Object.assign({}, lineBase, { name: 'ok', data: edgesOk }),\n    Object.assign({}, lineBase, { name: 'bad', z: 3, data: edgesBad }),\n    { type: 'scatter', name: 'nodes', z: 5, data: discs, symbol: 'circle', cursor: 'pointer' },\n    { type: 'effectScatter', name: 'alarms', z: 5, data: alarms, symbol: 'circle', cursor: 'pointer',\n      rippleEffect: { brushType: 'stroke', scale: 1.7, period: 2.6, color: K.crit } },\n    { type: 'scatter', name: 'icons', z: 6, data: icons, silent: true },\n    { type: 'scatter', name: 'badges', z: 7, data: badges, symbol: 'circle', cursor: 'pointer' },\n    // label-only points: a transparent colour, not opacity 0 (labels inherit the item opacity)\n    { type: 'scatter', name: 'text', z: 8, data: texts, symbolSize: 1, itemStyle: { color: 'transparent' },\n      cursor: 'pointer' },\n  ],\n};\n\n// drill-down: a node opens its category dashboard filtered to that node's hosts, a site header filters\n// the map to that site. The range macro is interpolated here and kiosk mode is carried over.\nconst go = (link) => {\n  let url = typeof link === 'string' ? link : link.url + (link.url.indexOf('?') < 0 ? '?' : '&') +\n    link.hosts.map((m) => 'var-host=' + encodeURIComponent(m.name)).join('&');\n  const add = (q) => { if (q) url += (url.indexOf('?') < 0 ? '?' : '&') + q; };\n  const range = rv('${__url_time_range}');\n  add(range && range.indexOf('__url_time_range') < 0 ? range : '');\n  try { if (/[?&]kiosk(=|&|$)/.test(window.location.search)) add('kiosk'); } catch (e) { /* no window */ }\n  context.grafana.locationService.push(url);\n};\nif (chart && chart.off) {\n  chart.off('click');\n  chart.on('click', (p) => {\n    const link = p && p.data && p.data.link;\n    if (link && context.grafana.locationService) go(link);\n  });\n}\nreturn option;"
+      },
+      "transparent": true,
+      "id": 20,
+      "timeFrom": "7h",
+      "hideTimeOverride": true,
+      "maxDataPoints": 30,
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 16,
+        "h": 23
+      }
+    },
+    {
+      "type": "alexanderzobnin-zabbix-triggers-panel",
+      "title": "PROBLEMAS ATIVOS · MÉDIA OU MAIOR",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "5",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${datasource}"
+          },
+          "schema": 13,
+          "group": {
+            "filter": "/^Filiais\\/$site$/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "proxy": {
+            "filter": ""
+          },
+          "trigger": {
+            "filter": ""
+          },
+          "tags": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "showProblems": "problems",
+          "options": {
+            "minSeverity": 3,
+            "severities": [
+              3,
+              4,
+              5
+            ],
+            "acknowledged": 2,
+            "sortProblems": "severity",
+            "hostsInMaintenance": false,
+            "hostProxy": false,
+            "limit": 200,
+            "useTimeRange": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "schemaVersion": 8,
+        "layout": "list",
+        "fontSize": "110%",
+        "pageSize": 8,
+        "hostField": true,
+        "hostTechNameField": false,
+        "hostIpField": false,
+        "hostProxy": false,
+        "hostGroups": false,
+        "showTags": false,
+        "statusField": false,
+        "statusIcon": false,
+        "severityField": true,
+        "ackField": false,
+        "ageField": false,
+        "opdataField": false,
+        "descriptionField": false,
+        "descriptionAtNewLine": false,
+        "showDatasourceName": false,
+        "sortProblems": "priority",
+        "problemTimeline": false,
+        "highlightBackground": false,
+        "highlightNewEvents": false,
+        "highlightNewerThan": "1h",
+        "customLastChangeFormat": true,
+        "lastChangeFormat": "DD/MM HH:mm",
+        "resizedColumns": [],
+        "allowDangerousHTML": false,
+        "triggerSeverity": [
+          {
+            "priority": 0,
+            "severity": "Não classificado",
+            "color": "#7B8794",
+            "show": true
+          },
+          {
+            "priority": 1,
+            "severity": "Informação",
+            "color": "#4FA3FF",
+            "show": true
+          },
+          {
+            "priority": 2,
+            "severity": "Atenção",
+            "color": "#FFD23F",
+            "show": true
+          },
+          {
+            "priority": 3,
+            "severity": "Média",
+            "color": "#FF9F1C",
+            "show": true
+          },
+          {
+            "priority": 4,
+            "severity": "Alta",
+            "color": "#FF5A3C",
+            "show": true
+          },
+          {
+            "priority": 5,
+            "severity": "Desastre",
+            "color": "#FF1F5A",
+            "show": true
+          }
+        ],
+        "okEventColor": "#22E58A",
+        "ackEventColor": "#22D3EE",
+        "markAckEvents": false,
+        "showSearchFilter": false
+      },
+      "transparent": false,
+      "description": "Problemas de severidade Média ou maior nos hosts das filiais, mais graves primeiro. Os de severidade Atenção entram na contagem do quadro PROBLEMAS ATIVOS e nos selos do mapa.",
+      "gridPos": {
+        "x": 16,
+        "y": 4,
+        "w": 8,
+        "h": 23
+      },
+      "id": 7
+    }
+  ]
+}
