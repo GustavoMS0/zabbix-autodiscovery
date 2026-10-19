@@ -1810,9 +1810,9 @@ def discover_sites_and_devices(api, cfg):
         else:
             raw_sites = [
                 {"groupid": None, "key": "Matriz", "group": "Filiais/Matriz"},
-                {"groupid": None, "key": "RJ", "group": "Filiais/RJ"},
-                {"groupid": None, "key": "BA", "group": "Filiais/BA"},
-                {"groupid": None, "key": "PR", "group": "Filiais/PR"}
+                {"groupid": None, "key": "Filial1", "group": "Filiais/Filial1"},
+                {"groupid": None, "key": "Filial2", "group": "Filiais/Filial2"},
+                {"groupid": None, "key": "Filial3", "group": "Filiais/Filial3"}
             ]
 
     seen_keys = set()
@@ -1825,16 +1825,16 @@ def discover_sites_and_devices(api, cfg):
     for s in unique_sites:
         site_key = s["key"]
         k_lower = site_key.lower()
-        if k_lower in ["barueri", "sp", "matriz"]:
+        if k_lower in ["matriz", "sede", "hub", "sp"]:
             site_label = f"{site_key} · HUB MATRIZ"
-        elif k_lower == "rj":
-            site_label = "RIO DE JANEIRO (RJ)"
-        elif k_lower == "ba":
-            site_label = "BAHIA (BA)"
-        elif k_lower == "pr":
-            site_label = "PARANÁ (PR)"
+        elif k_lower in ["filial1", "rj"]:
+            site_label = f"{site_key} · FILIAL 1 (se houver)"
+        elif k_lower in ["filial2", "ba"]:
+            site_label = f"{site_key} · FILIAL 2 (se houver)"
+        elif k_lower in ["filial3", "pr"]:
+            site_label = f"{site_key} · FILIAL 3 (se houver)"
         else:
-            site_label = f"FILIAL {site_key.upper()}"
+            site_label = f"FILIAL {site_key.upper()} (se houver)"
 
         site_info = {
             "key": site_key,
@@ -1890,7 +1890,7 @@ def discover_sites_and_devices(api, cfg):
         else:
             site_info["firewalls"].append({"host": f"FW-{site_key}", "name": f"FW-{site_key}", "ip": "192.168.x.1"})
             site_info["switches"].append({"host": f"SW-{site_key}", "name": f"Core Switch {site_key}", "ip": "192.168.x.2"})
-            if k_lower in ["barueri", "matriz", "hub"]:
+            if k_lower in ["matriz", "hub", "sede", "sp"]:
                 site_info["ups"].append({"host": f"Nobreak-{site_key}", "name": f"Nobreak-{site_key}", "ip": "192.168.x.3"})
                 site_info["idrac"].extend([{"host": f"iDRAC-{i+1}", "name": f"Blade {i+1:02d}", "ip": f"192.168.x.{220+i}"} for i in range(5)])
                 site_info["servers"].extend([{"host": f"SRV-HV{i+1}", "name": f"Host Hyper-V {i+1}", "ip": f"192.168.x.{10+i}"} for i in range(5)])
@@ -1910,7 +1910,7 @@ def build_topology_layout(sites_data):
     def site_weight(s):
         score = len(s["switches"]) * 2 + len(s["servers"]) * 2 + len(s["idrac"]) + len(s["aps"])
         k_low = s["key"].lower()
-        if any(w in k_low for w in ["matriz", "hub", "sede", "central", "barueri", "sp", "headquarter", "core", "datacenter"]):
+        if any(w in k_low for w in ["matriz", "hub", "sede", "central", "headquarter", "core", "datacenter", "sp"]):
             score += 1000
         return score
 

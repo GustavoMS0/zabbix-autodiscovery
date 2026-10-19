@@ -317,9 +317,9 @@ def build_site_maps_data(api, cfg):
         if not str(lnk["source"]).startswith("inet-") and not str(lnk["target"]).startswith("inet-"):
             multi_links.append(dict(lnk))
 
-    # Internet Links RJ
-    multi_nodes.append({"id": "inet-rj-1", "name": "Operadora A 50M", "label": "Operadora A 50M", "host": "FW-RJ", "ip": "wan2 (50M)", "category": "Internet", "icon": "internet", "x": 330, "y": 85, "r": 28, "color": "#38bdf8", "core": True, "siteKey": "RJ"})
-    multi_nodes.append({"id": "inet-rj-2", "name": "Operadora B 50M", "label": "Operadora B 50M", "host": "FW-RJ", "ip": "wan1 (50M)", "category": "Internet", "icon": "internet", "x": 510, "y": 85, "r": 28, "color": "#38bdf8", "core": True, "siteKey": "RJ"})
+    # Internet Links Filial 1
+    multi_nodes.append({"id": "inet-rj-1", "name": "Link Primário 50M", "label": "Link Primário 50M", "host": "FW-RJ", "ip": "wan2 (50M)", "category": "Internet", "icon": "internet", "x": 330, "y": 85, "r": 28, "color": "#38bdf8", "core": True, "siteKey": "RJ"})
+    multi_nodes.append({"id": "inet-rj-2", "name": "Link Redundante 50M", "label": "Link Redundante 50M", "host": "FW-RJ", "ip": "wan1 (50M)", "category": "Internet", "icon": "internet", "x": 510, "y": 85, "r": 28, "color": "#38bdf8", "core": True, "siteKey": "RJ"})
     multi_links.append({"source": "inet-rj-1", "target": "432", "color": "#38bdf8", "width": 2.5, "glow": 10, "curveness": 0.05, "label": ""})
     multi_links.append({"source": "inet-rj-2", "target": "432", "color": "#38bdf8", "width": 2.5, "glow": 10, "curveness": -0.05, "label": ""})
 
@@ -373,8 +373,8 @@ def build_site_maps_data(api, cfg):
             multi_links.append(dict(lnk))
 
     # Internet Links Matriz
-    multi_nodes.append({"id": "inet-sp-1", "name": "Link Redundante 50M", "label": "Link Redundante 50M", "host": "FW-SP", "ip": "wan2 (50M)", "category": "Internet", "icon": "internet", "x": 1510, "y": 85, "r": 28, "color": "#38bdf8", "core": True, "siteKey": "Matriz"})
-    multi_nodes.append({"id": "inet-sp-2", "name": "Link Primário 50M", "label": "Link Primário 50M", "host": "FW-SP", "ip": "wan1 (50M)", "category": "Internet", "icon": "internet", "x": 1730, "y": 85, "r": 28, "color": "#38bdf8", "core": True, "siteKey": "Matriz"})
+    multi_nodes.append({"id": "inet-sp-1", "name": "Link Primário 50M", "label": "Link Primário 50M", "host": "FW-SP", "ip": "wan2 (50M)", "category": "Internet", "icon": "internet", "x": 1510, "y": 85, "r": 28, "color": "#38bdf8", "core": True, "siteKey": "Matriz"})
+    multi_nodes.append({"id": "inet-sp-2", "name": "Link Redundante 50M", "label": "Link Redundante 50M", "host": "FW-SP", "ip": "wan1 (50M)", "category": "Internet", "icon": "internet", "x": 1730, "y": 85, "r": 28, "color": "#38bdf8", "core": True, "siteKey": "Matriz"})
     multi_links.append({"source": "inet-sp-1", "target": "382", "color": "#38bdf8", "width": 2.5, "glow": 10, "curveness": 0.05, "label": ""})
     multi_links.append({"source": "inet-sp-2", "target": "382", "color": "#38bdf8", "width": 2.5, "glow": 10, "curveness": -0.05, "label": ""})
 
@@ -411,7 +411,7 @@ def build_site_maps_data(api, cfg):
             multi_links.append(dict(lnk))
 
     # Internet Links Bahia
-    multi_nodes.append({"id": "inet-ba-1", "name": "NET FIBER 30M", "label": "NET FIBER 30M", "host": "FW-BA", "ip": "wan2 (30M)", "category": "Internet", "icon": "internet", "x": 2730, "y": 85, "r": 28, "color": "#38bdf8", "core": True, "siteKey": "BA"})
+    multi_nodes.append({"id": "inet-ba-1", "name": "Link Fibra 30M", "label": "Link Fibra 30M", "host": "FW-BA", "ip": "wan2 (30M)", "category": "Internet", "icon": "internet", "x": 2730, "y": 85, "r": 28, "color": "#38bdf8", "core": True, "siteKey": "BA"})
     multi_nodes.append({"id": "inet-ba-2", "name": "Link Rádio 40M", "label": "Link Rádio 40M", "host": "FW-BA", "ip": "wan1 (40M)", "category": "Internet", "icon": "internet", "x": 2910, "y": 85, "r": 28, "color": "#38bdf8", "core": True, "siteKey": "BA"})
     multi_links.append({"source": "inet-ba-1", "target": "417", "color": "#38bdf8", "width": 2.5, "glow": 10, "curveness": 0.05, "label": ""})
     multi_links.append({"source": "inet-ba-2", "target": "417", "color": "#38bdf8", "width": 2.5, "glow": 10, "curveness": -0.05, "label": ""})
@@ -438,7 +438,7 @@ def build_site_maps_data(api, cfg):
 
     # Internet Links Paraná
     multi_nodes.append({"id": "inet-pr-1", "name": "WAN 2", "label": "WAN 2", "host": "FW-PR", "ip": "wan2", "category": "Internet", "icon": "internet", "x": 3330, "y": 85, "r": 28, "color": "#38bdf8", "core": True, "siteKey": "PR"})
-    multi_nodes.append({"id": "inet-pr-2", "name": "SD-WAN", "label": "SD-WAN", "host": "FW-PR", "ip": "wan1", "category": "Internet", "icon": "internet", "x": 3470, "y": 85, "r": 28, "color": "#38bdf8", "core": True, "siteKey": "PR"})
+    multi_nodes.append({"id": "inet-pr-2", "name": "Link SD-WAN", "label": "Link SD-WAN", "host": "FW-PR", "ip": "wan1", "category": "Internet", "icon": "internet", "x": 3470, "y": 85, "r": 28, "color": "#38bdf8", "core": True, "siteKey": "PR"})
     multi_links.append({"source": "inet-pr-1", "target": "414", "color": "#38bdf8", "width": 2.5, "glow": 10, "curveness": 0.05, "label": ""})
     multi_links.append({"source": "inet-pr-2", "target": "414", "color": "#38bdf8", "width": 2.5, "glow": 10, "curveness": -0.05, "label": ""})
 

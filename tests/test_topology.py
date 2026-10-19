@@ -33,7 +33,7 @@ def test_site_variable_is_a_regex_and_site_hosts_hidden():
     db = build_topology_dashboard()
     v = {x["name"]: x for x in db["templating"]["list"]}
     assert v["site"]["includeAll"] and v["site"]["allValue"] == ".*"
-    assert {o["value"] for o in v["site"]["options"]} == {"$__all", "Matriz", "RJ", "BA", "PR"}
+    assert {o["value"] for o in v["site"]["options"]} == {"$__all", "Matriz", "Filial1", "Filial2", "Filial3"}
     assert v["site_hosts"]["hide"] == 2 and v["site_hosts"]["query"]["group"] == r"/^Filiais\/$site$/"
     assert db["refresh"] == "1m"
     alerts = next(p for p in db["panels"] if p["type"].endswith("triggers-panel"))
@@ -58,7 +58,7 @@ def test_map_reads_live_status_per_host():
     assert p["targets"][0]["item"]["filter"] == topology.AVAIL_RE
     nodes, links = _embedded(code, "allNodes"), _embedded(code, "allLinks")
     ids = {n["id"] for n in nodes}
-    assert all(n["hosts"] and n["siteKey"] in {"Matriz", "RJ", "BA", "PR"} for n in nodes)
+    assert all(n["hosts"] and n["siteKey"] in {"Matriz", "Filial1", "Filial2", "Filial3"} for n in nodes)
     assert all(lk["source"] in ids and lk["target"] in ids for lk in links)
     assert not re.search(r"__NODES__|__LINKS__", code)
 

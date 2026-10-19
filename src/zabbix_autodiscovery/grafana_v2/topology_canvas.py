@@ -69,10 +69,10 @@ PRINTERS = {
 # Zones (site columns) of the virtual canvas: x0, x1, bottom, title, subtitle.
 TOP = 12                    # room above the zone titles for the panel's hover header
 ZONES = {
-    "SP": (0, 630, 838, "BARUERI (SP)", "MATRIZ · HUB SD-WAN · 192.168.0.0/24"),
-    "RJ": (646, 1106, 838, "RIO DE JANEIRO", "FILIAL · 192.168.3.0/24"),
-    "BA": (1122, 1582, 838, "BAHIA", "FILIAL · 192.168.2.0/24"),
-    "PR": (1598, W, 496, "PARANÁ", "FILIAL · 192.168.1.0/24"),
+    "SP": (0, 630, 838, "MATRIZ", "SEDE PRINCIPAL · HUB SD-WAN · 192.168.0.0/24"),
+    "RJ": (646, 1106, 838, "FILIAL 1", "FILIAL 1 (se houver) · 192.168.3.0/24"),
+    "BA": (1122, 1582, 838, "FILIAL 2", "FILIAL 2 (se houver) · 192.168.2.0/24"),
+    "PR": (1598, W, 496, "FILIAL 3", "FILIAL 3 (se houver) · 192.168.1.0/24"),
 }
 # Rows: top y and card height. Cards have three lines (name / status / IP or speed).
 CARD_H = 78
@@ -143,12 +143,12 @@ for _n in NODES:
 WAN_LINKS = [
     dict(fw="fw-sp", iface="wan1", name="Link Primário", speed="50 Mbps", cx=219, w=184),
     dict(fw="fw-sp", iface="wan2", name="Link Redundante", speed="50 Mbps", cx=411, w=184),
-    dict(fw="fw-rj", iface="a", name="Operadora A", speed="50 Mbps", cx=778, w=184),
-    dict(fw="fw-rj", iface="wan", name="Operadora B", speed="50 Mbps", cx=974, w=184),
+    dict(fw="fw-rj", iface="a", name="Link 1", speed="50 Mbps", cx=778, w=184),
+    dict(fw="fw-rj", iface="wan", name="Link Fibra", speed="50 Mbps", cx=974, w=184),
     dict(fw="fw-ba", iface="a", name="Link Fibra", speed="30 Mbps", cx=1254, w=184),
     dict(fw="fw-ba", iface="wan", name="Link Rádio", speed="40 Mbps", cx=1450, w=184),
     # the PR interfaces carry no speed (and the second no provider) in their alias: "wan(SD-WAN)", "a(wan2)"
-    dict(fw="fw-pr", iface="wan", name="SD-WAN", speed="wan · n/d", cx=1667, w=128),
+    dict(fw="fw-pr", iface="wan", name="Link SD-WAN", speed="wan · n/d", cx=1667, w=128),
     dict(fw="fw-pr", iface="a", name="Link 2", speed="wan2 · n/d", cx=1803, w=128),
 ]
 for _l in WAN_LINKS:
