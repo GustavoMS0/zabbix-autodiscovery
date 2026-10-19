@@ -63,3 +63,13 @@ def test_merge_second_pass():
     second = scanner.Device("10.0.0.1", ports=[443], sysobjectid="1.3.6.1.4.1.9.1", sysname="sw")
     scanner.merge(first, second)
     assert first.ports == [80, 443] and first.sysname == "sw"
+
+
+def test_ping_localhost():
+    assert asyncio.run(scanner.ping("127.0.0.1", 1.0)) is True
+
+
+def test_ping_unreachable():
+    # 192.0.2.0/24 is TEST-NET-1 (RFC 5737), non-routable
+    assert asyncio.run(scanner.ping("192.0.2.1", 0.2)) is False
+

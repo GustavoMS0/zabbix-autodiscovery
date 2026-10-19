@@ -1,6 +1,4 @@
 """Nobreaks (UPS) v3: desktop analysis dashboard enriched with real ICMP ping & latency telemetry."""
-import json
-
 from ..grafana_v2 import ups as _v2
 from . import style as S
 

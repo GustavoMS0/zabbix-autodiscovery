@@ -278,7 +278,50 @@ class SnmpProber:
         return None
 
 
+if WINDOWS:
+    try:
+        import ctypes
+        from ctypes import wintypes
+        _iphlpapi = ctypes.windll.iphlpapi
+        _iphlpapi.IcmpCreateFile.restype = wintypes.HANDLE
+        _iphlpapi.IcmpCloseHandle.argtypes = [wintypes.HANDLE]
+        _iphlpapi.IcmpCloseHandle.restype = wintypes.BOOL
+        _iphlpapi.IcmpSendEcho.argtypes = [
+            wintypes.HANDLE, wintypes.DWORD, ctypes.c_char_p, wintypes.WORD,
+            ctypes.c_void_p, ctypes.c_char_p, wintypes.DWORD, wintypes.DWORD
+        ]
+        _iphlpapi.IcmpSendEcho.restype = wintypes.DWORD
+        _HAS_WIN_ICMP = True
+    except Exception:
+        _HAS_WIN_ICMP = False
+else:
+    _HAS_WIN_ICMP = False
+
+
+def _win_ping_sync(ip: str, timeout_ms: int) -> bool:
+    try:
+        dest = struct.unpack("<I", socket.inet_aton(ip))[0]
+    except OSError:
+        return False
+    handle = _iphlpapi.IcmpCreateFile()
+    if not handle or handle == -1:
+        return False
+    try:
+        reply_buf = ctypes.create_string_buffer(128)
+        ret = _iphlpapi.IcmpSendEcho(
+            handle, dest, b"ping", 4, None, reply_buf, 128, max(1, timeout_ms)
+        )
+        return ret > 0
+    finally:
+        _iphlpapi.IcmpCloseHandle(handle)
+
+
 async def ping(ip, timeout):
+    if WINDOWS and _HAS_WIN_ICMP:
+        try:
+            return await asyncio.to_thread(_win_ping_sync, ip, int(timeout * 1000))
+        except Exception:
+            pass
     if WINDOWS:
         cmd = ["ping", "-n", "1", "-w", str(int(timeout * 1000)), ip]
     else:
@@ -291,6 +334,7 @@ async def ping(ip, timeout):
         return False
     # On Windows ping exits 0 even for "destination unreachable"; TTL= only shows on a real reply
     return proc.returncode == 0 and b"TTL=" in out.upper()
+
 
 
 async def tcp_open(ip, port, timeout):
