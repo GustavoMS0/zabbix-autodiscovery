@@ -1016,7 +1016,8 @@ def build_parser():
     p.add_argument("--v2", action="store_true",
                    help="write the v2 dashboards (NOC dark neon, folder 'AutoDiscovery v2') instead of v1")
     p.add_argument("--v3", action="store_true",
-                   help="write the v3 dashboards (unified hierarchical topology & enriched telemetry, folder 'AutoDiscovery v3')")
+                   help="write the v3 dashboards (unified hierarchical topology & enriched telemetry, "
+                        "folder 'AutoDiscovery v3')")
     p.add_argument("--datasource-uid", default="zabbix",
                    help="default Zabbix datasource UID (each dashboard also has a datasource selector)")
     p.add_argument("--include-empty", action="store_true",

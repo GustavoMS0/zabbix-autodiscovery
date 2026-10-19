@@ -48,7 +48,7 @@
         },
         "query": {
           "queryType": "group",
-          "group": "/^(Servidores\\/Hypervisors|Servidores\\/Linux|Servidores\\/Windows)$/",
+          "group": "/^(Servers\\/Hypervisors|Servers\\/Linux|Servers\\/Windows)$/",
           "host": "",
           "application": "",
           "itemTag": "",
@@ -56,7 +56,7 @@
         },
         "multi": true,
         "includeAll": true,
-        "allValue": "/^(Servidores\\/Hypervisors|Servidores\\/Linux|Servidores\\/Windows)$/",
+        "allValue": "/^(Servers\\/Hypervisors|Servers\\/Linux|Servers\\/Windows)$/",
         "refresh": 1,
         "sort": 1,
         "current": {

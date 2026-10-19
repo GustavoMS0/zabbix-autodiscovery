@@ -31,7 +31,10 @@ DISCARDS_IN = {"re": f"/{IF_PHYSICAL}.*: Inbound packets discarded$/i"}
 UPTIME = {"re": r"/^(Uptime \(network\)|System uptime|Uptime)$/"}   # not "Uptime (hardware)": 0 on switches
 SUPPLIES = {"zbx": "*Level %*", "re": r"/: Level %$/"}                # not the raw level (up to 100000)
 LOAD_1M = {"re": r"/^Load average \(1m avg\)$/"}
-WAN_RE = r"interface\s+(?!fortilink|loopback)(wan\d*|uplink\d*|internet\d*|a\([^)]*(wan|internet|net\s*fiber|mbps|ligga|its|easy|america|mega)[^)]*\))"
+WAN_RE = (
+    r"interface\s+(?!fortilink|loopback)"
+    r"(wan\d*|uplink\d*|internet\d*|a\([^)]*(wan|internet|net\s*fiber|mbps|ligga|its|easy|america|mega)[^)]*\))"
+)
 WAN_IN = {"re": f"/{WAN_RE}.*: bits received/i"}
 WAN_OUT = {"re": f"/{WAN_RE}.*: bits sent/i"}
 WAN_STATUS = {"re": f"/{WAN_RE}.*: operational status/i"}

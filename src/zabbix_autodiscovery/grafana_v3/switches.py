@@ -1,6 +1,5 @@
 """Switches v3: desktop analysis dashboard enriched with Dell FastPath CPU/Memory/Temperature telemetry
 and historical CPU/Memory charts."""
-import json
 
 from ..grafana_v2 import switches as _v2
 from ..grafana_v2.switches import (  # noqa: F401

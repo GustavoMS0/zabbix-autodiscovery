@@ -7,9 +7,7 @@ Apresenta a arquitetura de rede completa com:
 4. Telemetria em tempo real para todos os Access Points (Wi-Fi), incluindo clientes conectados e disponibilidade.
 5. Responsividade 100% ao filtro $site (isolamento e expansão da filial selecionada).
 """
-import copy
 import json
-import re
 
 true, false, null = True, False, None
 
@@ -203,9 +201,9 @@ def build_site_maps_data(api, cfg):
                 selem_map[sid] = node_obj
 
             links = []
-            for l in m.get("links", []):
-                s1 = str(l["selementid1"])
-                s2 = str(l["selementid2"])
+            for lnk in m.get("links", []):
+                s1 = str(lnk["selementid1"])
+                s2 = str(lnk["selementid2"])
                 if s1 in selem_map and s2 in selem_map:
                     n1 = selem_map[s1]
                     n2 = selem_map[s2]
@@ -235,7 +233,6 @@ def build_site_maps_data(api, cfg):
                 fw_node["y"] = 150
             if fw_node:
                 fw_x = fw_node["x"]
-                fw_y = fw_node["y"]
                 inet_defs = {
                     "Matriz": [("inet-sp-1", "Link Redundante 50M", "wan2", fw_x - 180, 50),
                                 ("inet-sp-2", "Link Primário 50M", "wan1", fw_x + 180, 50)],
@@ -316,9 +313,9 @@ def build_site_maps_data(api, cfg):
             node["x"], node["y"] = rj_coords[nid]
         node["siteKey"] = "RJ"
         multi_nodes.append(node)
-    for l in rj_map.get("links", []):
-        if not str(l["source"]).startswith("inet-") and not str(l["target"]).startswith("inet-"):
-            multi_links.append(dict(l))
+    for lnk in rj_map.get("links", []):
+        if not str(lnk["source"]).startswith("inet-") and not str(lnk["target"]).startswith("inet-"):
+            multi_links.append(dict(lnk))
 
     # Internet Links RJ
     multi_nodes.append({"id": "inet-rj-1", "name": "Operadora A 50M", "label": "Operadora A 50M", "host": "FW-RJ", "ip": "wan2 (50M)", "category": "Internet", "icon": "internet", "x": 330, "y": 85, "r": 28, "color": "#38bdf8", "core": True, "siteKey": "RJ"})
@@ -371,9 +368,9 @@ def build_site_maps_data(api, cfg):
             node["x"], node["y"] = sp_coords[nid]
         node["siteKey"] = "Matriz"
         multi_nodes.append(node)
-    for l in sp_map.get("links", []):
-        if not str(l["source"]).startswith("inet-") and not str(l["target"]).startswith("inet-"):
-            multi_links.append(dict(l))
+    for lnk in sp_map.get("links", []):
+        if not str(lnk["source"]).startswith("inet-") and not str(lnk["target"]).startswith("inet-"):
+            multi_links.append(dict(lnk))
 
     # Internet Links Matriz
     multi_nodes.append({"id": "inet-sp-1", "name": "Link Redundante 50M", "label": "Link Redundante 50M", "host": "FW-SP", "ip": "wan2 (50M)", "category": "Internet", "icon": "internet", "x": 1510, "y": 85, "r": 28, "color": "#38bdf8", "core": True, "siteKey": "Matriz"})
@@ -409,9 +406,9 @@ def build_site_maps_data(api, cfg):
             node["x"], node["y"] = ba_coords[nid]
         node["siteKey"] = "BA"
         multi_nodes.append(node)
-    for l in ba_map.get("links", []):
-        if not str(l["source"]).startswith("inet-") and not str(l["target"]).startswith("inet-"):
-            multi_links.append(dict(l))
+    for lnk in ba_map.get("links", []):
+        if not str(lnk["source"]).startswith("inet-") and not str(lnk["target"]).startswith("inet-"):
+            multi_links.append(dict(lnk))
 
     # Internet Links Bahia
     multi_nodes.append({"id": "inet-ba-1", "name": "NET FIBER 30M", "label": "NET FIBER 30M", "host": "FW-BA", "ip": "wan2 (30M)", "category": "Internet", "icon": "internet", "x": 2730, "y": 85, "r": 28, "color": "#38bdf8", "core": True, "siteKey": "BA"})
@@ -435,9 +432,9 @@ def build_site_maps_data(api, cfg):
             node["x"], node["y"] = pr_coords[nid]
         node["siteKey"] = "PR"
         multi_nodes.append(node)
-    for l in pr_map.get("links", []):
-        if not str(l["source"]).startswith("inet-") and not str(l["target"]).startswith("inet-"):
-            multi_links.append(dict(l))
+    for lnk in pr_map.get("links", []):
+        if not str(lnk["source"]).startswith("inet-") and not str(lnk["target"]).startswith("inet-"):
+            multi_links.append(dict(lnk))
 
     # Internet Links Paraná
     multi_nodes.append({"id": "inet-pr-1", "name": "WAN 2", "label": "WAN 2", "host": "FW-PR", "ip": "wan2", "category": "Internet", "icon": "internet", "x": 3330, "y": 85, "r": 28, "color": "#38bdf8", "core": True, "siteKey": "PR"})
@@ -563,7 +560,7 @@ const mergeOk = (prev, ok) => (prev === undefined || prev === null || ok === fal
 for (const frame of seriesData) {
   const valueField = (frame.fields || []).find((f) => f.type === 'number');
   if (!valueField) continue;
-  
+
   let host = (valueField.labels && valueField.labels.host) || '';
   if (!host && frame.name && frame.name.indexOf(':') > 0) {
     host = frame.name.split(':')[0].trim();

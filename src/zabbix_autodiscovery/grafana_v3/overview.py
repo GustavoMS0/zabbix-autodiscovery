@@ -1,5 +1,4 @@
 """Visão Geral v3: the NOC TV wall (1920x1080 kiosk, one screen, no scroll) with unified topology link and Wi-Fi KPI."""
-import json
 
 from . import style as S
 
@@ -117,6 +116,8 @@ def build(cfg, datasource_uid="zabbix"):
     return S.dashboard(
         KEY, "Visão Geral", panels, datasource_uid=datasource_uid, tv=True,
         time_from="now-6h", range_cap="2d",
-        description="Painel NOC v3 para TV 1920x1080: saúde global, clientes Wi-Fi, filiais, categorias e problemas ativos.",
+        description=(
+            "Painel NOC v3 para TV 1920x1080: saúde global, clientes Wi-Fi, filiais, categorias e problemas ativos."
+        ),
     )
 

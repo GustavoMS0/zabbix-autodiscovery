@@ -5,7 +5,6 @@ hardware de gestão OOB (iDRAC) e access points sem sobreposição de nós.
 """
 import copy
 import json
-import re
 
 true, false, null = True, False, None
 

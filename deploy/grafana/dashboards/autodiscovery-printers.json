@@ -48,7 +48,7 @@
         },
         "query": {
           "queryType": "group",
-          "group": "/^(Rede\\/Impressoras)$/",
+          "group": "/^(Network\\/Printers)$/",
           "host": "",
           "application": "",
           "itemTag": "",
@@ -56,7 +56,7 @@
         },
         "multi": true,
         "includeAll": true,
-        "allValue": "/^(Rede\\/Impressoras)$/",
+        "allValue": "/^(Network\\/Printers)$/",
         "refresh": 1,
         "sort": 1,
         "current": {

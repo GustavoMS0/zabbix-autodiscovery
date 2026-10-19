@@ -337,12 +337,17 @@ return {
           </div>
           <table style="font-size:12px;line-height:1.6;color:#cbd5e1;">
             <tr><td><b>Categoria:</b></td><td style="padding-left:8px;">${d.category}</td></tr>
-            <tr><td><b>Endereço IP:</b></td><td style="padding-left:8px;font-family:monospace;color:#38bdf8;">${d.ip}</td></tr>
+            <tr><td><b>Endereço IP:</b></td>
+                <td style="padding-left:8px;font-family:monospace;color:#38bdf8;">${d.ip}</td></tr>
             <tr><td><b>Localidade:</b></td><td style="padding-left:8px;">${d.site}</td></tr>
             <tr><td><b>Papel / Detalhe:</b></td><td style="padding-left:8px;">${d.role}</td></tr>
-            <tr><td><b>Status:</b></td><td style="padding-left:8px;"><span style="color:${COLORS[d.state]};font-weight:bold;">● ${LABELS[d.state]}</span> (${d.up}/${d.total} online)</td></tr>
+            <tr><td><b>Status:</b></td>
+                <td style="padding-left:8px;"><span style="color:${COLORS[d.state]};font-weight:bold;">
+                  ● ${LABELS[d.state]}</span> (${d.up}/${d.total} online)</td></tr>
           </table>
-          <div style="margin-top:6px;font-size:11px;line-height:1.5;border-top:1px solid #334155;padding-top:4px;">${rows}</div>
+          <div style="margin-top:6px;font-size:11px;line-height:1.5;border-top:1px solid #334155;padding-top:4px;">
+            ${rows}
+          </div>
         `;
       } else if (params.dataType === 'edge') {
         const d = params.data;
@@ -395,7 +400,10 @@ return {
       curveness: 0.08,
       opacity: 0.85
     },
-    categories: Object.keys(CATEGORY_COLORS).map((name) => ({ name: name, itemStyle: { color: CATEGORY_COLORS[name] } })),
+    categories: Object.keys(CATEGORY_COLORS).map((name) => ({
+      name: name,
+      itemStyle: { color: CATEGORY_COLORS[name] }
+    })),
     nodes: nodes,
     links: links
   }]

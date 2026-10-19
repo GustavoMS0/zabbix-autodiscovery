@@ -1,12 +1,10 @@
 """Access Points v3: desktop analysis dashboard enriched with UniFi connected clients KPI,
 and per-AP / per-SSID client charts."""
-import json
 
 from ..grafana_v2 import access_points as _v2
 from . import style as S
 from .switches import (
     COLOR_SERIES,
-    LATENCY_MS,
     TOP_N,
     availability_timeline,
     errors_table,
@@ -132,6 +130,8 @@ def build(cfg, datasource_uid="zabbix"):
     return S.dashboard(
         KEY, "Access Points", panels, datasource_uid=datasource_uid,
         variables=filter_variables(cfg, cat["group"]), time_from="now-6h", range_cap="2d",
-        description="Access points UniFi v3: clientes conectados por AP e SSID, estado, uplink, rádios, carga e qualidade.",
+        description=(
+            "Access points UniFi v3: clientes conectados por AP e SSID, estado, uplink, rádios, carga e qualidade."
+        ),
     )
 

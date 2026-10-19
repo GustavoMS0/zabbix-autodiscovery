@@ -17,7 +17,13 @@ def _matrix():
     targets = []
     for name, item, _, _, worse in COMPONENTS_V3:
         targets += _v2.status_targets(item, name, worse, len(targets))
-    columns = [_v2.host_column("Servidor", 145, [S.data_link("Filtrar por ${__value.text}", S.dashboard_url(KEY, host="${__value.raw}"))])]
+    columns = [
+        _v2.host_column(
+            "Servidor",
+            145,
+            [S.data_link("Filtrar por ${__value.text}", S.dashboard_url(KEY, host="${__value.raw}"))],
+        )
+    ]
     for name, _, codes, steps, worse in COMPONENTS_V3:
         columns += _v2._status_column(name, codes, steps, worse)
     order = _v2.worst_first(("Ping", False), ("SNMP", False), ("Geral", True), ("Sensores", True))

@@ -48,7 +48,7 @@
         },
         "query": {
           "queryType": "group",
-          "group": "/^(Infra\\/Hardware\\ Servidores|Infra\\/Nobreaks|Infra\\/PDU|Infra\\/Storage|Rede\\/Access\\ Points|Rede\\/Firewalls|Rede\\/Impressoras|Rede\\/Outros|Rede\\/Roteadores|Rede\\/Switches|Seguranca\\/CFTV|Servidores\\/Hypervisors|Servidores\\/Linux|Servidores\\/Windows|Telefonia\\/VoIP)$/",
+          "group": "/^(Infrastructure\\/PDU|Infrastructure\\/Server\\ Hardware|Infrastructure\\/Storage|Infrastructure\\/UPS|Network\\/Access\\ Points|Network\\/Firewalls|Network\\/Other|Network\\/Printers|Network\\/Routers|Network\\/Switches|Security\\/CCTV|Servers\\/Hypervisors|Servers\\/Linux|Servers\\/Windows|Telephony\\/VoIP)$/",
           "host": "",
           "application": "",
           "itemTag": "",
@@ -56,7 +56,7 @@
         },
         "multi": true,
         "includeAll": true,
-        "allValue": "/^(Infra\\/Hardware\\ Servidores|Infra\\/Nobreaks|Infra\\/PDU|Infra\\/Storage|Rede\\/Access\\ Points|Rede\\/Firewalls|Rede\\/Impressoras|Rede\\/Outros|Rede\\/Roteadores|Rede\\/Switches|Seguranca\\/CFTV|Servidores\\/Hypervisors|Servidores\\/Linux|Servidores\\/Windows|Telefonia\\/VoIP)$/",
+        "allValue": "/^(Infrastructure\\/PDU|Infrastructure\\/Server\\ Hardware|Infrastructure\\/Storage|Infrastructure\\/UPS|Network\\/Access\\ Points|Network\\/Firewalls|Network\\/Other|Network\\/Printers|Network\\/Routers|Network\\/Switches|Security\\/CCTV|Servers\\/Hypervisors|Servers\\/Linux|Servers\\/Windows|Telephony\\/VoIP)$/",
         "refresh": 1,
         "sort": 1,
         "current": {

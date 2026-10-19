@@ -80,7 +80,10 @@ def build(cfg, datasource_uid="zabbix"):
                 S.data_link("Ver problemas na Visão Geral v3", S.dashboard_url("overview", keep_time=False))
             ]
 
-    top_row = S.grid((4, [(banner, 4), (comm, 3), (rtt, 3), (source, 4), (battery, 3), (alarms, 2), (uptime, 3), (linebads, 2)]))
+    top_row = S.grid((
+        4,
+        [(banner, 4), (comm, 3), (rtt, 3), (source, 4), (battery, 3), (alarms, 2), (uptime, 3), (linebads, 2)],
+    ))
     return S.dashboard(
         KEY, TITLE, top_row + second_row + rest,
         datasource_uid=datasource_uid,

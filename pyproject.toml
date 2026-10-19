@@ -58,3 +58,5 @@ testpaths = ["tests"]
 
 [tool.ruff.lint.per-file-ignores]
 "src/zabbix_autodiscovery/wizard.py" = ["E501"]   # user-facing message strings stay on one line
+"src/zabbix_autodiscovery/grafana_v3/site_maps.py" = ["E501"]  # embedded ECharts scripts and map definitions
+"src/zabbix_autodiscovery/grafana_v3/topology.py" = ["E501"]   # embedded ECharts scripts and graph definitions
