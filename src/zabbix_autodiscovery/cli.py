@@ -121,6 +121,9 @@ def cmd_scan(cfg, args):
             raise SystemExit(f"No networks found for site '{args.site}'")
         scan_cfg["networks"] = matching
 
+    if getattr(args, "concurrency", None):
+        scan_cfg["concurrency"] = args.concurrency
+
     force = bool(getattr(args, "force", False))
     if getattr(args, "ping_only", False):
         import time
@@ -992,6 +995,8 @@ def build_parser():
                    help=f"scan even more than scan.max_targets addresses (default {scanner.MAX_TARGETS}, a /16)")
     p.add_argument("--ping-only", action="store_true",
                    help="fast ICMP-only sweep via native kernel ping / IcmpSendEcho (only discover active IPs)")
+    p.add_argument("--concurrency", type=int,
+                   help=f"number of concurrent probe threads (default from config or 50, max {scanner.MAX_CONCURRENCY})")
     p = sub.add_parser("diff", help="compare two inventory CSV scans to detect new, removed or changed devices")
     p.add_argument("-old", "--old-file", required=True, help="previous inventory CSV file")
     p.add_argument("-new", "--new-file", required=True, help="new inventory CSV file")
