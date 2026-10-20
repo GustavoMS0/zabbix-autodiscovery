@@ -94,6 +94,16 @@ class ZabbixAPI:
                 raise ZabbixError(f"{method}: {err.get('message')} {err.get('data', '')}".strip())
             return body["result"]
 
+    def close(self):
+        """Close the underlying HTTP session."""
+        self.session.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
     # --- helpers ---
 
     def ensure_hostgroup(self, name):

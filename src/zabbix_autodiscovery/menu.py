@@ -12,6 +12,7 @@ Provides an intuitive console control center for day-to-day operations:
 """
 import argparse
 import json
+import logging
 import re
 import shutil
 import subprocess
@@ -19,6 +20,8 @@ from pathlib import Path
 
 from . import __version__
 from .config import ConfigError, load_config
+
+logger = logging.getLogger(__name__)
 
 BANNER = r"""
   ______     _     _     _             _   _ _____   _____
@@ -304,8 +307,8 @@ def run_web(cfg, args_base):
     while True:
         try:
             cfg = load_config(args_base.config)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Falha ao recarregar config: %s", exc)
 
         web_cfg = cfg.get("web") or {}
         certs_cfg = web_cfg.get("certificates") or {}

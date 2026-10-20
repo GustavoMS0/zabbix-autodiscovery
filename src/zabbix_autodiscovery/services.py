@@ -120,6 +120,10 @@ async def _exchange(ip, port, payload, timeout):
         return b""
     finally:
         writer.close()
+        try:
+            await writer.wait_closed()
+        except Exception:
+            pass
 
 
 async def detect(ip, open_ports, timeout, web_servers=""):

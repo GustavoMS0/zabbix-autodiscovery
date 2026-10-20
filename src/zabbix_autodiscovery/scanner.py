@@ -365,6 +365,10 @@ async def agent_get(ip, key, timeout):
         return ""
     finally:
         writer.close()
+        try:
+            await writer.wait_closed()
+        except Exception:
+            pass
     if resp[:4] != b"ZBXD" or len(resp) < 13:
         return ""
     length = struct.unpack("<I", resp[5:9])[0]
@@ -434,6 +438,10 @@ async def http_probe(ip, port, tls, timeout):
         pass
     finally:
         writer.close()
+        try:
+            await writer.wait_closed()
+        except Exception:
+            pass
     return result
 
 
