@@ -573,3 +573,31 @@ def merge(dev, again):
     known = {w["port"] for w in dev.web}
     dev.web += [w for w in again.web if w["port"] not in known]
     dev.services = sorted(set(dev.services) | set(again.services), key=(dev.services + again.services).index)
+
+
+async def ping_sweep(scan_cfg, progress=None, force=False):
+    """Fast ICMP-only sweep using native OS kernel ping (IcmpSendEcho on Windows)."""
+    check_scan_size(scan_cfg, force)
+    concurrency = max(1, min(int(scan_cfg.get("concurrency", 50)), MAX_CONCURRENCY))
+    excluded = set(expand_targets(scan_cfg.get("exclude")))
+    targets = [str(ip) for ip in expand_targets(scan_cfg["networks"]) if ip not in excluded]
+    timeout = float(scan_cfg.get("ping_timeout", scan_cfg.get("timeout", 0.5)))
+    sem = asyncio.Semaphore(concurrency)
+
+    async def probe(ip):
+        async with sem:
+            alive = await ping(ip, timeout)
+            return ip, alive
+
+    found = []
+    tasks = [probe(ip) for ip in targets]
+    for done, coro in enumerate(asyncio.as_completed(tasks), 1):
+        ip, alive = await coro
+        if alive:
+            found.append(ip)
+        if progress:
+            progress(done, len(targets), len(found))
+
+    found.sort(key=lambda x: ipaddress.ip_address(x))
+    return found
+

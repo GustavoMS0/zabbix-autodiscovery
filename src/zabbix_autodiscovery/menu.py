@@ -93,6 +93,12 @@ def run_scan(cfg, args_base):
     nets = cfg.get("scan", {}).get("networks", [])
     print(f"Redes no config.yaml: {', '.join(nets) if nets else 'nenhuma'}")
 
+    mode = prompt_choice(
+        "Tipo de Varredura (1: Inventário Completo [Ping+SNMP+TCP+rDNS+Web], 2: Rápido ICMP [IcmpSendEcho - apenas IPs ativos])",
+        "1"
+    )
+    is_ping_only = (mode == "2")
+
     choice = prompt_choice("Escanear (1: Todas as redes do config, 2: Rede específica, 3: Filial específica)", "1")
     net_val = None
     site_val = None
@@ -107,8 +113,9 @@ def run_scan(cfg, args_base):
             print("Operação cancelada.")
             return
 
-    out_file = prompt_string("Arquivo CSV de saída", "inventory.csv")
-    args = argparse.Namespace(config=args_base.config, network=net_val, site=site_val, output=out_file, delimiter=";")
+    default_out = "ips_ativos.txt" if is_ping_only else "inventory.csv"
+    out_file = prompt_string("Arquivo de saída", default_out)
+    args = argparse.Namespace(config=args_base.config, network=net_val, site=site_val, output=out_file, delimiter=";", ping_only=is_ping_only)
     try:
         cmd_scan(cfg, args)
     except Exception as exc:
