@@ -89,7 +89,7 @@ NODES = [
      "hosts": ["switch-192.168.0.21"]},
     {"id": "sw-core-rj", "name": "SW-Core-Filial1", "category": "Switch", "x": 160, "y": 310, "symbolSize": 42,
      "ip": "192.168.3.19", "site": "Filial 1 (se houver)", "siteKey": "Filial1", "role": "Core Switch Filial 1",
-     "hosts": ["SW-Filial1-MikroTik"]},
+     "hosts": ["SW-Core-Filial1"]},
     {"id": "sw-core-ba", "name": "SW-Core-Filial2", "category": "Switch", "x": 840, "y": 310, "symbolSize": 42,
      "ip": "192.168.2.144", "site": "Filial 2 (se houver)", "siteKey": "Filial2", "role": "Core Switch Filial 2",
      "hosts": ["SW-Core-Filial2"]},
@@ -148,7 +148,10 @@ NODES = [
     {"id": "ap-ba", "name": "6x APs Wi-Fi Filial 2\n(Operação/Estoque)", "category": "Access Point", "x": 840, "y": 660,
      "symbolSize": 40, "ip": "192.168.2.47-52", "site": "Filial 2 (se houver)", "siteKey": "Filial2",
      "role": "6x APs Operação & Armazém",
-     "hosts": ["AP01 - ADM", "AP02 - ARMAZÉM", "AP03 - EXPEDIÇÃO", "AP04 - FÁBRICA", "AP05 - ESTOQUE", "AP06 - RESERVA"]},
+     "hosts": [
+         "AP01 - ADM", "AP02 - ARMAZÉM", "AP03 - EXPEDIÇÃO",
+         "AP04 - FÁBRICA", "AP05 - ESTOQUE", "AP06 - RESERVA",
+     ]},
 ]
 
 

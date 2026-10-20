@@ -94,8 +94,8 @@ def run_scan(cfg, args_base):
     print(f"Redes no config.yaml: {', '.join(nets) if nets else 'nenhuma'}")
 
     mode = prompt_choice(
-        "Tipo de Varredura (1: Inventário Completo [Ping+SNMP+TCP+rDNS+Web], 2: Rápido ICMP [IcmpSendEcho - apenas IPs ativos])",
-        "1"
+        "Tipo de Varredura (1: Completa [SNMP/TCP/Web], 2: Rápida ICMP [IcmpSendEcho])",
+        "1",
     )
     is_ping_only = (mode == "2")
 
@@ -115,7 +115,10 @@ def run_scan(cfg, args_base):
 
     default_out = "ips_ativos.txt" if is_ping_only else "inventory.csv"
     out_file = prompt_string("Arquivo de saída", default_out)
-    args = argparse.Namespace(config=args_base.config, network=net_val, site=site_val, output=out_file, delimiter=";", ping_only=is_ping_only)
+    args = argparse.Namespace(
+        config=args_base.config, network=net_val, site=site_val,
+        output=out_file, delimiter=";", ping_only=is_ping_only,
+    )
     try:
         cmd_scan(cfg, args)
     except Exception as exc:

@@ -130,7 +130,11 @@ def cmd_scan(cfg, args):
         try:
             total = scanner.check_scan_size(scan_cfg, force)
             concurrency = scan_cfg.get("concurrency", 50)
-            print(f"Scanning (ICMP ping-only via IcmpSendEcho): {', '.join(scan_cfg['networks'])} ({total} addresses, concurrency={concurrency})")
+            net_str = ", ".join(scan_cfg["networks"])
+            print(
+                f"Scanning (ICMP ping-only via IcmpSendEcho): {net_str} "
+                f"({total} addresses, concurrency={concurrency})"
+            )
             t0 = time.perf_counter()
             alive_ips = asyncio.run(scanner.ping_sweep(scan_cfg, progress, force=force))
             elapsed = time.perf_counter() - t0
@@ -995,8 +999,10 @@ def build_parser():
                    help=f"scan even more than scan.max_targets addresses (default {scanner.MAX_TARGETS}, a /16)")
     p.add_argument("--ping-only", action="store_true",
                    help="fast ICMP-only sweep via native kernel ping / IcmpSendEcho (only discover active IPs)")
-    p.add_argument("--concurrency", type=int,
-                   help=f"number of concurrent probe threads (default from config or 50, max {scanner.MAX_CONCURRENCY})")
+    p.add_argument(
+        "--concurrency", type=int,
+        help=f"probe threads concurrency (default from config or 50, max {scanner.MAX_CONCURRENCY})",
+    )
     p = sub.add_parser("diff", help="compare two inventory CSV scans to detect new, removed or changed devices")
     p.add_argument("-old", "--old-file", required=True, help="previous inventory CSV file")
     p.add_argument("-new", "--new-file", required=True, help="new inventory CSV file")
